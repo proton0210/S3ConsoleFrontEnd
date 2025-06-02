@@ -8,6 +8,7 @@ export default async function DownloadsPage() {
   const { userId } = auth();
   if (!userId) {
     redirect("/sign-in");
+
   }
 
   return (
