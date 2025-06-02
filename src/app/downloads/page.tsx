@@ -9,8 +9,8 @@ import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
 const client = new DynamoDBClient({
   region: "ap-south-1",
   credentials: {
-    accessKeyId: "AKIAQLSIVCVNSTPJN46F",
-    secretAccessKey: "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",
+    accessKeyId: process.env.NEXT_PUBLIC_DYNAMO_ACCESS_KEY_ID || "",
+    secretAccessKey: process.env.NEXT_PUBLIC_DYNAMO_SECRET_ACCESS_KEY || "",
   },
 });
 
