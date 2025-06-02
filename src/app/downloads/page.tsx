@@ -7,7 +7,8 @@ import { FaWindows, FaApple } from "react-icons/fa";
 export default async function DownloadsPage() {
   const { userId } = auth();
   if (!userId) {
-    redirect("/login");
+    redirect("/sign-in");
+
   }
 
   return (
