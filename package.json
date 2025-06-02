@@ -9,6 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.821.0",
+    "@aws-sdk/lib-dynamodb": "^3.535.0",
+    "@aws-sdk/util-dynamodb": "^3.821.0",
     "@clerk/nextjs": "^6.20.2",
     "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-dialog": "^1.1.1",
