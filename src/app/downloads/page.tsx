@@ -5,20 +5,19 @@ import { redirect } from "next/navigation";
 import { FaWindows, FaApple } from "react-icons/fa";
 
 export default async function DownloadsPage() {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) {
     redirect("/sign-in");
-
   }
 
   return (
-    <Section title="Downloads" className="py-20">
+    <Section title="Download S3Console" className="py-20">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="flex flex-col items-center border rounded-lg p-6 text-center">
+        <div className="flex flex-col items-center border rounded-lg p-6 text-center transition-all duration-200 hover:scale-105 hover:shadow-lg cursor-pointer">
           <FaWindows className="h-12 w-12 text-primary mb-4" />
           <h3 className="text-xl font-semibold">Download for Windows</h3>
         </div>
-        <div className="flex flex-col items-center border rounded-lg p-6 text-center">
+        <div className="flex flex-col items-center border rounded-lg p-6 text-center transition-all duration-200 hover:scale-105 hover:shadow-lg cursor-pointer">
           <FaApple className="h-12 w-12 text-primary mb-4" />
           <h3 className="text-xl font-semibold">Download for macOS</h3>
         </div>
