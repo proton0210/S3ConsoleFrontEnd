@@ -1,5 +1,5 @@
 import Section from "@/components/section";
-import { Button } from "@/components/ui/button";
+import CheckoutButton from "@/components/checkout-button";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { FaWindows, FaApple } from "react-icons/fa";
@@ -66,7 +66,7 @@ export default async function DownloadsPage() {
       )}
 
       <div className="mt-12 flex justify-center">
-        <Button size="lg">Buy LifeTime Access now</Button>
+        <CheckoutButton />
       </div>
     </Section>
   );
