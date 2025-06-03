@@ -33,6 +33,28 @@ export async function POST(req: NextRequest) {
           "SET paid = :p",
           { ":p": true }
         );
+        const name = Items?.[0]?.name;
+        try {
+          await fetch("https://api.resend.com/emails", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              from: process.env.RESEND_FROM_EMAIL,
+              to: [email],
+              subject: "Thanks for purchasing S3Console",
+              html: `
+                <p>Hi${name ? ` ${name}` : ""},</p>
+                <p>Thanks for purchasing <strong>S3Console</strong>.</p>
+                <p>— The S3Console Team</p>
+              `,
+            }),
+          });
+        } catch (err) {
+          console.warn("Resend email failed", err);
+        }
       }
     }
   }
