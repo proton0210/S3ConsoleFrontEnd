@@ -22,7 +22,8 @@ export async function POST(req: NextRequest) {
       const { Items } = await queryItems(
         "S3Console",
         "clerkId = :id",
-        { ":id": userId }
+        { ":id": userId },
+        "clerkId-index"
       );
       const email = Items?.[0]?.email;
       if (email) {

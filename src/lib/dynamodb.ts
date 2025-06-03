@@ -61,12 +61,14 @@ export async function deleteItem(tableName: string, key: Record<string, any>) {
 export async function queryItems(
   tableName: string,
   keyConditionExpression: string,
-  expressionAttributeValues: Record<string, any>
+  expressionAttributeValues: Record<string, any>,
+  indexName?: string
 ) {
   const command = new QueryCommand({
     TableName: tableName,
     KeyConditionExpression: keyConditionExpression,
     ExpressionAttributeValues: expressionAttributeValues,
+    ...(indexName ? { IndexName: indexName } : {}),
   });
   return docClient.send(command);
 }
