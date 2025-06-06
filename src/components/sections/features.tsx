@@ -1,41 +1,41 @@
 import Features from "@/components/features-horizontal";
 import Section from "@/components/section";
-import { BarChart3, Brain, FileText, LineChart } from "lucide-react";
+import { Share2, RefreshCw, Eye, FolderOpen } from "lucide-react";
 
 const data = [
   {
     id: 1,
-    title: "AI-Powered Dashboard",
-    content: "Visualize trends and gain insights at a glance.",
+    title: "Secure Presigned URLs",
+    content: "Create and share temporary download links with expiration dates for secure file access.",
     image: "/dashboard.png",
-    icon: <BarChart3 className="h-6 w-6 text-primary" />,
+    icon: <Share2 className="h-6 w-6 text-primary" />,
   },
   {
     id: 2,
-    title: "Natural Language Processing",
-    content: "Analyze text and extract sentiment effortlessly.",
+    title: "Multi-Profile Management",
+    content: "Switch between multiple AWS profiles and regions instantly with zero configuration hassle.",
     image: "/dashboard.png",
-    icon: <Brain className="h-6 w-6 text-primary" />,
+    icon: <RefreshCw className="h-6 w-6 text-primary" />,
   },
   {
     id: 3,
-    title: "Predictive Analytics",
-    content: "Forecast trends and make data-driven decisions.",
+    title: "Smart Object Preview",
+    content: "Preview images, documents, and media files directly in the app without downloading.",
     image: "/dashboard.png",
-    icon: <LineChart className="h-6 w-6 text-primary" />,
+    icon: <Eye className="h-6 w-6 text-primary" />,
   },
   {
     id: 4,
-    title: "Automated Reporting",
-    content: "Generate comprehensive reports with one click.",
+    title: "Streamlined S3 Operations",
+    content: "Upload, download, delete, and organize your S3 objects with an intuitive drag-and-drop interface.",
     image: "/dashboard.png",
-    icon: <FileText className="h-6 w-6 text-primary" />,
+    icon: <FolderOpen className="h-6 w-6 text-primary" />,
   },
 ];
 
 export default function Component() {
   return (
-    <Section title="Features" subtitle="User Flows and Navigational Structures">
+    <Section title="Features" subtitle="Everything you need to manage AWS S3 like a pro">
       <Features collapseDelay={5000} linePosition="bottom" data={data} />
     </Section>
   );

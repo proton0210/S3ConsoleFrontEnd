@@ -52,18 +52,8 @@ export default function RootLayout({
             defaultTheme="light"
             enableSystem={false}
           >
-            <header className="flex justify-end items-center p-4 gap-4 h-16">
-              <SignedOut>
-                <SignInButton />
-                <SignUpButton />
-              </SignedOut>
-              <SignedIn>
-                <UserButton />
-              </SignedIn>
-            </header>
             {children}
             <ThemeToggle />
-            <TailwindIndicator />
           </ThemeProvider>
         </body>
       </html>

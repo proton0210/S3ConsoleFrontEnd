@@ -22,7 +22,7 @@ export default function CheckoutButton() {
 
   return (
     <Button size="lg" onClick={handleClick}>
-      Buy LifeTime Access now
+      Download S3Console now
     </Button>
   );
 }

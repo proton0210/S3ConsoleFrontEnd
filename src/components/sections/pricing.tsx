@@ -2,137 +2,88 @@
 
 import Section from "@/components/section";
 import { buttonVariants } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { siteConfig } from "@/lib/config";
-import useWindowSize from "@/lib/hooks/use-window-size";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
 import { FaStar } from "react-icons/fa";
 
 export default function PricingSection() {
-  const [isMonthly, setIsMonthly] = useState(true);
-  const { isDesktop } = useWindowSize();
-
-  const handleToggle = () => {
-    setIsMonthly(!isMonthly);
-  };
-
   return (
-    <Section title="Pricing" subtitle="Choose the plan that's right for you">
-      <div className="flex justify-center mb-10">
-        <span className="mr-2 font-semibold">Monthly</span>
-        <label className="relative inline-flex items-center cursor-pointer">
-          <Label>
-            <Switch checked={!isMonthly} onCheckedChange={handleToggle} />
-          </Label>
-        </label>
-        <span className="ml-2 font-semibold">Yearly</span>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 sm:2 gap-4">
-        {siteConfig.pricing.map((plan, index) => (
-          <motion.div
-            key={index}
-            initial={{ y: 50, opacity: 1 }}
-            whileInView={
-              isDesktop
-                ? {
-                    y: 0,
-                    opacity: 1,
-                    x:
-                      index === siteConfig.pricing.length - 1
-                        ? -30
-                        : index === 0
-                        ? 30
-                        : 0,
-                    scale:
-                      index === 0 || index === siteConfig.pricing.length - 1
-                        ? 0.94
-                        : 1.0,
-                  }
-                : {}
-            }
-            viewport={{ once: true }}
-            transition={{
-              duration: 1.6,
-              type: "spring",
-              stiffness: 100,
-              damping: 30,
-              delay: 0.4,
-              opacity: { duration: 0.5 },
-            }}
-            className={cn(
-              `rounded-2xl border-[1px] p-6 bg-background text-center lg:flex lg:flex-col lg:justify-center relative`,
-              plan.isPopular ? "border-primary border-[2px]" : "border-border",
-              index === 0 || index === siteConfig.pricing.length - 1
-                ? "z-0 transform translate-x-0 translate-y-0 -translate-z-[50px] rotate-y-[10deg]"
-                : "z-10",
-              index === 0 && "origin-right",
-              index === siteConfig.pricing.length - 1 && "origin-left"
-            )}
-          >
-            {plan.isPopular && (
-              <div className="absolute top-0 right-0 bg-primary py-0.5 px-2 rounded-bl-xl rounded-tr-xl flex items-center">
-                <FaStar className="text-white" />
-                <span className="text-white ml-1 font-sans font-semibold">
-                  Popular
-                </span>
-              </div>
-            )}
-            <div>
-              <p className="text-base font-semibold text-muted-foreground">
-                {plan.name}
-              </p>
-              <p className="mt-6 flex items-center justify-center gap-x-2">
-                <span className="text-5xl font-bold tracking-tight text-foreground">
-                  {isMonthly ? plan.price : plan.yearlyPrice}
-                </span>
-                {plan.period !== "Next 3 months" && (
-                  <span className="text-sm font-semibold leading-6 tracking-wide text-muted-foreground">
-                    / {plan.period}
+    <Section title="Pricing" subtitle="Simple, transparent pricing">
+      <div className="flex justify-center">
+        <div className="max-w-md w-full">
+          {siteConfig.pricing.map((plan, index) => (
+            <motion.div
+              key={index}
+              initial={{ y: 50, opacity: 0 }}
+              whileInView={{ y: 0, opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{
+                duration: 0.6,
+                type: "spring",
+                stiffness: 100,
+                damping: 30,
+                delay: 0.2,
+              }}
+              className={cn(
+                "rounded-2xl p-8 bg-background text-center relative overflow-hidden",
+                "border border-border hover:border-transparent",
+                "group transition-all duration-500 ease-out",
+                "hover:shadow-[0_0_50px_rgba(8,_112,_184,_0.7)]",
+                "before:absolute before:inset-0 before:rounded-2xl before:p-[2px]",
+                "before:bg-gradient-to-r before:from-blue-500 before:via-purple-500 before:to-pink-500",
+                "before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-500",
+                "before:-z-10 before:content-['']",
+                "after:absolute after:inset-[2px] after:rounded-2xl after:bg-background after:-z-10"
+              )}
+            >
+              <div>
+                <p className="text-lg font-semibold text-muted-foreground mb-4">
+                  {plan.name}
+                </p>
+                <div className="mt-6 flex items-baseline justify-center gap-x-1">
+                  <span className="text-6xl font-bold tracking-tight text-foreground">
+                    $49
                   </span>
-                )}
-              </p>
+                  <span className="text-2xl font-semibold text-muted-foreground">
+                    .99
+                  </span>
+                </div>
+                <p className="text-sm text-muted-foreground mt-2 mb-8">
+                  {plan.period}
+                </p>
 
-              <p className="text-xs leading-5 text-muted-foreground">
-                {isMonthly ? "billed monthly" : "billed annually"}
-              </p>
+                <ul className="mt-8 space-y-3 text-left">
+                  {plan.features.map((feature, idx) => (
+                    <li key={idx} className="flex items-center">
+                      <Check className="mr-3 h-5 w-5 text-primary flex-shrink-0" />
+                      <span className="text-foreground">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
 
-              <ul className="mt-5 gap-2 flex flex-col">
-                {plan.features.map((feature, idx) => (
-                  <li key={idx} className="flex items-center">
-                    <Check className="mr-2 h-4 w-4 text-primary" />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <hr className="w-full my-4" />
-
-              <Link
-                href={plan.href}
-                className={cn(
-                  buttonVariants({
-                    variant: "outline",
-                  }),
-                  "group relative w-full gap-2 overflow-hidden text-lg font-semibold tracking-tighter",
-                  "transform-gpu ring-offset-current transition-all duration-300 ease-out hover:ring-2 hover:ring-primary hover:ring-offset-1 hover:bg-primary hover:text-white",
-                  plan.isPopular
-                    ? "bg-primary text-white"
-                    : "bg-white text-black"
-                )}
-              >
-                {plan.buttonText}
-              </Link>
-              <p className="mt-6 text-xs leading-5 text-muted-foreground">
-                {plan.description}
-              </p>
-            </div>
-          </motion.div>
-        ))}
+                <Link
+                  href={plan.href}
+                  className={cn(
+                    buttonVariants({
+                      variant: "default",
+                    }),
+                    "w-full mt-8 text-lg font-semibold py-3",
+                    "bg-primary hover:bg-primary/90 text-white",
+                    "transform transition-all duration-200 hover:scale-105"
+                  )}
+                >
+                  {plan.buttonText}
+                </Link>
+                <p className="mt-4 text-sm text-muted-foreground">
+                  {plan.description}
+                </p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
       </div>
     </Section>
   );

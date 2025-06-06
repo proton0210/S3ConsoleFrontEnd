@@ -1,34 +1,43 @@
 import BlurFade from "@/components/magicui/blur-fade";
 import Section from "@/components/section";
 import { Card, CardContent } from "@/components/ui/card";
-import { Brain, Shield, Zap } from "lucide-react";
+import { Globe, Share, UserX } from "lucide-react";
 
 const problems = [
   {
-    title: "Data Overload",
+    title: "Complex AWS Console Navigation",
     description:
-      "Businesses struggle to make sense of vast amounts of complex data, missing out on valuable insights that could drive growth and innovation.",
-    icon: Brain,
+      "The AWS web console is overwhelming and slow. Finding files, managing permissions, and performing bulk operations feels like navigating a maze.",
+    icon: Globe,
   },
   {
-    title: "Slow Decision-Making",
+    title: "Sharing Files is a Hassle",
     description:
-      "Traditional data processing methods are too slow, causing businesses to lag behind market changes and miss crucial opportunities.",
-    icon: Zap,
+      "Creating presigned URLs through CLI commands or complex console steps is tedious. Sharing files securely shouldn't require copy-pasting terminal commands.",
+    icon: Share,
   },
   {
-    title: "Data Security Concerns",
+    title: "Multi-Account Profile Management",
     description:
-      "With increasing cyber threats, businesses worry about the safety of their sensitive information when adopting new technologies.",
-    icon: Shield,
+      "Switching between AWS profiles, regions, and accounts requires constant re-authentication and browser tab juggling. It's a productivity killer.",
+    icon: UserX,
   },
 ];
 
 export default function Component() {
   return (
     <Section
-      title="Problem"
-      subtitle="Manually entering your data is a hassle."
+      title="The S3 Management Struggle is Real"
+      subtitle="S3 management shouldn’t be rocket science.
+
+
+
+
+
+
+
+
+"
     >
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
         {problems.map((problem, index) => (

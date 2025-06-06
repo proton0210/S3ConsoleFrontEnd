@@ -9,40 +9,40 @@ import { motion } from "framer-motion";
 
 const features = [
   {
-    title: "Advanced AI Algorithms",
+    title: "Intuitive Desktop Interface",
     description:
-      "Our platform utilizes cutting-edge AI algorithms to provide accurate and efficient solutions for your business needs.",
-    className: "hover:bg-red-500/10 transition-all duration-500 ease-out",
+      "Say goodbye to complex web consoles. Our native desktop app provides a clean, familiar interface that makes S3 management feel like working with your local file system.",
+    className: "hover:bg-blue-500/10 transition-all duration-500 ease-out",
     content: (
       <>
         <Safari
           src={`/dashboard.png`}
-          url="https://acme.ai"
+          url="https://s3console.com"
           className="-mb-32 mt-4 max-h-64 w-full px-4 select-none drop-shadow-[0_0_28px_rgba(0,0,0,.1)] group-hover:translate-y-[-10px] transition-all duration-300"
         />
       </>
     ),
   },
   {
-    title: "Secure Data Handling",
+    title: "One-Click Secure Sharing",
     description:
-      "We prioritize your data security with state-of-the-art encryption and strict privacy protocols, ensuring your information remains confidential.",
+      "Generate presigned URLs instantly with custom expiration times. Share files securely without touching the terminal or navigating complex console menus.",
     className:
-      "order-3 xl:order-none hover:bg-blue-500/10 transition-all duration-500 ease-out",
+      "order-3 xl:order-none hover:bg-green-500/10 transition-all duration-500 ease-out",
     content: (
       <Safari
         src={`/dashboard.png`}
-        url="https://acme.ai"
+        url="https://s3console.com"
         className="-mb-32 mt-4 max-h-64 w-full px-4 select-none drop-shadow-[0_0_28px_rgba(0,0,0,.1)] group-hover:translate-y-[-10px] transition-all duration-300"
       />
     ),
   },
   {
-    title: "Seamless Integration",
+    title: "Seamless Profile Switching",
     description:
-      "Easily integrate our AI solutions into your existing workflows and systems for a smooth and efficient operation.",
+      "Switch between AWS profiles, regions, and accounts with a single click. No more browser tabs, no re-authentication hassles, just instant access to all your S3 resources.",
     className:
-      "md:row-span-2 hover:bg-orange-500/10 transition-all duration-500 ease-out",
+      "md:row-span-2 hover:bg-purple-500/10 transition-all duration-500 ease-out",
     content: (
       <>
         <FlickeringGrid
@@ -57,24 +57,24 @@ const features = [
         />
         <Safari
           src={`/dashboard.png`}
-          url="https://acme.ai"
+          url="https://s3console.com"
           className="-mb-48 ml-12 mt-16 h-full px-4 select-none drop-shadow-[0_0_28px_rgba(0,0,0,.1)] group-hover:translate-x-[-10px] transition-all duration-300"
         />
       </>
     ),
   },
   {
-    title: "Customizable Solutions",
+    title: "Smart File Operations",
     description:
-      "Tailor our AI services to your specific needs with flexible customization options, allowing you to get the most out of our platform.",
+      "Drag-and-drop uploads, bulk operations, file previews, and intelligent organization tools. Everything you'd expect from a modern file manager, optimized for S3.",
     className:
-      "flex-row order-4 md:col-span-2 md:flex-row xl:order-none hover:bg-green-500/10 transition-all duration-500 ease-out",
+      "flex-row order-4 md:col-span-2 md:flex-row xl:order-none hover:bg-orange-500/10 transition-all duration-500 ease-out",
     content: (
       <>
         <Ripple className="absolute -bottom-full" />
         <Safari
           src={`/dashboard.png`}
-          url="https://acme.ai"
+          url="https://s3console.com"
           className="-mb-32 mt-4 max-h-64 w-full px-4 select-none drop-shadow-[0_0_28px_rgba(0,0,0,.1)] group-hover:translate-y-[-10px] transition-all duration-300"
         />
       </>
@@ -85,9 +85,9 @@ const features = [
 export default function Component() {
   return (
     <Section
-      title="Solution"
-      subtitle="Empower Your Business with AI Workflows"
-      description="Generic AI tools won't suffice. Our platform is purpose-built to provide exceptional AI-driven solutions for your unique business needs."
+      title="Meet Your New S3 Workflow"
+      subtitle="A Desktop App That Actually Gets S3 Management Right"
+      description="No more wrestling with web consoles or wrestling with CLI commands. S3Console brings the simplicity of modern desktop apps to AWS S3 management."
       className="bg-neutral-100 dark:bg-neutral-900"
     >
       <div className="mx-auto mt-16 grid max-w-sm grid-cols-1 gap-6 text-gray-500 md:max-w-3xl md:grid-cols-2 xl:grid-rows-2 md:grid-rows-3 xl:max-w-6xl xl:auto-rows-fr xl:grid-cols-3">

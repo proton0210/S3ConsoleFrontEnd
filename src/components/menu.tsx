@@ -36,11 +36,17 @@ export default function NavigationMenuDemo() {
                       <li className="row-span-3">
                         <NavigationMenuLink asChild>
                           <Link
-                            className="flex h-full w-full select-none flex-col justify-end rounded-md bg-primary/10 from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
+                            className={cn(
+                              "flex h-full w-full select-none rounded-md bg-primary/10 from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md",
+                              item.content.main.icon ? "flex-col justify-end" : "flex-col justify-center items-center text-center"
+                            )}
                             href={item.content.main.href}
                           >
                             {item.content.main.icon}
-                            <div className="mb-2 mt-4 text-lg font-medium">
+                            <div className={cn(
+                              "text-lg font-medium",
+                              item.content.main.icon ? "mb-2 mt-4" : "mb-2"
+                            )}>
                               {item.content.main.title}
                             </div>
                             <p className="text-sm leading-tight text-muted-foreground">

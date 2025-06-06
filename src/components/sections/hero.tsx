@@ -7,13 +7,14 @@ import HeroVideoDialog from "@/components/magicui/hero-video";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { SignedIn, SignedOut } from "@clerk/nextjs";
 
 const ease = [0.16, 1, 0.3, 1];
 
 function HeroPill() {
   return (
     <motion.a
-      href="/blog/introducing-acme-ai"
+      href="/blog/introducing-s3console"
       className="flex w-auto items-center space-x-2 rounded-full bg-primary/20 px-2 py-1 ring-1 ring-accent whitespace-pre"
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -23,7 +24,7 @@ function HeroPill() {
         📣 Announcement
       </div>
       <p className="text-xs font-medium text-primary sm:text-sm">
-        Introducing Acme.ai
+        Introducing S3Console
       </p>
       <svg
         width="12"
@@ -55,7 +56,7 @@ function HeroTitles() {
           staggerChildren: 0.2,
         }}
       >
-        {["Automate", "your", "workflow", "with AI"].map((text, index) => (
+        {["Native", "AWS", "S3", "Desktop", "App"].map((text, index) => (
           <motion.span
             key={index}
             className="inline-block px-1 md:px-2 text-balance font-semibold"
@@ -81,7 +82,8 @@ function HeroTitles() {
           ease,
         }}
       >
-        No matter what problem you have, our AI can help you solve it.
+        A powerful desktop GUI for Mac and Windows that makes AWS S3 bucket
+        management simple and intuitive.
       </motion.p>
     </div>
   );
@@ -96,25 +98,42 @@ function HeroCTA() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.8, duration: 0.8, ease }}
       >
-        <Link
-          href="/sign-up"
-          className={cn(
-            buttonVariants({ variant: "default" }),
-            "w-full sm:w-auto text-background flex gap-2"
-          )}
-        >
-          <Icons.logo className="h-6 w-6" />
-          Get started for free
-        </Link>
+        <SignedOut>
+          <Link
+            href="/sign-up"
+            className={cn(
+              buttonVariants({ variant: "default" }),
+              "w-full sm:w-auto text-background flex gap-2"
+            )}
+          >
+            Get started for free
+          </Link>
+        </SignedOut>
+        <SignedIn>
+          <Link
+            href="/downloads"
+            className={cn(
+              buttonVariants({ variant: "default" }),
+              "w-full sm:w-auto text-background"
+            )}
+          >
+            Download S3Console
+          </Link>
+        </SignedIn>
       </motion.div>
-      <motion.p
-        className="mt-5 text-sm text-muted-foreground"
+      <motion.div
+        className="mt-5 text-center"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.0, duration: 0.8 }}
       >
-        7 day free trial. No credit card required.
-      </motion.p>
+        <p className="text-sm text-muted-foreground">
+          One-time payment. Lifetime access. No subscriptions.
+        </p>
+        <p className="text-xs text-muted-foreground/80 mt-2 max-w-md mx-auto">
+          * Security-first design: We never store your AWS credentials. All authentication happens locally on your device for maximum security and privacy.
+        </p>
+      </motion.div>
     </>
   );
 }
@@ -141,7 +160,7 @@ function HeroImage() {
 export default function Hero2() {
   return (
     <section id="hero">
-      <div className="relative flex w-full flex-col items-center justify-start px-4 pt-32 sm:px-6 sm:pt-24 md:pt-32 lg:px-8">
+      <div className="relative flex w-full flex-col items-center justify-start px-4 pt-16 sm:px-6 sm:pt-12 md:pt-16 lg:px-8">
         <HeroPill />
         <HeroTitles />
         <HeroCTA />
