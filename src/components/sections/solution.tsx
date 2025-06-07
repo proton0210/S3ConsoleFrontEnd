@@ -2,10 +2,10 @@
 
 import FlickeringGrid from "@/components/magicui/flickering-grid";
 import Ripple from "@/components/magicui/ripple";
-import Safari from "@/components/safari";
 import Section from "@/components/section";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 const features = [
   {
@@ -15,10 +15,12 @@ const features = [
     className: "hover:bg-blue-500/10 transition-all duration-500 ease-out",
     content: (
       <>
-        <Safari
-          src={`/dashboard.png`}
-          url="https://s3console.com"
-          className="-mb-32 mt-4 max-h-64 w-full px-4 select-none drop-shadow-[0_0_28px_rgba(0,0,0,.1)] group-hover:translate-y-[-10px] transition-all duration-300"
+        <Image
+          src="/dashboard.png"
+          alt="Intuitive Desktop Interface"
+          width={800}
+          height={600}
+          className="-mb-32 mt-4 max-h-64 w-full px-4 select-none drop-shadow-[0_0_28px_rgba(0,0,0,.1)] group-hover:translate-y-[-10px] transition-all duration-300 rounded-lg"
         />
       </>
     ),
@@ -30,10 +32,12 @@ const features = [
     className:
       "order-3 xl:order-none hover:bg-green-500/10 transition-all duration-500 ease-out",
     content: (
-      <Safari
-        src={`/dashboard.png`}
-        url="https://s3console.com"
-        className="-mb-32 mt-4 max-h-64 w-full px-4 select-none drop-shadow-[0_0_28px_rgba(0,0,0,.1)] group-hover:translate-y-[-10px] transition-all duration-300"
+      <Image
+        src="/4-presign.png"
+        alt="One-Click Secure Sharing"
+        width={800}
+        height={600}
+        className="-mb-32 mt-4 max-h-64 w-full px-4 select-none drop-shadow-[0_0_28px_rgba(0,0,0,.1)] group-hover:translate-y-[-10px] transition-all duration-300 rounded-lg"
       />
     ),
   },
@@ -55,10 +59,12 @@ const features = [
           height={800}
           width={800}
         />
-        <Safari
-          src={`/dashboard.png`}
-          url="https://s3console.com"
-          className="-mb-48 ml-12 mt-16 h-full px-4 select-none drop-shadow-[0_0_28px_rgba(0,0,0,.1)] group-hover:translate-x-[-10px] transition-all duration-300"
+        <Image
+          src="/1-profile.png"
+          alt="Seamless Profile Switching"
+          width={800}
+          height={600}
+          className="-mb-32 ml-6 mt-8 h-auto px-2 select-none drop-shadow-[0_0_28px_rgba(0,0,0,.1)] group-hover:translate-x-[-10px] transition-all duration-300 rounded-lg"
         />
       </>
     ),
@@ -72,10 +78,12 @@ const features = [
     content: (
       <>
         <Ripple className="absolute -bottom-full" />
-        <Safari
-          src={`/dashboard.png`}
-          url="https://s3console.com"
-          className="-mb-32 mt-4 max-h-64 w-full px-4 select-none drop-shadow-[0_0_28px_rgba(0,0,0,.1)] group-hover:translate-y-[-10px] transition-all duration-300"
+        <Image
+          src="/2-create-bucket.png"
+          alt="Smart File Operations"
+          width={800}
+          height={600}
+          className="-mb-32 mt-4 max-h-64 w-full px-4 select-none drop-shadow-[0_0_28px_rgba(0,0,0,.1)] group-hover:translate-y-[-10px] transition-all duration-300 rounded-lg"
         />
       </>
     ),

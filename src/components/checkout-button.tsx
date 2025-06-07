@@ -2,27 +2,16 @@
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@clerk/nextjs";
 
-export default function CheckoutButton() {
+interface CheckoutButtonProps {
+  onClick?: () => void;
+}
+
+export default function CheckoutButton({ onClick }: CheckoutButtonProps) {
   const { userId } = useAuth();
 
-  const handleClick = async () => {
-    const res = await fetch(
-      `/api/polar/checkout?products=d73f8220-66f4-45ee-8e7d-95ed4c877090`,
-      {
-        method: "GET",
-      }
-    );
-    if (res.ok) {
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      }
-    }
-  };
-
   return (
-    <Button size="lg" onClick={handleClick}>
-      Download S3Console now
+    <Button size="lg" onClick={onClick}>
+      Purchase S3Console
     </Button>
   );
 }
