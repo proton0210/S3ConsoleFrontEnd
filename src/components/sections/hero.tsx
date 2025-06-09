@@ -56,7 +56,7 @@ function HeroTitles() {
           staggerChildren: 0.2,
         }}
       >
-        {["Native", "AWS", "S3", "Desktop", "App"].map((text, index) => (
+        {["AWS S3", "Desktop", "App", "for Mac", "& Windows"].map((text, index) => (
           <motion.span
             key={index}
             className="inline-block px-1 md:px-2 text-balance font-semibold"
@@ -82,8 +82,8 @@ function HeroTitles() {
           ease,
         }}
       >
-        A powerful desktop GUI for Mac and Windows that makes AWS S3 bucket
-        management simple and intuitive.
+        Professional S3 bucket manager with intuitive GUI. Generate presigned URLs, 
+        switch between AWS profiles instantly, preview files without downloading.
       </motion.p>
     </div>
   );

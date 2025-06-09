@@ -7,15 +7,35 @@ export const BLUR_FADE_DELAY = 0.15;
 
 export const siteConfig = {
   name: "S3Console",
-  description: "Simplify your AWS S3 Management",
-  url: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
-  keywords: ["SaaS", "Template", "Next.js", "React", "Tailwind CSS"],
+  description: "Native AWS S3 Desktop App for Mac & Windows - Manage S3 buckets with an intuitive GUI. Features presigned URLs, multi-profile support, and smart file preview.",
+  url: process.env.NEXT_PUBLIC_APP_URL || "https://s3console.com",
+  keywords: [
+    "AWS S3 desktop app",
+    "S3 bucket manager",
+    "AWS S3 GUI",
+    "S3 file manager",
+    "AWS S3 client",
+    "S3 desktop client",
+    "S3 management tool",
+    "AWS storage manager",
+    "S3 presigned URLs",
+    "S3 multi-profile",
+    "S3 file preview",
+    "AWS S3 Mac app",
+    "AWS S3 Windows app",
+    "S3 bucket explorer",
+    "cloud storage manager"
+  ],
+  author: "S3Console Team",
+  creator: "S3Console",
+  publisher: "S3Console",
+  category: "Software",
   links: {
-    email: "vidit@serverlesscreed.com",
-    twitter: "https://twitter.com/magicuidesign",
-    discord: "https://discord.gg/87p2vpsat5",
-    github: "https://github.com/magicuidesign/magicui",
-    instagram: "https://instagram.com/magicuidesign/",
+    email: "support@s3console.com",
+    twitter: "https://twitter.com/s3console",
+    discord: "https://discord.gg/s3console",
+    github: "https://github.com/s3console",
+    instagram: "https://instagram.com/s3console/",
   },
   header: [
     {

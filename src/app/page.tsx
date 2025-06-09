@@ -9,10 +9,12 @@ import Pricing from "@/components/sections/pricing";
 import Problem from "@/components/sections/problem";
 import Solution from "@/components/sections/solution";
 import TestimonialsCarousel from "@/components/sections/testimonials-carousel";
+import { StructuredData } from "@/components/structured-data";
 
 export default function Home() {
   return (
     <main>
+      <StructuredData type="faq" />
       <Header />
       <Hero />
       <Problem />

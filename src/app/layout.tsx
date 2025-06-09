@@ -1,6 +1,7 @@
 import { TailwindIndicator } from "@/components/tailwind-indicator";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { StructuredData } from "@/components/structured-data";
 import { cn, constructMetadata } from "@/lib/utils";
 import { type Metadata, Viewport } from "next";
 import {
@@ -40,6 +41,8 @@ export default function RootLayout({
         <head>
           <link rel="preconnect" href="https://rsms.me/" />
           <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+          <StructuredData type="website" />
+          <StructuredData type="software" />
         </head>
         <body
           className={cn(
