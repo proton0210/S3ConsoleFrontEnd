@@ -15,6 +15,9 @@ const nextConfig = {
     // !! WARN !!
     ignoreBuildErrors: true,
   },
+  env: {
+    CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
+  },
 };
 
 export default nextConfig;
