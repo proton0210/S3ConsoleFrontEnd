@@ -218,12 +218,12 @@ export default function DownloadsPage() {
 
   const handleMacDownload = () => {
     // Start the download
-    const downloadLink = "https://s3consolemac.s3.us-east-1.amazonaws.com/S3Console-1.0.46-arm64.dmg";
+    const downloadLink = "https://s3consolemac.s3.us-east-1.amazonaws.com/S3Console-1.0.48-arm64.dmg";
     
     // Create a temporary anchor element for download
     const link = document.createElement('a');
     link.href = downloadLink;
-    link.download = 'S3Console-1.0.46-arm64.dmg';
+    link.download = 'S3Console-1.0.48-arm64.dmg';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
