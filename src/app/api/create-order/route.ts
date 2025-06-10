@@ -19,11 +19,16 @@ export async function POST(req: NextRequest, res: NextResponse) {
     key_secret: keySecret,
   });
 
+  // Generate a random receipt number
+  const timestamp = Date.now();
+  const randomNum = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+  const receiptId = `S3C_${timestamp}_${randomNum}`;
+
   try {
     const order = await instance.orders.create({
       amount: amount, // Ensure this is the correct amount
       currency: "USD",
-      receipt: "order_rcptid_11",
+      receipt: receiptId,
     });
     return NextResponse.json({
       id: order.id,

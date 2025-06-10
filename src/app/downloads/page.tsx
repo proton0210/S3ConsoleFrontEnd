@@ -35,7 +35,6 @@ const client = new DynamoDBClient({
 });
 
 const docClient = DynamoDBDocumentClient.from(client);
-const RESEND_FROM_EMAIL = "Vidit <vidit@serverlesscreed.com>";
 
 export default function DownloadsPage() {
   const { userId } = useAuth();
@@ -44,6 +43,7 @@ export default function DownloadsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
   useEffect(() => {
     if (!userId) {
@@ -125,30 +125,30 @@ export default function DownloadsPage() {
           const command = new UpdateItemCommand({
             TableName: "S3Console",
             Key: { email: { S: email } },
-            UpdateExpression: "SET paid = :paid",
-            ExpressionAttributeValues: { ":paid": { BOOL: true } },
+            UpdateExpression: "SET paid = :paid, onTrial = :onTrial",
+            ExpressionAttributeValues: { 
+              ":paid": { BOOL: true },
+              ":onTrial": { BOOL: false }
+            },
           });
 
           await docClient.send(command);
 
           try {
-            await fetch("https://api.resend.com/emails", {
+            const emailResponse = await fetch("/api/send-email", {
               method: "POST",
               headers: {
-                Authorization: `Bearer ${process.env.NEXT_PUBLIC_RESEND_API_KEY}`,
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                from: RESEND_FROM_EMAIL,
-                to: [email],
-                subject: "Thanks for purchasing S3Console",
-                html: `
-                  <p>Hi${name ? ` ${name}` : ""},</p>
-                  <p>Thanks for purchasing <strong>S3Console</strong>.</p>
-                  <p>— The S3Console Team</p>
-                `,
+                email: email,
+                name: name,
               }),
             });
+
+            if (!emailResponse.ok) {
+              console.warn("Failed to send email:", await emailResponse.text());
+            }
           } catch (err) {
             console.warn("Resend email failed", err);
           }
@@ -189,6 +189,14 @@ export default function DownloadsPage() {
 
             const refreshResponse = await docClient.send(refreshCommand);
             setUserData(refreshResponse.Items?.[0]);
+            
+            // Show success message
+            setShowSuccessMessage(true);
+            
+            // Hide the message after 10 seconds
+            setTimeout(() => {
+              setShowSuccessMessage(false);
+            }, 10000);
           } catch (error) {
             console.error("Failed to refresh user data:", error);
           }
@@ -209,13 +217,66 @@ export default function DownloadsPage() {
   };
 
   const handleMacDownload = () => {
-    // Handle actual download - no purchase required
-    window.open("https://your-download-link.com", "_blank");
+    // Start the download
+    const downloadLink = "https://s3consolemac.s3.us-east-1.amazonaws.com/S3Console-1.0.46-arm64.dmg";
+    
+    // Create a temporary anchor element for download
+    const link = document.createElement('a');
+    link.href = downloadLink;
+    link.download = 'S3Console-1.0.46-arm64.dmg';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Show notification
+    const notification = document.createElement('div');
+    notification.className = 'fixed bottom-8 right-8 bg-slate-900 text-white p-6 rounded-lg shadow-xl z-50 max-w-md animate-in slide-in-from-bottom';
+    notification.innerHTML = `
+      <div class="flex items-start gap-4">
+        <div class="flex-shrink-0">
+          <svg class="h-6 w-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <div class="flex-1">
+          <p class="font-semibold mb-1">Download Started!</p>
+          <p class="text-sm text-slate-300 mb-2">Your S3Console download should begin shortly.</p>
+          <p class="text-xs text-slate-400">If the download doesn't start automatically, <a href="${downloadLink}" class="text-primary hover:underline">click here</a>.</p>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Remove notification after 8 seconds
+    setTimeout(() => {
+      notification.classList.add('animate-out', 'slide-out-to-bottom');
+      setTimeout(() => {
+        document.body.removeChild(notification);
+      }, 300);
+    }, 8000);
   };
 
   return (
     <>
       <Header />
+      {showSuccessMessage && (
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 animate-in slide-in-from-top">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 shadow-lg max-w-md">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0">
+                <FaCheck className="h-5 w-5 text-green-600 mt-0.5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-green-800">Payment Successful!</h3>
+                <p className="text-sm text-green-700 mt-1">
+                  Thank you for purchasing S3Console Pro. If you're currently logged into the S3Console desktop application, please log out and log back in to activate your Pro license.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
         <Section className="py-20">
           <div className="text-center mb-16">

@@ -2,6 +2,62 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  @keyframes slide-in-from-bottom {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes slide-out-to-bottom {
+    from {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+  }
+  
+  @keyframes slide-in-from-top {
+    from {
+      transform: translateY(-100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  
+  .animate-in {
+    animation: slide-in-from-bottom 0.3s ease-out;
+  }
+  
+  .animate-out {
+    animation: slide-out-to-bottom 0.3s ease-in;
+  }
+  
+  .slide-in-from-bottom {
+    animation-fill-mode: both;
+  }
+  
+  .slide-out-to-bottom {
+    animation-fill-mode: both;
+  }
+  
+  .slide-in-from-top {
+    animation: slide-in-from-top 0.3s ease-out;
+    animation-fill-mode: both;
+  }
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
