@@ -162,12 +162,55 @@ export default function DownloadsPage() {
   const handleMacDownload = () => {
     // Start the download
     const downloadLink =
-      "https://s3consolemac.s3.us-east-1.amazonaws.com/S3Console-1.0.52-arm64.dmg";
+      "https://s3consolemac.s3.us-east-1.amazonaws.com/S3Console-1.0.54-arm64.dmg";
 
     // Create a temporary anchor element for download
     const link = document.createElement("a");
     link.href = downloadLink;
-    link.download = "S3Console-1.0.52-arm64.dmg";
+    link.download = "S3Console-1.0.54-arm64.dmg";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Show notification
+    const notification = document.createElement("div");
+    notification.className =
+      "fixed bottom-8 right-8 bg-slate-900 text-white p-6 rounded-lg shadow-xl z-50 max-w-md animate-in slide-in-from-bottom";
+    notification.innerHTML = `
+      <div class="flex items-start gap-4">
+        <div class="flex-shrink-0">
+          <svg class="h-6 w-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <div class="flex-1">
+          <p class="font-semibold mb-1">Download Started!</p>
+          <p class="text-sm text-slate-300 mb-2">Your S3Console download should begin shortly.</p>
+          <p class="text-xs text-slate-400">If the download doesn't start automatically, <a href="${downloadLink}" class="text-primary hover:underline">click here</a>.</p>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(notification);
+
+    // Remove notification after 8 seconds
+    setTimeout(() => {
+      notification.classList.add("animate-out", "slide-out-to-bottom");
+      setTimeout(() => {
+        document.body.removeChild(notification);
+      }, 300);
+    }, 8000);
+  };
+
+  const handleWindowsDownload = () => {
+    // Start the download
+    const downloadLink =
+      "https://s3consolewindows.s3.ap-south-1.amazonaws.com/S3Console-Setup-1.0.54.exe";
+
+    // Create a temporary anchor element for download
+    const link = document.createElement("a");
+    link.href = downloadLink;
+    link.download = "S3Console-Setup-1.0.54.exe";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -268,22 +311,19 @@ export default function DownloadsPage() {
           {/* Download Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
             {/* Windows Card */}
-            <div className="group relative overflow-hidden border border-slate-200 dark:border-slate-700 rounded-2xl p-8 text-center transition-all duration-300 hover:shadow-2xl hover:shadow-slate-200 dark:hover:shadow-slate-800/50 bg-white dark:bg-slate-800">
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-transparent dark:from-slate-700/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="group relative overflow-hidden border border-slate-200 dark:border-slate-700 rounded-2xl p-8 text-center transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20 bg-white dark:bg-slate-800 hover:border-primary/30">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="relative z-10">
-                <div className="inline-flex items-center justify-center w-20 h-20 bg-slate-100 dark:bg-slate-700 rounded-2xl mb-6 group-hover:scale-110 transition-transform duration-300">
-                  <FaWindows className="h-10 w-10 text-slate-400" />
+                <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/10 rounded-2xl mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <FaWindows className="h-10 w-10 text-primary" />
                 </div>
-                <h3 className="text-2xl font-bold text-slate-400 mb-3">
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">
                   Windows
                 </h3>
-                <p className="text-slate-500 mb-6">Windows 10/11 (64-bit)</p>
-                <div className="absolute top-4 right-4 bg-amber-100 text-amber-700 text-xs px-3 py-1 rounded-full font-medium">
-                  Coming Soon
-                </div>
+                <p className="text-slate-600 dark:text-slate-400 mb-6">Windows 10/11 (64-bit)</p>
                 <Button
-                  disabled
-                  className="w-full bg-slate-300 hover:bg-slate-300 text-slate-500 cursor-not-allowed"
+                  onClick={handleWindowsDownload}
+                  className="w-full bg-primary hover:bg-primary/90 text-white group-hover:shadow-lg transition-all duration-300"
                 >
                   <FaDownload className="mr-2 h-4 w-4" />
                   Download for Windows
