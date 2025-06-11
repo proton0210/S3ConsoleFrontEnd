@@ -18,6 +18,7 @@ const nextConfig = {
   env: {
     CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
     RAZORPAY_KEY_SECRET: process.env.RAZORPAY_KEY_SECRET,
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
   },
 };
 
