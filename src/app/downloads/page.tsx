@@ -11,13 +11,16 @@ import {
   FaKey,
   FaUser,
   FaEnvelope,
+  FaCheck,
 } from "react-icons/fa";
 import { HiSparkles } from "react-icons/hi";
 import { Button } from "@/components/ui/button";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { useState, useEffect } from "react";
 import Script from "next/script";
+import { PolarEmbedCheckout } from "@polar-sh/checkout/embed";
+import confetti from "canvas-confetti";
 
 const client = new DynamoDBClient({
   region: "ap-south-1",
@@ -33,6 +36,8 @@ export default function DownloadsPage() {
   const { userId } = useAuth();
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [processingPayment, setProcessingPayment] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
 
   useEffect(() => {
     if (!userId) {
@@ -58,6 +63,94 @@ export default function DownloadsPage() {
     fetchUserData();
   }, [userId]);
 
+  const processPaymentSuccess = async () => {
+    try {
+      setProcessingPayment(true);
+
+      // Add a small delay to ensure smooth transition
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Update user's paid status in DynamoDB
+      if (userData) {
+        const updateCommand = new UpdateItemCommand({
+          TableName: "S3Console",
+          Key: { email: { S: userData.email } },
+          UpdateExpression: "SET paid = :paid, onTrial = :onTrial",
+          ExpressionAttributeValues: {
+            ":paid": { BOOL: true },
+            ":onTrial": { BOOL: false },
+          },
+        });
+
+        await docClient.send(updateCommand);
+        console.log("Updated user payment status");
+
+        // Send confirmation email only if not already paid
+        if (!userData.paid) {
+          try {
+            const emailResponse = await fetch("/api/send-email", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                email: userData.email,
+                name: userData.name,
+              }),
+            });
+
+            if (!emailResponse.ok) {
+              console.warn("Failed to send email:", await emailResponse.text());
+            }
+          } catch (err) {
+            console.warn("Email sending failed", err);
+          }
+        }
+
+        // Trigger confetti animation
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 },
+        });
+
+        // Additional confetti burst
+        setTimeout(() => {
+          confetti({
+            particleCount: 50,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0 },
+          });
+          confetti({
+            particleCount: 50,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1 },
+          });
+        }, 250);
+
+        // Refresh user data
+        const refreshCommand = new QueryCommand({
+          TableName: "S3Console",
+          IndexName: "clerkId-index",
+          KeyConditionExpression: "clerkId = :clerkId",
+          ExpressionAttributeValues: {
+            ":clerkId": userId,
+          },
+        });
+
+        const refreshResponse = await docClient.send(refreshCommand);
+        setUserData(refreshResponse.Items?.[0]);
+        setPaymentSuccess(true);
+      }
+    } catch (error) {
+      console.error("Failed to process payment:", error);
+    } finally {
+      setProcessingPayment(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -66,24 +159,23 @@ export default function DownloadsPage() {
     );
   }
 
-
-
-
   const handleMacDownload = () => {
     // Start the download
-    const downloadLink = "https://s3consolemac.s3.us-east-1.amazonaws.com/S3Console-1.0.52-arm64.dmg";
-    
+    const downloadLink =
+      "https://s3consolemac.s3.us-east-1.amazonaws.com/S3Console-1.0.52-arm64.dmg";
+
     // Create a temporary anchor element for download
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = downloadLink;
-    link.download = 'S3Console-1.0.52-arm64.dmg';
+    link.download = "S3Console-1.0.52-arm64.dmg";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     // Show notification
-    const notification = document.createElement('div');
-    notification.className = 'fixed bottom-8 right-8 bg-slate-900 text-white p-6 rounded-lg shadow-xl z-50 max-w-md animate-in slide-in-from-bottom';
+    const notification = document.createElement("div");
+    notification.className =
+      "fixed bottom-8 right-8 bg-slate-900 text-white p-6 rounded-lg shadow-xl z-50 max-w-md animate-in slide-in-from-bottom";
     notification.innerHTML = `
       <div class="flex items-start gap-4">
         <div class="flex-shrink-0">
@@ -98,12 +190,12 @@ export default function DownloadsPage() {
         </div>
       </div>
     `;
-    
+
     document.body.appendChild(notification);
-    
+
     // Remove notification after 8 seconds
     setTimeout(() => {
-      notification.classList.add('animate-out', 'slide-out-to-bottom');
+      notification.classList.add("animate-out", "slide-out-to-bottom");
       setTimeout(() => {
         document.body.removeChild(notification);
       }, 300);
@@ -114,6 +206,50 @@ export default function DownloadsPage() {
     <>
       <Header />
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+        {/* Payment Processing Overlay */}
+        {processingPayment && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 max-w-md mx-auto text-center">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-6"></div>
+              <h3 className="text-2xl font-semibold text-slate-900 dark:text-white mb-2">
+                Processing Payment...
+              </h3>
+              <p className="text-slate-600 dark:text-slate-400">
+                Please wait while we confirm your purchase
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Payment Success Modal */}
+        {paymentSuccess && !processingPayment && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 max-w-md mx-auto text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 dark:bg-green-800 rounded-full mb-6">
+                <FaCheck className="h-8 w-8 text-green-600 dark:text-green-300" />
+              </div>
+              <h3 className="text-2xl font-semibold text-slate-900 dark:text-white mb-2">
+                Payment Successful!
+              </h3>
+              <p className="text-slate-600 dark:text-slate-400 mb-6">
+                Your S3Console Pro license is now active
+              </p>
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-6">
+                <p className="text-sm text-amber-800 dark:text-amber-200">
+                  <strong>Important:</strong> Please log out and log back in to
+                  the desktop app to activate your Pro license.
+                </p>
+              </div>
+              <Button
+                onClick={() => setPaymentSuccess(false)}
+                className="bg-primary hover:bg-primary/90 text-white"
+              >
+                Continue
+              </Button>
+            </div>
+          </div>
+        )}
+
         <Section className="py-20">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
@@ -282,26 +418,55 @@ export default function DownloadsPage() {
 
           {/* Purchase Section */}
           {!userData?.paid && (
-            <div className="text-center">
-              <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-2xl p-8 border border-primary/20">
-                <div className="mb-6">
-                  <h3 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">
-                    Unlock Lifetime Access
+            <div className="max-w-xl mx-auto">
+              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+                <div className="bg-gradient-to-r from-primary to-primary/80 p-6 text-white text-center">
+                  <FaCrown className="h-10 w-10 mx-auto mb-3" />
+                  <h3 className="text-2xl font-bold mb-1">
+                    Unlock S3Console Pro
                   </h3>
+                  <p className="text-base opacity-90">
+                    One-time payment, lifetime access
+                  </p>
                 </div>
 
-                <div className="flex justify-center">
-                  <a
-                    href="https://buy.polar.sh/polar_cl_eBEmCwlC5Mwkj7R6gk4MabewTqUqkotUewqLW2VNucV"
-                    data-polar-checkout
-                    data-polar-checkout-theme="dark"
-                    data-polar-checkout-success-url={`${window.location.origin}/downloads/success`}
-                    className="inline-flex items-center bg-primary hover:bg-primary/90 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 rounded-md"
+                <div className="p-6">
+                  <Button
+                    onClick={async () => {
+                      try {
+                        const checkout = await PolarEmbedCheckout.create(
+                          "https://buy.polar.sh/polar_cl_eBEmCwlC5Mwkj7R6gk4MabewTqUqkotUewqLW2VNucV",
+                          "light"
+                        );
+
+                        // Listen for when the checkout is loaded
+
+                        // Listen for when the checkout has been closed
+                        checkout.addEventListener("close", (event) => {
+                          console.log("Checkout has been closed");
+                        });
+
+                        // Listen for successful completion
+                        checkout.addEventListener("success", async (event) => {
+                          console.log("Purchase successful!", event.detail);
+
+                          // Process payment success - triggers DynamoDB update, email, and confetti
+                          await processPaymentSuccess();
+                        });
+
+                        // Listen for errors
+                        checkout.addEventListener("error", (event) => {
+                          console.error("Checkout error:", event.detail);
+                        });
+                      } catch (error) {
+                        console.error("Failed to open checkout", error);
+                      }
+                    }}
+                    className="w-full bg-primary hover:bg-primary/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-md"
                   >
                     <FaCrown className="mr-2 h-5 w-5" />
-                    Purchase S3Console - $49
-                    <span className="text-sm">.99</span>
-                  </a>
+                    Purchase S3Console - $49<span className="text-sm">.99</span>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -309,9 +474,8 @@ export default function DownloadsPage() {
         </Section>
       </div>
       <Script
-        src="https://cdn.jsdelivr.net/npm/@polar-sh/checkout@0.1/dist/embed.global.js"
-        defer
-        data-auto-init
+        src="https://cdn.jsdelivr.net/npm/@polar-sh/web-components@0.6.0/dist/index.js"
+        type="module"
       />
     </>
   );
