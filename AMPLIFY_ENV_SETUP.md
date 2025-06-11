@@ -11,7 +11,7 @@ These variables are prefixed with `NEXT_PUBLIC_` and will be exposed to the brow
 ```
 NEXT_PUBLIC_APP_URL=https://your-amplify-app-url.amplifyapp.com
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
-NEXT_PUBLIC_RAZORPAY_KEY_ID=your_razorpay_key_id
+NEXT_PUBLIC_POLAR_PRODUCT_ID=your_polar_product_id
 NEXT_PUBLIC_DYNAMO_ACCESS_KEY_ID=your_dynamo_access_key
 NEXT_PUBLIC_DYNAMO_SECRET_ACCESS_KEY=your_dynamo_secret_key
 ```
@@ -21,7 +21,6 @@ These should never be exposed to the client:
 
 ```
 CLERK_SECRET_KEY=your_clerk_secret_key
-RAZORPAY_KEY_SECRET=your_razorpay_secret
 RESEND_API_KEY=your_resend_api_key
 POLAR_ACCESS_TOKEN=your_polar_access_token
 POLAR_WEBHOOK_SECRET=your_polar_webhook_secret
@@ -49,8 +48,8 @@ For highly sensitive data like payment keys:
 ```bash
 # Create secret
 aws secretsmanager create-secret \
-  --name "s3console/razorpay" \
-  --secret-string '{"key_id":"xxx","key_secret":"yyy"}'
+  --name "s3console/polar" \
+  --secret-string '{"access_token":"xxx","webhook_secret":"yyy"}'
 ```
 
 ### 3. Environment-Specific Configuration
@@ -206,7 +205,7 @@ Create an API endpoint to verify configuration:
 export async function GET() {
   const checks = {
     clerk: !!process.env.CLERK_SECRET_KEY,
-    razorpay: !!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+    polar: !!process.env.POLAR_ACCESS_TOKEN,
     dynamo: !!process.env.NEXT_PUBLIC_DYNAMO_ACCESS_KEY_ID,
     resend: !!process.env.RESEND_API_KEY,
   };
@@ -242,7 +241,6 @@ NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_xxx
 # Private variables (reference from Parameter Store)
 CLERK_SECRET_KEY=${SSM_CLERK_SECRET_KEY}
 RESEND_API_KEY=${SSM_RESEND_API_KEY}
-RAZORPAY_KEY_SECRET=${SSM_RAZORPAY_KEY_SECRET}
 POLAR_ACCESS_TOKEN=${SSM_POLAR_ACCESS_TOKEN}
 POLAR_WEBHOOK_SECRET=${SSM_POLAR_WEBHOOK_SECRET}
 

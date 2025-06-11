@@ -27,16 +27,10 @@ const environmentVariables: EnvVar[] = [
   
   // Payment Processing
   {
-    name: 'NEXT_PUBLIC_RAZORPAY_KEY_ID',
+    name: 'NEXT_PUBLIC_POLAR_PRODUCT_ID',
     required: true,
     sensitive: false,
-    description: 'Razorpay public key ID'
-  },
-  {
-    name: 'NEXT_PUBLIC_RAZORPAY_KEY_SECRET',
-    required: true,
-    sensitive: true,
-    description: 'Razorpay secret key (consider moving to server-only)'
+    description: 'Polar product ID for S3Console Pro'
   },
   
   // Email Service
@@ -69,16 +63,16 @@ const environmentVariables: EnvVar[] = [
     description: 'Public URL of the application'
   },
   
-  // Optional
+  // Polar Integration
   {
     name: 'POLAR_ACCESS_TOKEN',
-    required: false,
+    required: true,
     sensitive: true,
     description: 'Polar API access token'
   },
   {
     name: 'POLAR_WEBHOOK_SECRET',
-    required: false,
+    required: true,
     sensitive: true,
     description: 'Polar webhook validation secret'
   }
@@ -107,12 +101,6 @@ export function validateEnvironmentVariables(): {
     }
   });
   
-  // Special warning for Razorpay secret key
-  if (process.env.NEXT_PUBLIC_RAZORPAY_KEY_SECRET) {
-    warnings.push(
-      'CRITICAL: NEXT_PUBLIC_RAZORPAY_KEY_SECRET should NOT be public. Move to RAZORPAY_KEY_SECRET immediately!'
-    );
-  }
   
   return {
     valid: missing.length === 0,

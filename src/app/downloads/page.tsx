@@ -1,14 +1,12 @@
 "use client";
 import Header from "@/components/sections/header";
 import Section from "@/components/section";
-import CheckoutButton from "@/components/checkout-button";
 import { useAuth } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
 import {
   FaWindows,
   FaApple,
   FaDownload,
-  FaCheck,
   FaCrown,
   FaKey,
   FaUser,
@@ -16,15 +14,10 @@ import {
 } from "react-icons/fa";
 import { HiSparkles } from "react-icons/hi";
 import { Button } from "@/components/ui/button";
-import { DynamoDBClient, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { useState, useEffect } from "react";
-import confetti from "canvas-confetti";
-declare global {
-  interface Window {
-    Razorpay: any;
-  }
-}
+import Script from "next/script";
 
 const client = new DynamoDBClient({
   region: "ap-south-1",
@@ -38,17 +31,12 @@ const docClient = DynamoDBDocumentClient.from(client);
 
 export default function DownloadsPage() {
   const { userId } = useAuth();
-  const originalAmount = 49.99;
-  const [amount, setAmount] = useState(originalAmount);
-  const [isLoading, setIsLoading] = useState(false);
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
   useEffect(() => {
     if (!userId) {
       redirect("/sign-in");
-      return;
     }
 
     // Fetch user data from DynamoDB
@@ -78,143 +66,8 @@ export default function DownloadsPage() {
     );
   }
 
-  const name = userData?.name;
-  const email = userData?.email;
 
-  const loadRazorpayScript = () => {
-    return new Promise((resolve) => {
-      const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.onload = resolve;
-      document.body.appendChild(script);
-    });
-  };
 
-  const handlePayment = async () => {
-    setIsLoading(true);
-
-    try {
-      await loadRazorpayScript();
-
-      const response = await fetch("/api/create-order", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ amount: amount * 100 }), // amount in paise
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to create order");
-      }
-
-      const order = await response.json();
-
-      const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: order.amount,
-        currency: order.currency,
-        name: "Serverless Creed",
-        description: "Lifetime Access to all courses",
-        order_id: order.id,
-        prefill: {
-          name: name,
-          email: email,
-        },
-        handler: async function (response: any) {
-          const command = new UpdateItemCommand({
-            TableName: "S3Console",
-            Key: { email: { S: email } },
-            UpdateExpression: "SET paid = :paid, onTrial = :onTrial",
-            ExpressionAttributeValues: { 
-              ":paid": { BOOL: true },
-              ":onTrial": { BOOL: false }
-            },
-          });
-
-          await docClient.send(command);
-
-          try {
-            const emailResponse = await fetch("/api/send-email", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                email: email,
-                name: name,
-              }),
-            });
-
-            if (!emailResponse.ok) {
-              console.warn("Failed to send email:", await emailResponse.text());
-            }
-          } catch (err) {
-            console.warn("Resend email failed", err);
-          }
-
-          // Trigger confetti animation
-          confetti({
-            particleCount: 100,
-            spread: 70,
-            origin: { y: 0.6 },
-          });
-
-          // Additional confetti burst after a short delay
-          setTimeout(() => {
-            confetti({
-              particleCount: 50,
-              angle: 60,
-              spread: 55,
-              origin: { x: 0 },
-            });
-            confetti({
-              particleCount: 50,
-              angle: 120,
-              spread: 55,
-              origin: { x: 1 },
-            });
-          }, 250);
-
-          // Refresh user data to show updated license status
-          try {
-            const refreshCommand = new QueryCommand({
-              TableName: "S3Console",
-              IndexName: "clerkId-index",
-              KeyConditionExpression: "clerkId = :clerkId",
-              ExpressionAttributeValues: {
-                ":clerkId": userId,
-              },
-            });
-
-            const refreshResponse = await docClient.send(refreshCommand);
-            setUserData(refreshResponse.Items?.[0]);
-            
-            // Show success message
-            setShowSuccessMessage(true);
-            
-            // Hide the message after 10 seconds
-            setTimeout(() => {
-              setShowSuccessMessage(false);
-            }, 10000);
-          } catch (error) {
-            console.error("Failed to refresh user data:", error);
-          }
-        },
-        theme: {
-          color: "#0D9488",
-        },
-      };
-
-      const paymentObject = new window.Razorpay(options);
-      paymentObject.open();
-    } catch (error) {
-      console.error("Payment failed:", error);
-      alert("Payment failed. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleMacDownload = () => {
     // Start the download
@@ -260,23 +113,6 @@ export default function DownloadsPage() {
   return (
     <>
       <Header />
-      {showSuccessMessage && (
-        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 animate-in slide-in-from-top">
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 shadow-lg max-w-md">
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0">
-                <FaCheck className="h-5 w-5 text-green-600 mt-0.5" />
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-green-800">Payment Successful!</h3>
-                <p className="text-sm text-green-700 mt-1">
-                  Thank you for purchasing S3Console Pro. If you're currently logged into the S3Console desktop application, please log out and log back in to activate your Pro license.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
         <Section className="py-20">
           <div className="text-center mb-16">
@@ -455,31 +291,28 @@ export default function DownloadsPage() {
                 </div>
 
                 <div className="flex justify-center">
-                  <Button
-                    onClick={handlePayment}
-                    disabled={isLoading}
-                    size="lg"
-                    className="bg-primary hover:bg-primary/90 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                  <a
+                    href="https://buy.polar.sh/polar_cl_eBEmCwlC5Mwkj7R6gk4MabewTqUqkotUewqLW2VNucV"
+                    data-polar-checkout
+                    data-polar-checkout-theme="dark"
+                    data-polar-checkout-success-url={`${window.location.origin}/downloads/success`}
+                    className="inline-flex items-center bg-primary hover:bg-primary/90 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 rounded-md"
                   >
-                    {isLoading ? (
-                      <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                        Processing...
-                      </>
-                    ) : (
-                      <>
-                        <FaCrown className="mr-2 h-5 w-5" />
-                        Purchase S3Console - $49
-                        <span className="text-sm">.99</span>
-                      </>
-                    )}
-                  </Button>
+                    <FaCrown className="mr-2 h-5 w-5" />
+                    Purchase S3Console - $49
+                    <span className="text-sm">.99</span>
+                  </a>
                 </div>
               </div>
             </div>
           )}
         </Section>
       </div>
+      <Script
+        src="https://cdn.jsdelivr.net/npm/@polar-sh/checkout@0.1/dist/embed.global.js"
+        defer
+        data-auto-init
+      />
     </>
   );
 }

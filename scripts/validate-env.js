@@ -8,8 +8,9 @@
 const requiredVars = [
   'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY',
   'CLERK_SECRET_KEY',
-  'NEXT_PUBLIC_RAZORPAY_KEY_ID',
-  'NEXT_PUBLIC_RAZORPAY_KEY_SECRET',
+  'NEXT_PUBLIC_POLAR_PRODUCT_ID',
+  'POLAR_ACCESS_TOKEN',
+  'POLAR_WEBHOOK_SECRET',
   'RESEND_API_KEY',
   'NEXT_PUBLIC_DYNAMO_ACCESS_KEY_ID',
   'NEXT_PUBLIC_DYNAMO_SECRET_ACCESS_KEY',
@@ -29,9 +30,6 @@ requiredVars.forEach(varName => {
 });
 
 // Security warnings
-if (process.env.NEXT_PUBLIC_RAZORPAY_KEY_SECRET) {
-  warnings.push('⚠️  CRITICAL: NEXT_PUBLIC_RAZORPAY_KEY_SECRET should NOT be public!');
-}
 
 if (process.env.NEXT_PUBLIC_DYNAMO_SECRET_ACCESS_KEY) {
   warnings.push('⚠️  WARNING: Consider using IAM roles instead of embedding AWS credentials');

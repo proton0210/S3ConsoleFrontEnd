@@ -1,63 +1,49 @@
 import { NextRequest, NextResponse } from "next/server";
+import { api } from "@/polar";
 import crypto from "crypto";
-import { queryItems, updateItem } from "@/lib/dynamodb";
 
 export async function POST(req: NextRequest) {
-  const rawBody = await req.text();
-  const signature = req.headers.get("polar-signature") || "";
-  const expected = crypto
-    .createHmac("sha256", process.env.POLAR_WEBHOOK_SECRET || "")
-    .update(rawBody)
-    .digest("hex");
-
-  if (signature !== expected) {
-    return new NextResponse("Invalid signature", { status: 401 });
-  }
-
-  const event = JSON.parse(rawBody);
-
-  if (event.type === "payment.succeeded") {
-    const userId = event.data?.userId || event.userId || event.metadata?.userId;
-    if (userId) {
-      const { Items } = await queryItems(
-        "S3Console",
-        "clerkId = :id",
-        { ":id": userId },
-        "clerkId-index"
-      );
-      const email = Items?.[0]?.email;
-      if (email) {
-        await updateItem(
-          "S3Console",
-          { email },
-          "SET paid = :p",
-          { ":p": true }
-        );
-        const name = Items?.[0]?.name;
-        try {
-          await fetch("https://api.resend.com/emails", {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              from: process.env.RESEND_FROM_EMAIL,
-              to: [email],
-              subject: "Thanks for purchasing S3Console",
-              html: `
-                <p>Hi${name ? ` ${name}` : ""},</p>
-                <p>Thanks for purchasing <strong>S3Console</strong>.</p>
-                <p>— The S3Console Team</p>
-              `,
-            }),
-          });
-        } catch (err) {
-          console.warn("Resend email failed", err);
-        }
-      }
+  try {
+    const webhookSecret = process.env.POLAR_WEBHOOK_SECRET;
+    if (!webhookSecret) {
+      console.error("POLAR_WEBHOOK_SECRET not set");
+      return NextResponse.json({ error: "Webhook secret not configured" }, { status: 500 });
     }
-  }
 
-  return NextResponse.json({ received: true });
+    // Get the signature from headers
+    const signature = req.headers.get("x-polar-signature");
+    if (!signature) {
+      return NextResponse.json({ error: "Missing signature" }, { status: 400 });
+    }
+
+    // Get the raw body
+    const body = await req.text();
+    
+    // Verify webhook signature
+    const hmac = crypto.createHmac("sha256", webhookSecret);
+    hmac.update(body);
+    const expectedSignature = hmac.digest("hex");
+    
+    if (signature !== expectedSignature) {
+      console.error("Invalid webhook signature");
+      return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+    }
+    
+    const event = JSON.parse(body);
+    
+    // Log the event for monitoring
+    console.log(`Received Polar webhook: ${event.type}`, {
+      eventId: event.id,
+      eventType: event.type,
+      customerEmail: event.data?.customer?.email,
+    });
+    
+    // The actual payment processing is handled in the success page
+    // This webhook is just for logging and verification
+    
+    return NextResponse.json({ received: true });
+  } catch (error) {
+    console.error("Webhook processing error:", error);
+    return NextResponse.json({ error: "Webhook processing failed" }, { status: 500 });
+  }
 }
