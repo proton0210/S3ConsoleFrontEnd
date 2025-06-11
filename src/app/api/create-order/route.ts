@@ -5,7 +5,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
   const { amount } = await req.json();
   // Ensure environment variables are set
   const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
-  const keySecret = process.env.NEXT_PUBLIC_RAZORPAY_KEY_SECRET;
+  const keySecret = process.env.RAZORPAY_KEY_SECRET;
 
   if (!keyId || !keySecret) {
     return NextResponse.json(
