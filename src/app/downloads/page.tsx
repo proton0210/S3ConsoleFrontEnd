@@ -22,6 +22,13 @@ import Script from "next/script";
 import { PolarEmbedCheckout } from "@polar-sh/checkout/embed";
 import confetti from "canvas-confetti";
 
+// Declare global twq function for Twitter pixel
+declare global {
+  interface Window {
+    twq: (action: string, eventId: string, params?: any) => void;
+  }
+}
+
 const client = new DynamoDBClient({
   region: "ap-south-1",
   credentials: {
@@ -172,6 +179,14 @@ export default function DownloadsPage() {
     link.click();
     document.body.removeChild(link);
 
+    // Track download event with Twitter pixel
+    if (typeof window !== 'undefined' && window.twq) {
+      window.twq('event', 'tw-pyshe-pyshf', {
+        email_address: userData?.email || null,
+        conversion_type: 'mac_download'
+      });
+    }
+
     // Show notification
     const notification = document.createElement("div");
     notification.className =
@@ -214,6 +229,14 @@ export default function DownloadsPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+
+    // Track download event with Twitter pixel
+    if (typeof window !== 'undefined' && window.twq) {
+      window.twq('event', 'tw-pyshe-pyshf', {
+        email_address: userData?.email || null,
+        conversion_type: 'windows_download'
+      });
+    }
 
     // Show notification
     const notification = document.createElement("div");
@@ -489,6 +512,16 @@ export default function DownloadsPage() {
                         // Listen for successful completion
                         checkout.addEventListener("success", async (event) => {
                           console.log("Purchase successful!", event.detail);
+
+                          // Track purchase event with Twitter pixel
+                          if (typeof window !== 'undefined' && window.twq) {
+                            window.twq('event', 'tw-pyshe-pyshf', {
+                              email_address: userData?.email || null,
+                              conversion_type: 'purchase',
+                              value: '49.99',
+                              currency: 'USD'
+                            });
+                          }
 
                           // Process payment success - triggers DynamoDB update, email, and confetti
                           await processPaymentSuccess();
