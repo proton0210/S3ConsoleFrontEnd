@@ -220,12 +220,12 @@ export default function DownloadsPage() {
   const handleWindowsDownload = () => {
     // Start the download
     const downloadLink =
-      "https://s3consolewindows.s3.ap-south-1.amazonaws.com/S3Console-Setup-1.0.54.exe";
+      "https://s3consolewindows.s3.ap-south-1.amazonaws.com/S3Console-Setup-1.0.58.exe";
 
     // Create a temporary anchor element for download
     const link = document.createElement("a");
     link.href = downloadLink;
-    link.download = "S3Console-Setup-1.0.54.exe";
+    link.download = "S3Console-Setup-1.0.58.exe";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
