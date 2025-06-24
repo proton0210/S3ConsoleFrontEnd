@@ -14,7 +14,7 @@ const ease = [0.16, 1, 0.3, 1];
 function HeroPill() {
   return (
     <motion.a
-      href="/blog/introducing-s3console"
+      href="/"
       className="flex w-auto items-center space-x-2 rounded-full bg-primary/20 px-2 py-1 ring-1 ring-accent whitespace-pre"
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -56,21 +56,23 @@ function HeroTitles() {
           staggerChildren: 0.2,
         }}
       >
-        {["AWS S3", "Desktop", "App", "for Mac", "& Windows"].map((text, index) => (
-          <motion.span
-            key={index}
-            className="inline-block px-1 md:px-2 text-balance font-semibold"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{
-              duration: 0.8,
-              delay: index * 0.2,
-              ease,
-            }}
-          >
-            {text}
-          </motion.span>
-        ))}
+        {["AWS S3", "Desktop", "App", "for Mac", "& Windows"].map(
+          (text, index) => (
+            <motion.span
+              key={index}
+              className="inline-block px-1 md:px-2 text-balance font-semibold"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: 0.8,
+                delay: index * 0.2,
+                ease,
+              }}
+            >
+              {text}
+            </motion.span>
+          )
+        )}
       </motion.h1>
       <motion.p
         className="mx-auto max-w-xl text-center text-lg leading-7 text-muted-foreground sm:text-xl sm:leading-9 text-balance"
@@ -82,8 +84,9 @@ function HeroTitles() {
           ease,
         }}
       >
-        Professional S3 bucket manager with intuitive GUI. Generate presigned URLs, 
-        switch between AWS profiles instantly, preview files without downloading.
+        Professional S3 bucket manager with intuitive GUI. Generate presigned
+        URLs, switch between AWS profiles instantly, preview files without
+        downloading.
       </motion.p>
     </div>
   );
@@ -131,7 +134,9 @@ function HeroCTA() {
           One-time payment. Lifetime access. No subscriptions.
         </p>
         <p className="text-xs text-muted-foreground/80 mt-2 max-w-md mx-auto">
-          * Security-first design: We never store your AWS credentials. All authentication happens locally on your device for maximum security and privacy.
+          * Security-first design: We never store your AWS credentials. All
+          authentication happens locally on your device for maximum security and
+          privacy.
         </p>
       </motion.div>
     </>
