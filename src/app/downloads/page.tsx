@@ -518,7 +518,7 @@ export default function DownloadsPage() {
                             window.twq('event', 'tw-pyshe-pyshf', {
                               email_address: userData?.email || null,
                               conversion_type: 'purchase',
-                              value: '49.99',
+                              value: '99.99',
                               currency: 'USD'
                             });
                           }
@@ -538,7 +538,7 @@ export default function DownloadsPage() {
                     className="w-full bg-primary hover:bg-primary/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-md"
                   >
                     <FaCrown className="mr-2 h-5 w-5" />
-                    Purchase S3Console - $49<span className="text-sm">.99</span>
+                    Purchase S3Console - $99<span className="text-sm">.99</span>
                   </Button>
                 </div>
               </div>

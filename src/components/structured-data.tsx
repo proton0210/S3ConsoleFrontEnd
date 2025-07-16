@@ -19,7 +19,7 @@ export function StructuredData({ type = "website", data }: StructuredDataProps) 
     operatingSystem: "macOS, Windows",
     offers: {
       "@type": "Offer",
-      price: "49.99",
+      price: "99.99",
       priceCurrency: "USD",
       priceValidUntil: "2025-12-31",
       availability: "https://schema.org/InStock",
@@ -44,7 +44,7 @@ export function StructuredData({ type = "website", data }: StructuredDataProps) 
     operatingSystem: ["macOS", "Windows"],
     offers: {
       "@type": "Offer",
-      price: "49.99",
+      price: "99.99",
       priceCurrency: "USD",
       priceValidUntil: "2025-12-31",
       availability: "https://schema.org/InStock",
