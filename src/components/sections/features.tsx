@@ -6,43 +6,43 @@ const data = [
   {
     id: 1,
     title: "AI Code Generation",
-    content: "Intelligent code generation for common S3 operations using AI-powered suggestions.",
+    content:
+      "Intelligent code generation for common S3 operations using AI-powered suggestions.",
     image: "/dashboard.png",
     icon: <Code2 className="h-6 w-6 text-primary" />,
   },
   {
     id: 2,
     title: "Secure Presigned URLs",
-    content: "Create and share temporary download links with expiration dates for secure file access.",
+    content:
+      "Create and share temporary download links with expiration dates for secure file access.",
     image: "/dashboard.png",
     icon: <Share2 className="h-6 w-6 text-primary" />,
   },
   {
     id: 3,
     title: "Multi-Profile Management",
-    content: "Switch between multiple AWS profiles and regions instantly with zero configuration hassle.",
+    content:
+      "Switch between multiple AWS profiles and regions instantly with zero configuration hassle.",
     image: "/dashboard.png",
     icon: <RefreshCw className="h-6 w-6 text-primary" />,
   },
   {
     id: 4,
     title: "Smart Object Preview",
-    content: "Preview images, documents, and media files directly in the app without downloading.",
+    content:
+      "Preview images, documents, and media files directly in the app without downloading.",
     image: "/dashboard.png",
     icon: <Eye className="h-6 w-6 text-primary" />,
-  },
-  {
-    id: 5,
-    title: "Streamlined S3 Operations",
-    content: "Upload, download, delete, and organize your S3 objects with an intuitive drag-and-drop interface.",
-    image: "/dashboard.png",
-    icon: <FolderOpen className="h-6 w-6 text-primary" />,
   },
 ];
 
 export default function Component() {
   return (
-    <Section title="Features" subtitle="Everything you need to manage AWS S3 like a pro">
+    <Section
+      title="Features"
+      subtitle="Everything you need to manage AWS S3 like a pro"
+    >
       <Features collapseDelay={5000} linePosition="bottom" data={data} />
     </Section>
   );
