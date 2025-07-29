@@ -21,10 +21,10 @@ function HeroPill() {
       transition={{ duration: 0.8, ease }}
     >
       <div className="w-fit rounded-full bg-accent px-2 py-0.5 text-center text-xs font-medium text-primary sm:text-sm">
-        📣 Announcement
+        🚀 New Feature
       </div>
       <p className="text-xs font-medium text-primary sm:text-sm">
-        Introducing S3Console
+        AI Code Generation Now Available!
       </p>
       <svg
         width="12"
@@ -84,9 +84,9 @@ function HeroTitles() {
           ease,
         }}
       >
-        Professional S3 bucket manager with intuitive GUI. Generate presigned
-        URLs, switch between AWS profiles instantly, preview files without
-        downloading.
+        Professional S3 bucket manager with intuitive GUI and AI-powered code generation.
+        Create presigned URLs, switch between AWS profiles instantly, preview files
+        without downloading.
       </motion.p>
     </div>
   );

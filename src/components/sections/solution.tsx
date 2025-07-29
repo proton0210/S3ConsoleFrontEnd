@@ -42,9 +42,9 @@ const features = [
     ),
   },
   {
-    title: "Seamless Profile Switching",
+    title: "AI Code Generation",
     description:
-      "Switch between AWS profiles, regions, and accounts with a single click. No more browser tabs, no re-authentication hassles, just instant access to all your S3 resources.",
+      "Generate production-ready code snippets for your S3 operations using AI-powered suggestions. Support for TypeScript, JavaScript, Python, and Java with intelligent context awareness.",
     className:
       "md:row-span-2 hover:bg-purple-500/10 transition-all duration-500 ease-out",
     content: (
@@ -60,8 +60,8 @@ const features = [
           width={800}
         />
         <Image
-          src="/1-profile.png"
-          alt="Seamless Profile Switching"
+          src="/5-codegeneration.png"
+          alt="AI Code Generation"
           width={800}
           height={600}
           className="-mb-32 ml-6 mt-8 h-auto px-2 select-none drop-shadow-[0_0_28px_rgba(0,0,0,.1)] group-hover:translate-x-[-10px] transition-all duration-300 rounded-lg"

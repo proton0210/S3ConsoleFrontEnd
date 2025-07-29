@@ -20,7 +20,7 @@ const testimonials = [
   },
   {
     quote:
-      "Finally, a desktop app that makes S3 management feel natural! The multi-profile switching and smart file operations have streamlined our data pipeline workflows significantly. Highly recommended for any data team.",
+      "Finally, a desktop app that makes S3 management feel natural! The AI code generation and smart file operations have streamlined our data pipeline workflows significantly. Highly recommended for any data team.",
     name: "Vivek Shah",
     role: "Data Engineer",
     company: "Amazon",

@@ -11,11 +11,6 @@ const upcomingFeatures = [
     icon: Shield,
   },
   {
-    title: "AI Code Generation",
-    description: "Intelligent code generation for common S3 operations using AI-powered suggestions",
-    icon: Code2,
-  },
-  {
     title: "Storage Classes",
     description: "Manage and optimize your S3 storage costs with intelligent storage class transitions",
     icon: Database,

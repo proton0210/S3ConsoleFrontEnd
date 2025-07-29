@@ -50,6 +50,11 @@ export const siteConfig = {
         items: [
           {
             href: "#",
+            title: "AI Code Generation",
+            description: "Generate S3 operation code with AI-powered suggestions.",
+          },
+          {
+            href: "#",
             title: "Secure Presigned URLs",
             description: "Create and share temporary download links with expiration dates.",
           },
@@ -77,6 +82,7 @@ export const siteConfig = {
       features: [
         "Lifetime Access",
         "All Software Updates",
+        "AI Code Generation (NEW!)",
         "Multi-Account Support",
         "Secure Presigned URLs",
         "Smart Object Preview",

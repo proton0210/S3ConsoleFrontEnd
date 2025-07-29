@@ -169,12 +169,12 @@ export default function DownloadsPage() {
   const handleMacDownload = () => {
     // Start the download
     const downloadLink =
-      "https://s3consolemac.s3.us-east-1.amazonaws.com/S3Console-1.0.63-arm64.dmg";
+      "https://s3consolemac.s3.us-east-1.amazonaws.com/S3Console-1.0.66-arm64.dmg";
 
     // Create a temporary anchor element for download
     const link = document.createElement("a");
     link.href = downloadLink;
-    link.download = "S3Console-1.0.63-arm64.dmg";
+    link.download = "S3Console-1.0.66-arm64.dmg";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -220,12 +220,12 @@ export default function DownloadsPage() {
   const handleWindowsDownload = () => {
     // Start the download
     const downloadLink =
-      "https://s3consolewindows.s3.ap-south-1.amazonaws.com/S3Console-Setup-1.0.63.exe";
+      "https://s3consolewindows.s3.ap-south-1.amazonaws.com/S3Console-Setup-1.0.66.exe";
 
     // Create a temporary anchor element for download
     const link = document.createElement("a");
     link.href = downloadLink;
-    link.download = "S3Console-Setup-1.0.63.exe";
+    link.download = "S3Console-Setup-1.0.66.exe";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
