@@ -44,16 +44,22 @@ export default function DownloadsPage() {
   const [loading, setLoading] = useState(true);
   const [processingPayment, setProcessingPayment] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [dodoInitialized, setDodoInitialized] = useState(false);
 
-  // Initialize Dodo Payments after userData is loaded
+  // Initialize Dodo Payments once when component mounts
   useEffect(() => {
-    if (typeof window !== "undefined" && DodoPayments && userData) {
+    console.log("Initialization effect running...");
+    console.log("typeof window:", typeof window);
+    console.log("DodoPayments:", DodoPayments);
+    console.log("dodoInitialized:", dodoInitialized);
+
+    if (typeof window !== "undefined" && DodoPayments && !dodoInitialized) {
       try {
+        console.log("Attempting to initialize DodoPayments...");
         DodoPayments.Initialize({
           mode: "live", // Using live mode
           onEvent: async (event) => {
             console.log("Checkout event:", event);
-            console.log("Current userData:", userData);
 
             // Use correct event types from documentation
             if (event.event_type === "checkout.redirect") {
@@ -71,19 +77,36 @@ export default function DownloadsPage() {
           linkType: "static",
           displayType: "overlay",
         });
-        console.log("DodoPayments initialized successfully with userData:", userData.email);
+        setDodoInitialized(true);
+        console.log("DodoPayments initialized successfully");
       } catch (error) {
         console.error("Failed to initialize DodoPayments:", error);
+        console.error("Initialization error details:", {
+          message: (error as any)?.message,
+          stack: (error as any)?.stack,
+          type: typeof error,
+        });
       }
+    } else {
+      console.log("Skipping initialization because:", {
+        windowUndefined: typeof window === "undefined",
+        noDodoPayments: !DodoPayments,
+        alreadyInitialized: dodoInitialized,
+      });
     }
-  }, [userData]); // Re-initialize when userData changes
+  }, []); // Initialize only once
 
   // Check for payment success on page load
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const isSuccess = urlParams.get('success');
-    
-    if (isSuccess === 'true' && userData && !userData.paid && !processingPayment) {
+    const isSuccess = urlParams.get("success");
+
+    if (
+      isSuccess === "true" &&
+      userData &&
+      !userData.paid &&
+      !processingPayment
+    ) {
       console.log("Payment success detected, processing...");
       processPaymentSuccess();
       // Clean up the URL
@@ -117,12 +140,12 @@ export default function DownloadsPage() {
 
   const processPaymentSuccess = async () => {
     console.log("processPaymentSuccess called with userData:", userData);
-    
+
     if (!userData) {
       console.error("No userData available for payment processing");
       return;
     }
-    
+
     try {
       setProcessingPayment(true);
 
@@ -132,7 +155,7 @@ export default function DownloadsPage() {
       // Update user's paid status in DynamoDB
       if (userData && userData.email) {
         console.log("Updating DynamoDB for email:", userData.email);
-        
+
         const updateCommand = new UpdateItemCommand({
           TableName: "S3Console",
           Key: { email: { S: userData.email } },
@@ -146,7 +169,10 @@ export default function DownloadsPage() {
         console.log("Sending update command to DynamoDB...");
         const updateResult = await docClient.send(updateCommand);
         console.log("DynamoDB update result:", updateResult);
-        console.log("Successfully updated user payment status for:", userData.email);
+        console.log(
+          "Successfully updated user payment status for:",
+          userData.email
+        );
 
         // Send confirmation email only if not already paid
         if (!userData.paid) {
@@ -207,19 +233,23 @@ export default function DownloadsPage() {
         setUserData(refreshResponse.Items?.[0]);
         setPaymentSuccess(true);
       } else {
-        console.error("userData or userData.email is missing, cannot update DynamoDB");
+        console.error(
+          "userData or userData.email is missing, cannot update DynamoDB"
+        );
       }
     } catch (error) {
       console.error("Failed to process payment:", error);
       console.error("Error details:", {
-        message: error?.message,
-        code: error?.code,
-        statusCode: error?.$metadata?.httpStatusCode,
-        requestId: error?.$metadata?.requestId
+        message: (error as any)?.message,
+        code: (error as any)?.code,
+        statusCode: (error as any)?.$metadata?.httpStatusCode,
+        requestId: (error as any)?.$metadata?.requestId,
       });
-      
+
       // Show error to user
-      alert("There was an issue processing your payment. Please contact support with your payment confirmation.");
+      alert(
+        "There was an issue processing your payment. Please contact support with your payment confirmation."
+      );
     } finally {
       setProcessingPayment(false);
     }
@@ -567,14 +597,52 @@ export default function DownloadsPage() {
                     onClick={() => {
                       try {
                         console.log(
+                          "Button clicked - checking prerequisites..."
+                        );
+                        console.log("dodoInitialized:", dodoInitialized);
+                        console.log("DodoPayments object:", DodoPayments);
+                        console.log(
+                          "DodoPayments.Checkout:",
+                          DodoPayments?.Checkout
+                        );
+                        console.log("userData:", userData);
+
+                        // Check if DodoPayments is initialized
+                        if (!dodoInitialized) {
+                          console.error("DodoPayments not initialized yet");
+                          alert(
+                            "Payment system is still loading. Please wait a moment and try again."
+                          );
+                          return;
+                        }
+
+                        // Check if DodoPayments.Checkout exists
+                        if (!DodoPayments?.Checkout?.open) {
+                          console.error(
+                            "DodoPayments.Checkout.open is not available"
+                          );
+                          alert(
+                            "Payment system is not properly loaded. Please refresh the page and try again."
+                          );
+                          return;
+                        }
+
+                        // Check if userData exists
+                        if (!userData?.email) {
+                          console.error("User data not available");
+                          alert(
+                            "User information is not loaded. Please refresh the page and try again."
+                          );
+                          return;
+                        }
+
+                        console.log(
                           "Opening checkout for product:",
                           "pdt_HAAaTSsGKpgkDFzHYprZM"
                         );
-                        console.log("User email:", userData?.email);
-                        console.log("DodoPayments object:", DodoPayments);
-                        console.log("DodoPayments.Checkout:", DodoPayments.Checkout);
+                        console.log("User email:", userData.email);
 
-                        // Open checkout with your product (no await needed)
+                        // Open checkout with your product
                         DodoPayments.Checkout.open({
                           products: [
                             {
@@ -585,30 +653,35 @@ export default function DownloadsPage() {
                           redirectUrl:
                             window.location.origin + "/downloads?success=true",
                           queryParams: {
-                            email: userData?.email || "",
+                            email: userData.email,
                             disableEmail: "false",
                           },
                         });
-                        
+
                         console.log("Checkout.open called successfully");
                       } catch (error) {
                         console.error("Failed to open checkout:", error);
                         console.error("Error details:", {
-                          message: error?.message,
-                          stack: error?.stack,
-                          type: typeof error
+                          message: (error as any)?.message,
+                          stack: (error as any)?.stack,
+                          type: typeof error,
+                          name: (error as any)?.name,
                         });
 
                         // Show user-friendly error message
                         alert(
-                          "Failed to open checkout. Please try again or contact support."
+                          "Failed to open checkout. Please try again or contact support. Error: " +
+                            ((error as any)?.message || "Unknown error")
                         );
                       }
                     }}
-                    className="w-full bg-primary hover:bg-primary/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-md"
+                    disabled={!dodoInitialized || !userData?.email}
+                    className="w-full bg-primary hover:bg-primary/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <FaCrown className="mr-2 h-5 w-5" />
-                    Purchase S3Console - $29<span className="text-sm">.99</span>
+                    {!dodoInitialized || !userData?.email
+                      ? "Loading payment system..."
+                      : "Purchase S3Console - $29.99"}
                   </Button>
                 </div>
               </div>
