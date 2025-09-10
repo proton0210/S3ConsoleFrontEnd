@@ -46,25 +46,45 @@ export default function DownloadsPage() {
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [dodoInitialized, setDodoInitialized] = useState(false);
 
-  // Initialize Dodo Payments once when component mounts
+  // Initialize Dodo Payments after userData is available
   useEffect(() => {
     console.log("Initialization effect running...");
     console.log("typeof window:", typeof window);
     console.log("DodoPayments:", DodoPayments);
     console.log("dodoInitialized:", dodoInitialized);
+    console.log("userData:", userData);
 
-    if (typeof window !== "undefined" && DodoPayments && !dodoInitialized) {
+    if (
+      typeof window !== "undefined" &&
+      DodoPayments &&
+      !dodoInitialized &&
+      userData
+    ) {
       try {
         console.log("Attempting to initialize DodoPayments...");
         DodoPayments.Initialize({
           mode: "live", // Using live mode
           onEvent: async (event) => {
             console.log("Checkout event:", event);
+            console.log("Current userData in event:", userData);
 
             // Use correct event types from documentation
             if (event.event_type === "checkout.redirect") {
               console.log("Purchase successful - redirecting!", event);
-              // The redirect will happen, we'll handle success on page reload
+
+              // Track purchase event with Twitter pixel
+              if (typeof window !== "undefined" && window.twq) {
+                window.twq("event", "tw-pyshe-pyshf", {
+                  email_address: userData?.email || null,
+                  conversion_type: "purchase",
+                  value: "29.99",
+                  currency: "USD",
+                });
+              }
+
+              // Process payment success - triggers DynamoDB update, email, and confetti
+              console.log("Processing payment success...");
+              await processPaymentSuccess();
             } else if (event.event_type === "checkout.opened") {
               console.log("Checkout overlay opened");
             } else if (event.event_type === "checkout.closed") {
@@ -78,7 +98,10 @@ export default function DownloadsPage() {
           displayType: "overlay",
         });
         setDodoInitialized(true);
-        console.log("DodoPayments initialized successfully");
+        console.log(
+          "DodoPayments initialized successfully with userData:",
+          userData.email
+        );
       } catch (error) {
         console.error("Failed to initialize DodoPayments:", error);
         console.error("Initialization error details:", {
@@ -92,14 +115,24 @@ export default function DownloadsPage() {
         windowUndefined: typeof window === "undefined",
         noDodoPayments: !DodoPayments,
         alreadyInitialized: dodoInitialized,
+        noUserData: !userData,
       });
     }
-  }, []); // Initialize only once
+  }, [userData]); // Re-initialize when userData changes
 
-  // Check for payment success on page load
+  // Check for payment success on page load (backup mechanism)
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
     const urlParams = new URLSearchParams(window.location.search);
     const isSuccess = urlParams.get("success");
+
+    console.log("URL success check:", {
+      isSuccess,
+      userData: userData?.email,
+      alreadyPaid: userData?.paid,
+      processingPayment,
+    });
 
     if (
       isSuccess === "true" &&
@@ -107,7 +140,7 @@ export default function DownloadsPage() {
       !userData.paid &&
       !processingPayment
     ) {
-      console.log("Payment success detected, processing...");
+      console.log("Payment success detected from URL, processing...");
       processPaymentSuccess();
       // Clean up the URL
       window.history.replaceState({}, document.title, window.location.pathname);
@@ -139,7 +172,14 @@ export default function DownloadsPage() {
   }, [userId]);
 
   const processPaymentSuccess = async () => {
+    console.log("=== PROCESSING PAYMENT SUCCESS ===");
     console.log("processPaymentSuccess called with userData:", userData);
+    console.log("Current user state:", {
+      email: userData?.email,
+      paid: userData?.paid,
+      onTrial: userData?.onTrial,
+      name: userData?.name,
+    });
 
     if (!userData) {
       console.error("No userData available for payment processing");
@@ -148,6 +188,7 @@ export default function DownloadsPage() {
 
     try {
       setProcessingPayment(true);
+      console.log("Set processingPayment to true");
 
       // Add a small delay to ensure smooth transition
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -155,8 +196,23 @@ export default function DownloadsPage() {
       // Update user's paid status in DynamoDB
       if (userData && userData.email) {
         console.log("Updating DynamoDB for email:", userData.email);
+        console.log("DynamoDB client config:", {
+          region: "ap-south-1",
+          hasAccessKey: !!process.env.NEXT_PUBLIC_DYNAMO_ACCESS_KEY_ID,
+          hasSecretKey: !!process.env.NEXT_PUBLIC_DYNAMO_SECRET_ACCESS_KEY,
+        });
 
         const updateCommand = new UpdateItemCommand({
+          TableName: "S3Console",
+          Key: { email: { S: userData.email } },
+          UpdateExpression: "SET paid = :paid, onTrial = :onTrial",
+          ExpressionAttributeValues: {
+            ":paid": { BOOL: true },
+            ":onTrial": { BOOL: false },
+          },
+        });
+
+        console.log("Update command details:", {
           TableName: "S3Console",
           Key: { email: { S: userData.email } },
           UpdateExpression: "SET paid = :paid, onTrial = :onTrial",
@@ -169,6 +225,10 @@ export default function DownloadsPage() {
         console.log("Sending update command to DynamoDB...");
         const updateResult = await docClient.send(updateCommand);
         console.log("DynamoDB update result:", updateResult);
+        console.log(
+          "Update successful! Status code:",
+          updateResult.$metadata?.httpStatusCode
+        );
         console.log(
           "Successfully updated user payment status for:",
           userData.email
@@ -219,7 +279,8 @@ export default function DownloadsPage() {
           });
         }, 250);
 
-        // Refresh user data
+        // Refresh user data to reflect the changes
+        console.log("Refreshing user data from DynamoDB...");
         const refreshCommand = new QueryCommand({
           TableName: "S3Console",
           IndexName: "clerkId-index",
@@ -230,8 +291,14 @@ export default function DownloadsPage() {
         });
 
         const refreshResponse = await docClient.send(refreshCommand);
-        setUserData(refreshResponse.Items?.[0]);
+        const refreshedUserData = refreshResponse.Items?.[0];
+        console.log("Refreshed user data:", refreshedUserData);
+        console.log("New paid status:", refreshedUserData?.paid);
+        console.log("New onTrial status:", refreshedUserData?.onTrial);
+        
+        setUserData(refreshedUserData);
         setPaymentSuccess(true);
+        console.log("Payment processing completed successfully!");
       } else {
         console.error(
           "userData or userData.email is missing, cannot update DynamoDB"
