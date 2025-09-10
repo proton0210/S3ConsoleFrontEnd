@@ -261,17 +261,31 @@ export default function DownloadsPage() {
     try {
       setProcessingPayment(true);
       console.log("Set processingPayment to true");
+      console.log("Starting payment processing with data:", {
+        email: currentUserData?.email,
+        paid: currentUserData?.paid,
+        onTrial: currentUserData?.onTrial
+      });
 
       // Test DynamoDB connection first
       const connectionTest = await testDynamoConnection();
       if (!connectionTest) {
         throw new Error("DynamoDB connection failed");
       }
+      console.log("Connection test passed, continuing...");
 
       // Add a small delay to ensure smooth transition
+      console.log("Starting delay before DynamoDB update...");
       await new Promise((resolve) => setTimeout(resolve, 1000));
+      console.log("Delay completed, proceeding with update...");
 
       // Update user's paid status in DynamoDB
+      console.log("Checking currentUserData:", {
+        hasUserData: !!currentUserData,
+        hasEmail: !!currentUserData?.email,
+        email: currentUserData?.email
+      });
+      
       if (currentUserData && currentUserData.email) {
         console.log("Updating DynamoDB for email:", currentUserData.email);
         console.log("DynamoDB client config:", {
@@ -288,6 +302,7 @@ export default function DownloadsPage() {
             ":paid": true,
             ":onTrial": false,
           },
+          ReturnValues: "ALL_NEW",
         });
 
         console.log("Update command details:", {
@@ -298,19 +313,36 @@ export default function DownloadsPage() {
             ":paid": true,
             ":onTrial": false,
           },
+          ReturnValues: "ALL_NEW",
         });
 
         console.log("Sending update command to DynamoDB...");
-        const updateResult = await docClient.send(updateCommand);
-        console.log("DynamoDB update result:", updateResult);
-        console.log(
-          "Update successful! Status code:",
-          updateResult.$metadata?.httpStatusCode
-        );
-        console.log(
-          "Successfully updated user payment status for:",
-          currentUserData.email
-        );
+        let updateResult;
+        try {
+          updateResult = await docClient.send(updateCommand);
+          console.log("DynamoDB update result:", updateResult);
+          console.log("Updated item attributes:", updateResult.Attributes);
+          console.log(
+            "Update successful! Status code:",
+            updateResult.$metadata?.httpStatusCode
+          );
+          console.log(
+            "Successfully updated user payment status for:",
+            currentUserData.email
+          );
+          console.log("User is now paid:", updateResult.Attributes?.paid);
+          console.log("User trial status:", updateResult.Attributes?.onTrial);
+        } catch (updateError) {
+          console.error("DynamoDB update failed:", updateError);
+          console.error("Update error details:", {
+            message: (updateError as any)?.message,
+            code: (updateError as any)?.code,
+            statusCode: (updateError as any)?.$metadata?.httpStatusCode,
+            requestId: (updateError as any)?.$metadata?.requestId,
+            stack: (updateError as any)?.stack
+          });
+          throw updateError;
+        }
 
         // Send confirmation email only if not already paid
         if (!currentUserData.paid) {
@@ -379,7 +411,8 @@ export default function DownloadsPage() {
         console.log("Payment processing completed successfully!");
       } else {
         console.error(
-          "currentUserData or currentUserData.email is missing, cannot update DynamoDB"
+          "currentUserData or currentUserData.email is missing, cannot update DynamoDB",
+          { currentUserData, email: currentUserData?.email }
         );
       }
     } catch (error) {
@@ -391,9 +424,10 @@ export default function DownloadsPage() {
         requestId: (error as any)?.$metadata?.requestId,
       });
 
-      // Show error to user
+      // Show error to user with more details
+      const errorMessage = (error as any)?.message || "Unknown error";
       alert(
-        "There was an issue processing your payment. Please contact support with your payment confirmation."
+        `There was an issue processing your payment: ${errorMessage}. Please contact support with your payment confirmation.`
       );
     } finally {
       setProcessingPayment(false);
