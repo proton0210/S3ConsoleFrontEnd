@@ -295,7 +295,7 @@ export default function DownloadsPage() {
         console.log("Refreshed user data:", refreshedUserData);
         console.log("New paid status:", refreshedUserData?.paid);
         console.log("New onTrial status:", refreshedUserData?.onTrial);
-        
+
         setUserData(refreshedUserData);
         setPaymentSuccess(true);
         console.log("Payment processing completed successfully!");
