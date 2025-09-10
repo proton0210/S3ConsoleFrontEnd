@@ -1,60 +1,112 @@
 import { NextRequest, NextResponse } from "next/server";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
-import { auth } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
+import { DynamoDBClient, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
 
-// Initialize DynamoDB client with server-side credentials
 const client = new DynamoDBClient({
   region: "ap-south-1",
   credentials: {
-    accessKeyId: process.env.DYNAMO_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.DYNAMO_SECRET_ACCESS_KEY!,
+    accessKeyId: process.env.NEXT_PUBLIC_DYNAMO_ACCESS_KEY_ID || "",
+    secretAccessKey: process.env.NEXT_PUBLIC_DYNAMO_SECRET_ACCESS_KEY || "",
   },
 });
 
 const docClient = DynamoDBDocumentClient.from(client);
 
-// Helper function to send confirmation email
-async function sendConfirmationEmail(email: string, name: string) {
+export async function POST(request: NextRequest) {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/api/send-email`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, name }),
-    });
+    console.log("=== PAYMENT SUCCESS API CALLED ===");
 
-    if (!response.ok) {
-      console.warn("Failed to send confirmation email:", await response.text());
-      return false;
-    }
-    return true;
-  } catch (error) {
-    console.error("Error sending confirmation email:", error);
-    return false;
-  }
-}
+    // Get the authenticated user
+    const { userId } = await auth();
+    console.log("Authenticated userId:", userId);
 
-export async function POST(req: NextRequest) {
-  try {
-    // Verify user is authenticated
-    const { userId } = auth();
     if (!userId) {
+      console.error("No authenticated user found");
       return NextResponse.json(
-        { error: "Unauthorized - User not authenticated" },
+        { success: false, error: "Unauthorized - no user ID" },
         { status: 401 }
       );
     }
 
-    // Get user data from request body (optional, for additional validation)
-    const body = await req.json().catch(() => ({}));
-    console.log("Payment success API called for userId:", userId);
+    // Parse request body
+    const body = await request.json();
     console.log("Request body:", body);
 
-    // First, fetch the user's current data using clerkId
-    console.log("Fetching user data from DynamoDB...");
-    const queryCommand = new QueryCommand({
+    const { email, name } = body;
+
+    if (!email) {
+      console.error("No email provided in request");
+      return NextResponse.json(
+        { success: false, error: "Email is required" },
+        { status: 400 }
+      );
+    }
+
+    console.log("Processing payment success for:", { email, name });
+
+    // Update user's paid status in DynamoDB
+    console.log("Updating DynamoDB for email:", email);
+
+    const updateCommand = new UpdateItemCommand({
+      TableName: "S3Console",
+      Key: { email: { S: email } },
+      UpdateExpression: "SET paid = :paid, onTrial = :onTrial",
+      ExpressionAttributeValues: {
+        ":paid": { BOOL: true },
+        ":onTrial": { BOOL: false },
+      },
+    });
+
+    console.log("Update command details:", {
+      TableName: "S3Console",
+      Key: { email: { S: email } },
+      UpdateExpression: "SET paid = :paid, onTrial = :onTrial",
+      ExpressionAttributeValues: {
+        ":paid": { BOOL: true },
+        ":onTrial": { BOOL: false },
+      },
+    });
+
+    console.log("Sending update command to DynamoDB...");
+    const updateResult = await docClient.send(updateCommand);
+    console.log("DynamoDB update result:", updateResult);
+    console.log(
+      "Update successful! Status code:",
+      updateResult.$metadata?.httpStatusCode
+    );
+
+    // Send confirmation email
+    let emailSent = false;
+    try {
+      console.log("Sending confirmation email...");
+      const emailResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_APP_URL}/api/send-email`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: email,
+            name: name,
+          }),
+        }
+      );
+
+      if (emailResponse.ok) {
+        console.log("Confirmation email sent successfully");
+        emailSent = true;
+      } else {
+        console.warn("Failed to send email:", await emailResponse.text());
+      }
+    } catch (emailError) {
+      console.warn("Email sending failed:", emailError);
+    }
+
+    // Fetch updated user data
+    console.log("Fetching updated user data...");
+    const refreshCommand = new QueryCommand({
       TableName: "S3Console",
       IndexName: "clerkId-index",
       KeyConditionExpression: "clerkId = :clerkId",
@@ -63,84 +115,26 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const queryResponse = await docClient.send(queryCommand);
-    const userData = queryResponse.Items?.[0];
+    const refreshResponse = await docClient.send(refreshCommand);
+    const refreshedUserData = refreshResponse.Items?.[0];
+    console.log("Refreshed user data:", refreshedUserData);
+    console.log("New paid status:", refreshedUserData?.paid);
+    console.log("New onTrial status:", refreshedUserData?.onTrial);
 
-    if (!userData) {
-      console.error("User not found in database for clerkId:", userId);
-      return NextResponse.json(
-        { error: "User not found in database" },
-        { status: 404 }
-      );
-    }
+    console.log("Payment processing completed successfully!");
 
-    console.log("Found user:", {
-      email: userData.email,
-      name: userData.name,
-      currentPaidStatus: userData.paid,
-      currentTrialStatus: userData.onTrial,
-    });
-
-    // Check if user is already paid (prevent duplicate processing)
-    if (userData.paid === true) {
-      console.log("User already has paid status, skipping update");
-      return NextResponse.json({
-        success: true,
-        message: "User already has Pro license",
-        userData: {
-          email: userData.email,
-          name: userData.name,
-          paid: userData.paid,
-          onTrial: userData.onTrial,
-        },
-      });
-    }
-
-    // Update user's payment status in DynamoDB
-    console.log("Updating payment status for email:", userData.email);
-    const updateCommand = new UpdateCommand({
-      TableName: "S3Console",
-      Key: { email: userData.email },
-      UpdateExpression: "SET paid = :paid, onTrial = :onTrial",
-      ExpressionAttributeValues: {
-        ":paid": true,
-        ":onTrial": false,
-      },
-      ReturnValues: "ALL_NEW",
-    });
-
-    const updateResult = await docClient.send(updateCommand);
-    console.log("DynamoDB update successful:", {
-      email: userData.email,
-      newPaidStatus: updateResult.Attributes?.paid,
-      newTrialStatus: updateResult.Attributes?.onTrial,
-    });
-
-    // Send confirmation email
-    console.log("Sending confirmation email...");
-    const emailSent = await sendConfirmationEmail(userData.email, userData.name);
-    if (emailSent) {
-      console.log("Confirmation email sent successfully");
-    } else {
-      console.warn("Failed to send confirmation email, but payment was processed");
-    }
-
-    // Return success response with updated user data
     return NextResponse.json({
       success: true,
       message: "Payment processed successfully",
       userData: {
-        email: updateResult.Attributes?.email,
-        name: updateResult.Attributes?.name,
-        paid: updateResult.Attributes?.paid,
-        onTrial: updateResult.Attributes?.onTrial,
-        key: updateResult.Attributes?.key,
+        paid: true,
+        onTrial: false,
+        ...refreshedUserData,
       },
-      emailSent,
+      emailSent: emailSent,
     });
-
   } catch (error) {
-    console.error("Error processing payment success:", error);
+    console.error("Error in payment-success API:", error);
     console.error("Error details:", {
       message: (error as any)?.message,
       code: (error as any)?.code,
@@ -149,9 +143,10 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json(
-      { 
-        error: "Failed to process payment", 
-        details: (error as any)?.message || "Unknown error"
+      {
+        success: false,
+        error: "Failed to process payment",
+        details: (error as any)?.message || "Unknown error",
       },
       { status: 500 }
     );
