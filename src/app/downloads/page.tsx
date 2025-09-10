@@ -171,6 +171,29 @@ export default function DownloadsPage() {
     fetchUserData();
   }, [userId]);
 
+  // Test DynamoDB connection
+  const testDynamoConnection = async () => {
+    try {
+      console.log("Testing DynamoDB connection...");
+      const testCommand = new QueryCommand({
+        TableName: "S3Console",
+        IndexName: "clerkId-index",
+        KeyConditionExpression: "clerkId = :clerkId",
+        ExpressionAttributeValues: {
+          ":clerkId": userId,
+        },
+        Limit: 1,
+      });
+
+      const testResponse = await docClient.send(testCommand);
+      console.log("DynamoDB connection test successful:", testResponse);
+      return true;
+    } catch (error) {
+      console.error("DynamoDB connection test failed:", error);
+      return false;
+    }
+  };
+
   const processPaymentSuccess = async () => {
     console.log("=== PROCESSING PAYMENT SUCCESS ===");
     console.log("processPaymentSuccess called with userData:", userData);
@@ -189,6 +212,12 @@ export default function DownloadsPage() {
     try {
       setProcessingPayment(true);
       console.log("Set processingPayment to true");
+
+      // Test DynamoDB connection first
+      const connectionTest = await testDynamoConnection();
+      if (!connectionTest) {
+        throw new Error("DynamoDB connection failed");
+      }
 
       // Add a small delay to ensure smooth transition
       await new Promise((resolve) => setTimeout(resolve, 1000));
