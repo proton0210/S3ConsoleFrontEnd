@@ -45,7 +45,7 @@ export default function PricingSection() {
                 </p>
                 <div className="mt-6 flex items-baseline justify-center gap-x-1">
                   <span className="text-6xl font-bold tracking-tight text-foreground">
-                    $99
+                    $29
                   </span>
                   <span className="text-2xl font-semibold text-muted-foreground">
                     .99

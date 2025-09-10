@@ -18,8 +18,7 @@ import { Button } from "@/components/ui/button";
 import { DynamoDBClient, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { useState, useEffect } from "react";
-import Script from "next/script";
-import { PolarEmbedCheckout } from "@polar-sh/checkout/embed";
+import { DodoPayments } from "dodopayments-checkout";
 import confetti from "canvas-confetti";
 
 // Declare global twq function for Twitter pixel
@@ -46,6 +45,52 @@ export default function DownloadsPage() {
   const [processingPayment, setProcessingPayment] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
 
+  // Initialize Dodo Payments after userData is loaded
+  useEffect(() => {
+    if (typeof window !== "undefined" && DodoPayments && userData) {
+      try {
+        DodoPayments.Initialize({
+          mode: "live", // Using live mode
+          onEvent: async (event) => {
+            console.log("Checkout event:", event);
+            console.log("Current userData:", userData);
+
+            // Use correct event types from documentation
+            if (event.event_type === "checkout.redirect") {
+              console.log("Purchase successful - redirecting!", event);
+              // The redirect will happen, we'll handle success on page reload
+            } else if (event.event_type === "checkout.opened") {
+              console.log("Checkout overlay opened");
+            } else if (event.event_type === "checkout.closed") {
+              console.log("Checkout has been closed");
+            } else if (event.event_type === "checkout.error") {
+              console.error("Checkout error:", event.data?.message || event);
+            }
+          },
+          theme: "light",
+          linkType: "static",
+          displayType: "overlay",
+        });
+        console.log("DodoPayments initialized successfully with userData:", userData.email);
+      } catch (error) {
+        console.error("Failed to initialize DodoPayments:", error);
+      }
+    }
+  }, [userData]); // Re-initialize when userData changes
+
+  // Check for payment success on page load
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const isSuccess = urlParams.get('success');
+    
+    if (isSuccess === 'true' && userData && !userData.paid && !processingPayment) {
+      console.log("Payment success detected, processing...");
+      processPaymentSuccess();
+      // Clean up the URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [userData, processingPayment]);
+
   useEffect(() => {
     if (!userId) {
       redirect("/sign-in");
@@ -71,6 +116,13 @@ export default function DownloadsPage() {
   }, [userId]);
 
   const processPaymentSuccess = async () => {
+    console.log("processPaymentSuccess called with userData:", userData);
+    
+    if (!userData) {
+      console.error("No userData available for payment processing");
+      return;
+    }
+    
     try {
       setProcessingPayment(true);
 
@@ -78,7 +130,9 @@ export default function DownloadsPage() {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // Update user's paid status in DynamoDB
-      if (userData) {
+      if (userData && userData.email) {
+        console.log("Updating DynamoDB for email:", userData.email);
+        
         const updateCommand = new UpdateItemCommand({
           TableName: "S3Console",
           Key: { email: { S: userData.email } },
@@ -89,8 +143,10 @@ export default function DownloadsPage() {
           },
         });
 
-        await docClient.send(updateCommand);
-        console.log("Updated user payment status");
+        console.log("Sending update command to DynamoDB...");
+        const updateResult = await docClient.send(updateCommand);
+        console.log("DynamoDB update result:", updateResult);
+        console.log("Successfully updated user payment status for:", userData.email);
 
         // Send confirmation email only if not already paid
         if (!userData.paid) {
@@ -150,9 +206,20 @@ export default function DownloadsPage() {
         const refreshResponse = await docClient.send(refreshCommand);
         setUserData(refreshResponse.Items?.[0]);
         setPaymentSuccess(true);
+      } else {
+        console.error("userData or userData.email is missing, cannot update DynamoDB");
       }
     } catch (error) {
       console.error("Failed to process payment:", error);
+      console.error("Error details:", {
+        message: error?.message,
+        code: error?.code,
+        statusCode: error?.$metadata?.httpStatusCode,
+        requestId: error?.$metadata?.requestId
+      });
+      
+      // Show error to user
+      alert("There was an issue processing your payment. Please contact support with your payment confirmation.");
     } finally {
       setProcessingPayment(false);
     }
@@ -180,10 +247,10 @@ export default function DownloadsPage() {
     document.body.removeChild(link);
 
     // Track download event with Twitter pixel
-    if (typeof window !== 'undefined' && window.twq) {
-      window.twq('event', 'tw-pyshe-pyshf', {
+    if (typeof window !== "undefined" && window.twq) {
+      window.twq("event", "tw-pyshe-pyshf", {
         email_address: userData?.email || null,
-        conversion_type: 'mac_download'
+        conversion_type: "mac_download",
       });
     }
 
@@ -231,10 +298,10 @@ export default function DownloadsPage() {
     document.body.removeChild(link);
 
     // Track download event with Twitter pixel
-    if (typeof window !== 'undefined' && window.twq) {
-      window.twq('event', 'tw-pyshe-pyshf', {
+    if (typeof window !== "undefined" && window.twq) {
+      window.twq("event", "tw-pyshe-pyshf", {
         email_address: userData?.email || null,
-        conversion_type: 'windows_download'
+        conversion_type: "windows_download",
       });
     }
 
@@ -343,7 +410,9 @@ export default function DownloadsPage() {
                 <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">
                   Windows
                 </h3>
-                <p className="text-slate-600 dark:text-slate-400 mb-6">Windows 10/11 (64-bit)</p>
+                <p className="text-slate-600 dark:text-slate-400 mb-6">
+                  Windows 10/11 (64-bit)
+                </p>
                 <Button
                   onClick={handleWindowsDownload}
                   className="w-full bg-primary hover:bg-primary/90 text-white group-hover:shadow-lg transition-all duration-300"
@@ -495,50 +564,51 @@ export default function DownloadsPage() {
 
                 <div className="p-6">
                   <Button
-                    onClick={async () => {
+                    onClick={() => {
                       try {
-                        const checkout = await PolarEmbedCheckout.create(
-                          "https://buy.polar.sh/polar_cl_eBEmCwlC5Mwkj7R6gk4MabewTqUqkotUewqLW2VNucV",
-                          "light"
+                        console.log(
+                          "Opening checkout for product:",
+                          "pdt_HAAaTSsGKpgkDFzHYprZM"
                         );
+                        console.log("User email:", userData?.email);
+                        console.log("DodoPayments object:", DodoPayments);
+                        console.log("DodoPayments.Checkout:", DodoPayments.Checkout);
 
-                        // Listen for when the checkout is loaded
-
-                        // Listen for when the checkout has been closed
-                        checkout.addEventListener("close", (event) => {
-                          console.log("Checkout has been closed");
+                        // Open checkout with your product (no await needed)
+                        DodoPayments.Checkout.open({
+                          products: [
+                            {
+                              productId: "pdt_HAAaTSsGKpgkDFzHYprZM",
+                              quantity: 1,
+                            },
+                          ],
+                          redirectUrl:
+                            window.location.origin + "/downloads?success=true",
+                          queryParams: {
+                            email: userData?.email || "",
+                            disableEmail: "false",
+                          },
                         });
-
-                        // Listen for successful completion
-                        checkout.addEventListener("success", async (event) => {
-                          console.log("Purchase successful!", event.detail);
-
-                          // Track purchase event with Twitter pixel
-                          if (typeof window !== 'undefined' && window.twq) {
-                            window.twq('event', 'tw-pyshe-pyshf', {
-                              email_address: userData?.email || null,
-                              conversion_type: 'purchase',
-                              value: '99.99',
-                              currency: 'USD'
-                            });
-                          }
-
-                          // Process payment success - triggers DynamoDB update, email, and confetti
-                          await processPaymentSuccess();
-                        });
-
-                        // Listen for errors
-                        checkout.addEventListener("error", (event) => {
-                          console.error("Checkout error:", event.detail);
-                        });
+                        
+                        console.log("Checkout.open called successfully");
                       } catch (error) {
-                        console.error("Failed to open checkout", error);
+                        console.error("Failed to open checkout:", error);
+                        console.error("Error details:", {
+                          message: error?.message,
+                          stack: error?.stack,
+                          type: typeof error
+                        });
+
+                        // Show user-friendly error message
+                        alert(
+                          "Failed to open checkout. Please try again or contact support."
+                        );
                       }
                     }}
                     className="w-full bg-primary hover:bg-primary/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-md"
                   >
                     <FaCrown className="mr-2 h-5 w-5" />
-                    Purchase S3Console - $99<span className="text-sm">.99</span>
+                    Purchase S3Console - $29<span className="text-sm">.99</span>
                   </Button>
                 </div>
               </div>
@@ -546,10 +616,6 @@ export default function DownloadsPage() {
           )}
         </Section>
       </div>
-      <Script
-        src="https://cdn.jsdelivr.net/npm/@polar-sh/web-components@0.6.0/dist/index.js"
-        type="module"
-      />
     </>
   );
 }

@@ -26,12 +26,7 @@ const environmentVariables: EnvVar[] = [
   },
   
   // Payment Processing
-  {
-    name: 'NEXT_PUBLIC_POLAR_PRODUCT_ID',
-    required: true,
-    sensitive: false,
-    description: 'Polar product ID for S3Console Pro'
-  },
+  // Dodo Payments product ID is hardcoded: pdt_HAAaTSsGKpgkDFzHYprZM
   
   // Email Service
   {
@@ -63,19 +58,6 @@ const environmentVariables: EnvVar[] = [
     description: 'Public URL of the application'
   },
   
-  // Polar Integration
-  {
-    name: 'POLAR_ACCESS_TOKEN',
-    required: true,
-    sensitive: true,
-    description: 'Polar API access token'
-  },
-  {
-    name: 'POLAR_WEBHOOK_SECRET',
-    required: true,
-    sensitive: true,
-    description: 'Polar webhook validation secret'
-  }
 ];
 
 export function validateEnvironmentVariables(): {
