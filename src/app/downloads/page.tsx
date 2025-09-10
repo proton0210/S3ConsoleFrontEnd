@@ -15,8 +15,8 @@ import {
 } from "react-icons/fa";
 import { HiSparkles } from "react-icons/hi";
 import { Button } from "@/components/ui/button";
-import { DynamoDBClient, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { useState, useEffect, useRef } from "react";
 import { DodoPayments } from "dodopayments-checkout";
 import confetti from "canvas-confetti";
@@ -280,23 +280,23 @@ export default function DownloadsPage() {
           hasSecretKey: !!process.env.NEXT_PUBLIC_DYNAMO_SECRET_ACCESS_KEY,
         });
 
-        const updateCommand = new UpdateItemCommand({
+        const updateCommand = new UpdateCommand({
           TableName: "S3Console",
-          Key: { email: { S: currentUserData.email } },
+          Key: { email: currentUserData.email },
           UpdateExpression: "SET paid = :paid, onTrial = :onTrial",
           ExpressionAttributeValues: {
-            ":paid": { BOOL: true },
-            ":onTrial": { BOOL: false },
+            ":paid": true,
+            ":onTrial": false,
           },
         });
 
         console.log("Update command details:", {
           TableName: "S3Console",
-          Key: { email: { S: currentUserData.email } },
+          Key: { email: currentUserData.email },
           UpdateExpression: "SET paid = :paid, onTrial = :onTrial",
           ExpressionAttributeValues: {
-            ":paid": { BOOL: true },
-            ":onTrial": { BOOL: false },
+            ":paid": true,
+            ":onTrial": false,
           },
         });
 
