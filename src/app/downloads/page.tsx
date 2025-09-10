@@ -15,8 +15,6 @@ import {
 } from "react-icons/fa";
 import { HiSparkles } from "react-icons/hi";
 import { Button } from "@/components/ui/button";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { useState, useEffect, useRef } from "react";
 import { DodoPayments } from "dodopayments-checkout";
 import confetti from "canvas-confetti";
@@ -28,15 +26,6 @@ declare global {
   }
 }
 
-const client = new DynamoDBClient({
-  region: "ap-south-1",
-  credentials: {
-    accessKeyId: process.env.NEXT_PUBLIC_DYNAMO_ACCESS_KEY_ID || "",
-    secretAccessKey: process.env.NEXT_PUBLIC_DYNAMO_SECRET_ACCESS_KEY || "",
-  },
-});
-
-const docClient = DynamoDBDocumentClient.from(client);
 
 export default function DownloadsPage() {
   const { userId } = useAuth();
@@ -198,47 +187,27 @@ export default function DownloadsPage() {
       redirect("/sign-in");
     }
 
-    // Fetch user data from DynamoDB
+    // Fetch user data from API
     const fetchUserData = async () => {
-      const command = new QueryCommand({
-        TableName: "S3Console",
-        IndexName: "clerkId-index",
-        KeyConditionExpression: "clerkId = :clerkId",
-        ExpressionAttributeValues: {
-          ":clerkId": userId,
-        },
-      });
-
-      const response = await docClient.send(command);
-      setUserData(response.Items?.[0]);
-      setLoading(false);
+      try {
+        const response = await fetch("/api/user-data");
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+          setUserData(data.userData);
+        } else {
+          console.error("Failed to fetch user data:", data.error);
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchUserData();
   }, [userId]);
 
-  // Test DynamoDB connection
-  const testDynamoConnection = async () => {
-    try {
-      console.log("Testing DynamoDB connection...");
-      const testCommand = new QueryCommand({
-        TableName: "S3Console",
-        IndexName: "clerkId-index",
-        KeyConditionExpression: "clerkId = :clerkId",
-        ExpressionAttributeValues: {
-          ":clerkId": userId,
-        },
-        Limit: 1,
-      });
-
-      const testResponse = await docClient.send(testCommand);
-      console.log("DynamoDB connection test successful:", testResponse);
-      return true;
-    } catch (error) {
-      console.error("DynamoDB connection test failed:", error);
-      return false;
-    }
-  };
 
   const processPaymentSuccess = async (userDataToProcess?: any) => {
     // Use passed userData or fall back to state
@@ -261,110 +230,31 @@ export default function DownloadsPage() {
     try {
       setProcessingPayment(true);
       console.log("Set processingPayment to true");
-      console.log("Starting payment processing with data:", {
-        email: currentUserData?.email,
-        paid: currentUserData?.paid,
-        onTrial: currentUserData?.onTrial
+      console.log("Calling payment-success API...");
+
+      // Call the API route to process payment
+      const response = await fetch("/api/payment-success", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: currentUserData.email,
+          name: currentUserData.name,
+        }),
       });
 
-      // Test DynamoDB connection first
-      const connectionTest = await testDynamoConnection();
-      if (!connectionTest) {
-        throw new Error("DynamoDB connection failed");
+      const result = await response.json();
+      console.log("API response:", result);
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to process payment");
       }
-      console.log("Connection test passed, continuing...");
 
-      // Add a small delay to ensure smooth transition
-      console.log("Starting delay before DynamoDB update...");
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log("Delay completed, proceeding with update...");
-
-      // Update user's paid status in DynamoDB
-      console.log("Checking currentUserData:", {
-        hasUserData: !!currentUserData,
-        hasEmail: !!currentUserData?.email,
-        email: currentUserData?.email
-      });
-      
-      if (currentUserData && currentUserData.email) {
-        console.log("Updating DynamoDB for email:", currentUserData.email);
-        console.log("DynamoDB client config:", {
-          region: "ap-south-1",
-          hasAccessKey: !!process.env.NEXT_PUBLIC_DYNAMO_ACCESS_KEY_ID,
-          hasSecretKey: !!process.env.NEXT_PUBLIC_DYNAMO_SECRET_ACCESS_KEY,
-        });
-
-        const updateCommand = new UpdateCommand({
-          TableName: "S3Console",
-          Key: { email: currentUserData.email },
-          UpdateExpression: "SET paid = :paid, onTrial = :onTrial",
-          ExpressionAttributeValues: {
-            ":paid": true,
-            ":onTrial": false,
-          },
-          ReturnValues: "ALL_NEW",
-        });
-
-        console.log("Update command details:", {
-          TableName: "S3Console",
-          Key: { email: currentUserData.email },
-          UpdateExpression: "SET paid = :paid, onTrial = :onTrial",
-          ExpressionAttributeValues: {
-            ":paid": true,
-            ":onTrial": false,
-          },
-          ReturnValues: "ALL_NEW",
-        });
-
-        console.log("Sending update command to DynamoDB...");
-        let updateResult;
-        try {
-          updateResult = await docClient.send(updateCommand);
-          console.log("DynamoDB update result:", updateResult);
-          console.log("Updated item attributes:", updateResult.Attributes);
-          console.log(
-            "Update successful! Status code:",
-            updateResult.$metadata?.httpStatusCode
-          );
-          console.log(
-            "Successfully updated user payment status for:",
-            currentUserData.email
-          );
-          console.log("User is now paid:", updateResult.Attributes?.paid);
-          console.log("User trial status:", updateResult.Attributes?.onTrial);
-        } catch (updateError) {
-          console.error("DynamoDB update failed:", updateError);
-          console.error("Update error details:", {
-            message: (updateError as any)?.message,
-            code: (updateError as any)?.code,
-            statusCode: (updateError as any)?.$metadata?.httpStatusCode,
-            requestId: (updateError as any)?.$metadata?.requestId,
-            stack: (updateError as any)?.stack
-          });
-          throw updateError;
-        }
-
-        // Send confirmation email only if not already paid
-        if (!currentUserData.paid) {
-          try {
-            const emailResponse = await fetch("/api/send-email", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                email: currentUserData.email,
-                name: currentUserData.name,
-              }),
-            });
-
-            if (!emailResponse.ok) {
-              console.warn("Failed to send email:", await emailResponse.text());
-            }
-          } catch (err) {
-            console.warn("Email sending failed", err);
-          }
-        }
+      if (result.success) {
+        console.log("Payment processed successfully!");
+        console.log("Updated user data:", result.userData);
+        console.log("Email sent:", result.emailSent);
 
         // Trigger confetti animation
         confetti({
@@ -389,31 +279,18 @@ export default function DownloadsPage() {
           });
         }, 250);
 
-        // Refresh user data to reflect the changes
-        console.log("Refreshing user data from DynamoDB...");
-        const refreshCommand = new QueryCommand({
-          TableName: "S3Console",
-          IndexName: "clerkId-index",
-          KeyConditionExpression: "clerkId = :clerkId",
-          ExpressionAttributeValues: {
-            ":clerkId": userId,
-          },
-        });
-
-        const refreshResponse = await docClient.send(refreshCommand);
-        const refreshedUserData = refreshResponse.Items?.[0];
-        console.log("Refreshed user data:", refreshedUserData);
-        console.log("New paid status:", refreshedUserData?.paid);
-        console.log("New onTrial status:", refreshedUserData?.onTrial);
-
-        setUserData(refreshedUserData);
+        // Update local user data with the response from API
+        if (result.userData) {
+          setUserData({
+            ...currentUserData,
+            ...result.userData,
+          });
+        }
+        
         setPaymentSuccess(true);
         console.log("Payment processing completed successfully!");
       } else {
-        console.error(
-          "currentUserData or currentUserData.email is missing, cannot update DynamoDB",
-          { currentUserData, email: currentUserData?.email }
-        );
+        throw new Error("Payment processing failed - no success response");
       }
     } catch (error) {
       console.error("Failed to process payment:", error);
