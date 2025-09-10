@@ -102,7 +102,7 @@ export default function DownloadsPage() {
               console.log("🚀 Current userData available:", !!currentUserData);
               try {
                 if (currentUserData) {
-                  await processPaymentSuccess();
+                  await processPaymentSuccess(currentUserData);
                   console.log(
                     "✅ processPaymentSuccess completed successfully"
                   );
@@ -157,7 +157,7 @@ export default function DownloadsPage() {
       if (event.data && event.data.type === "dodo-payment-success") {
         console.log("✅ Payment success detected via window message");
         if (userDataRef.current) {
-          processPaymentSuccess();
+          processPaymentSuccess(userDataRef.current);
         }
       }
     };
@@ -187,7 +187,7 @@ export default function DownloadsPage() {
       !processingPayment
     ) {
       console.log("Payment success detected from URL, processing...");
-      processPaymentSuccess();
+      processPaymentSuccess(userData);
       // Clean up the URL
       window.history.replaceState({}, document.title, window.location.pathname);
     }
@@ -240,17 +240,20 @@ export default function DownloadsPage() {
     }
   };
 
-  const processPaymentSuccess = async () => {
+  const processPaymentSuccess = async (userDataToProcess?: any) => {
+    // Use passed userData or fall back to state
+    const currentUserData = userDataToProcess || userData;
+    
     console.log("=== PROCESSING PAYMENT SUCCESS ===");
-    console.log("processPaymentSuccess called with userData:", userData);
+    console.log("processPaymentSuccess called with userData:", currentUserData);
     console.log("Current user state:", {
-      email: userData?.email,
-      paid: userData?.paid,
-      onTrial: userData?.onTrial,
-      name: userData?.name,
+      email: currentUserData?.email,
+      paid: currentUserData?.paid,
+      onTrial: currentUserData?.onTrial,
+      name: currentUserData?.name,
     });
 
-    if (!userData) {
+    if (!currentUserData) {
       console.error("No userData available for payment processing");
       return;
     }
@@ -269,8 +272,8 @@ export default function DownloadsPage() {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // Update user's paid status in DynamoDB
-      if (userData && userData.email) {
-        console.log("Updating DynamoDB for email:", userData.email);
+      if (currentUserData && currentUserData.email) {
+        console.log("Updating DynamoDB for email:", currentUserData.email);
         console.log("DynamoDB client config:", {
           region: "ap-south-1",
           hasAccessKey: !!process.env.NEXT_PUBLIC_DYNAMO_ACCESS_KEY_ID,
@@ -279,7 +282,7 @@ export default function DownloadsPage() {
 
         const updateCommand = new UpdateItemCommand({
           TableName: "S3Console",
-          Key: { email: { S: userData.email } },
+          Key: { email: { S: currentUserData.email } },
           UpdateExpression: "SET paid = :paid, onTrial = :onTrial",
           ExpressionAttributeValues: {
             ":paid": { BOOL: true },
@@ -289,7 +292,7 @@ export default function DownloadsPage() {
 
         console.log("Update command details:", {
           TableName: "S3Console",
-          Key: { email: { S: userData.email } },
+          Key: { email: { S: currentUserData.email } },
           UpdateExpression: "SET paid = :paid, onTrial = :onTrial",
           ExpressionAttributeValues: {
             ":paid": { BOOL: true },
@@ -306,11 +309,11 @@ export default function DownloadsPage() {
         );
         console.log(
           "Successfully updated user payment status for:",
-          userData.email
+          currentUserData.email
         );
 
         // Send confirmation email only if not already paid
-        if (!userData.paid) {
+        if (!currentUserData.paid) {
           try {
             const emailResponse = await fetch("/api/send-email", {
               method: "POST",
@@ -318,8 +321,8 @@ export default function DownloadsPage() {
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                email: userData.email,
-                name: userData.name,
+                email: currentUserData.email,
+                name: currentUserData.name,
               }),
             });
 
@@ -376,7 +379,7 @@ export default function DownloadsPage() {
         console.log("Payment processing completed successfully!");
       } else {
         console.error(
-          "userData or userData.email is missing, cannot update DynamoDB"
+          "currentUserData or currentUserData.email is missing, cannot update DynamoDB"
         );
       }
     } catch (error) {
@@ -796,7 +799,7 @@ export default function DownloadsPage() {
                             window.location.origin + "/downloads?success=true",
                           queryParams: {
                             email: userData.email,
-                            disableEmail: "false",
+                            disableEmail: "true",
                           },
                         });
 
@@ -833,7 +836,7 @@ export default function DownloadsPage() {
                         console.log(
                           "🧪 Manual test: Calling processPaymentSuccess"
                         );
-                        processPaymentSuccess();
+                        processPaymentSuccess(userData);
                       }}
                       className="w-full mt-2 bg-yellow-600 hover:bg-yellow-700 text-white text-sm"
                     >
