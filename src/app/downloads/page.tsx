@@ -17,7 +17,7 @@ import { HiSparkles } from "react-icons/hi";
 import { Button } from "@/components/ui/button";
 import { DynamoDBClient, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { DodoPayments } from "dodopayments-checkout";
 import confetti from "canvas-confetti";
 
@@ -46,36 +46,51 @@ export default function DownloadsPage() {
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [dodoInitialized, setDodoInitialized] = useState(false);
 
-  // Initialize Dodo Payments after userData is available
+  // Create a ref to store the latest userData
+  const userDataRef = useRef(userData);
+
+  // Update the ref whenever userData changes
+  useEffect(() => {
+    userDataRef.current = userData;
+  }, [userData]);
+
+  // Initialize Dodo Payments once when component mounts
   useEffect(() => {
     console.log("Initialization effect running...");
     console.log("typeof window:", typeof window);
     console.log("DodoPayments:", DodoPayments);
     console.log("dodoInitialized:", dodoInitialized);
-    console.log("userData:", userData);
 
-    if (
-      typeof window !== "undefined" &&
-      DodoPayments &&
-      !dodoInitialized &&
-      userData
-    ) {
+    if (typeof window !== "undefined" && DodoPayments && !dodoInitialized) {
       try {
         console.log("Attempting to initialize DodoPayments...");
         DodoPayments.Initialize({
           mode: "live", // Using live mode
           onEvent: async (event) => {
-            console.log("Checkout event:", event);
-            console.log("Current userData in event:", userData);
+            console.log("🔔 DODO EVENT RECEIVED:", event);
+            console.log("🔔 Event type:", event.event_type);
+            console.log("🔔 Event data:", event.data);
+
+            // Get the latest userData from ref
+            const currentUserData = userDataRef.current;
+            console.log("🔔 Current userData from ref:", currentUserData);
 
             // Use correct event types from documentation
             if (event.event_type === "checkout.redirect") {
-              console.log("Purchase successful - redirecting!", event);
+              console.log(
+                "✅ CHECKOUT.REDIRECT EVENT - Purchase successful!",
+                event
+              );
 
               // Track purchase event with Twitter pixel
-              if (typeof window !== "undefined" && window.twq) {
+              if (
+                typeof window !== "undefined" &&
+                window.twq &&
+                currentUserData
+              ) {
+                console.log("📊 Tracking purchase with Twitter pixel");
                 window.twq("event", "tw-pyshe-pyshf", {
-                  email_address: userData?.email || null,
+                  email_address: currentUserData.email || null,
                   conversion_type: "purchase",
                   value: "29.99",
                   currency: "USD",
@@ -83,14 +98,33 @@ export default function DownloadsPage() {
               }
 
               // Process payment success - triggers DynamoDB update, email, and confetti
-              console.log("Processing payment success...");
-              await processPaymentSuccess();
+              console.log("🚀 CALLING processPaymentSuccess...");
+              console.log("🚀 Current userData available:", !!currentUserData);
+              try {
+                if (currentUserData) {
+                  await processPaymentSuccess();
+                  console.log(
+                    "✅ processPaymentSuccess completed successfully"
+                  );
+                } else {
+                  console.error(
+                    "❌ No userData available, triggering URL-based processing"
+                  );
+                  // Set a flag to trigger URL-based processing
+                  window.location.href =
+                    window.location.origin + "/downloads?success=true";
+                }
+              } catch (error) {
+                console.error("❌ processPaymentSuccess failed:", error);
+              }
             } else if (event.event_type === "checkout.opened") {
-              console.log("Checkout overlay opened");
+              console.log("📂 Checkout overlay opened");
             } else if (event.event_type === "checkout.closed") {
-              console.log("Checkout has been closed");
+              console.log("❌ Checkout has been closed");
             } else if (event.event_type === "checkout.error") {
-              console.error("Checkout error:", event.data?.message || event);
+              console.error("💥 Checkout error:", event.data?.message || event);
+            } else {
+              console.log("❓ Unknown event type:", event.event_type, event);
             }
           },
           theme: "light",
@@ -98,10 +132,7 @@ export default function DownloadsPage() {
           displayType: "overlay",
         });
         setDodoInitialized(true);
-        console.log(
-          "DodoPayments initialized successfully with userData:",
-          userData.email
-        );
+        console.log("DodoPayments initialized successfully");
       } catch (error) {
         console.error("Failed to initialize DodoPayments:", error);
         console.error("Initialization error details:", {
@@ -115,10 +146,25 @@ export default function DownloadsPage() {
         windowUndefined: typeof window === "undefined",
         noDodoPayments: !DodoPayments,
         alreadyInitialized: dodoInitialized,
-        noUserData: !userData,
       });
     }
-  }, [userData]); // Re-initialize when userData changes
+  }, []); // Initialize only once
+
+  // Add window event listener as additional backup
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      console.log("🔔 Window message received:", event);
+      if (event.data && event.data.type === "dodo-payment-success") {
+        console.log("✅ Payment success detected via window message");
+        if (userDataRef.current) {
+          processPaymentSuccess();
+        }
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
 
   // Check for payment success on page load (backup mechanism)
   useEffect(() => {
@@ -771,14 +817,29 @@ export default function DownloadsPage() {
                         );
                       }
                     }}
-                    disabled={!dodoInitialized || !userData?.email}
+                    disabled={!dodoInitialized}
                     className="w-full bg-primary hover:bg-primary/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <FaCrown className="mr-2 h-5 w-5" />
-                    {!dodoInitialized || !userData?.email
+                    {!dodoInitialized
                       ? "Loading payment system..."
                       : "Purchase S3Console - $29.99"}
                   </Button>
+
+                  {/* Debug button - remove in production */}
+                  {process.env.NODE_ENV === "development" && userData && (
+                    <Button
+                      onClick={() => {
+                        console.log(
+                          "🧪 Manual test: Calling processPaymentSuccess"
+                        );
+                        processPaymentSuccess();
+                      }}
+                      className="w-full mt-2 bg-yellow-600 hover:bg-yellow-700 text-white text-sm"
+                    >
+                      🧪 Test Payment Processing (Dev Only)
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
