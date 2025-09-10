@@ -190,22 +190,42 @@ export default function DownloadsPage() {
     // Fetch user data from API
     const fetchUserData = async () => {
       try {
-        const response = await fetch("/api/user-data");
+        console.log("Fetching user data for userId:", userId);
+        setLoading(true);
+        
+        const response = await fetch("/api/user-data", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        
+        console.log("User data API response status:", response.status);
         const data = await response.json();
+        console.log("User data API response:", data);
         
         if (response.ok && data.success) {
+          console.log("User data fetched successfully:", data.userData);
           setUserData(data.userData);
         } else {
-          console.error("Failed to fetch user data:", data.error);
+          console.error("Failed to fetch user data:", data.error || "Unknown error");
+          console.error("Response details:", data);
+          
+          // Show error to user
+          alert(`Failed to load user data: ${data.error || "Unknown error"}. Please refresh the page.`);
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
+        alert("Failed to load user data. Please refresh the page and try again.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchUserData();
+    // Only fetch if we have a userId
+    if (userId) {
+      fetchUserData();
+    }
   }, [userId]);
 
 
@@ -684,8 +704,17 @@ export default function DownloadsPage() {
                         }
 
                         // Check if userData exists
+                        console.log("Current userData state:", userData);
+                        console.log("userData email:", userData?.email);
+                        console.log("userData loaded:", !!userData);
+                        
                         if (!userData?.email) {
-                          console.error("User data not available");
+                          console.error("User data not available", {
+                            userData,
+                            hasUserData: !!userData,
+                            email: userData?.email,
+                            loading,
+                          });
                           alert(
                             "User information is not loaded. Please refresh the page and try again."
                           );
