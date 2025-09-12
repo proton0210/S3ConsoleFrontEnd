@@ -28,6 +28,9 @@ RESEND_API_KEY=your_resend_api_key
 POLAR_ACCESS_TOKEN=your_polar_access_token
 POLAR_WEBHOOK_SECRET=your_polar_webhook_secret
 DODO_WEBHOOK_SECRET=your_dodo_webhook_secret
+DODO_PAYMENTS_API_KEY=your_dodo_api_key
+DODO_PAYMENTS_WEBHOOK_KEY=your_dodo_webhook_secret
+DODO_PAYMENTS_ENVIRONMENT=live_mode
 ```
 
 ## Best Practices for AWS Amplify
