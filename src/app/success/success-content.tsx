@@ -33,100 +33,94 @@ export default function SuccessContent() {
       return;
     }
 
-    const processPaymentSuccess = async () => {
+    const checkPaymentStatus = async () => {
       try {
-        // First, fetch user data to get email
-        const queryCommand = new QueryCommand({
-          TableName: "S3Console",
-          IndexName: "clerkId-index",
-          KeyConditionExpression: "clerkId = :clerkId",
-          ExpressionAttributeValues: {
-            ":clerkId": userId,
-          },
-        });
+        let attempts = 0;
+        const maxAttempts = 30; // Poll for 5 minutes
 
-        const queryResponse = await docClient.send(queryCommand);
-        const user = queryResponse.Items?.[0];
-        
-        if (user && !user.paid) {
-          // Update user's paid status
-          const updateCommand = new UpdateItemCommand({
-            TableName: "S3Console",
-            Key: { email: { S: user.email } },
-            UpdateExpression: "SET paid = :paid, onTrial = :onTrial",
-            ExpressionAttributeValues: { 
-              ":paid": { BOOL: true },
-              ":onTrial": { BOOL: false }
-            },
-          });
-
-          await docClient.send(updateCommand);
-
-          // Send confirmation email
+        const poll = async () => {
           try {
-            const emailResponse = await fetch("/api/send-email", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
+            console.log(
+              `Checking payment status (attempt ${attempts + 1}/${maxAttempts})`
+            );
+
+            // Check user payment status
+            const queryCommand = new QueryCommand({
+              TableName: "S3Console",
+              IndexName: "clerkId-index",
+              KeyConditionExpression: "clerkId = :clerkId",
+              ExpressionAttributeValues: {
+                ":clerkId": userId,
               },
-              body: JSON.stringify({
-                email: user.email,
-                name: user.name,
-              }),
             });
 
-            if (!emailResponse.ok) {
-              console.warn("Failed to send email:", await emailResponse.text());
+            const queryResponse = await docClient.send(queryCommand);
+            const user = queryResponse.Items?.[0];
+
+            if (user?.paid) {
+              console.log("✅ Payment confirmed by webhook!");
+
+              // Trigger confetti animation
+              confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 },
+              });
+
+              // Additional confetti burst after a short delay
+              setTimeout(() => {
+                confetti({
+                  particleCount: 50,
+                  angle: 60,
+                  spread: 55,
+                  origin: { x: 0 },
+                });
+                confetti({
+                  particleCount: 50,
+                  angle: 120,
+                  spread: 55,
+                  origin: { x: 1 },
+                });
+              }, 250);
+
+              setUserData(user);
+              setProcessingPayment(false);
+              setLoading(false);
+              return;
             }
-          } catch (err) {
-            console.warn("Email sending failed", err);
+
+            attempts++;
+            if (attempts < maxAttempts) {
+              setTimeout(poll, 10000); // Poll every 10 seconds
+            } else {
+              console.warn("Payment confirmation timeout");
+              setProcessingPayment(false);
+              setLoading(false);
+              alert(
+                "Payment processing is taking longer than expected. Please check your email or contact support."
+              );
+            }
+          } catch (error) {
+            console.error("Error checking payment status:", error);
+            attempts++;
+            if (attempts < maxAttempts) {
+              setTimeout(poll, 10000);
+            } else {
+              setProcessingPayment(false);
+              setLoading(false);
+            }
           }
-        }
+        };
 
-        // Trigger confetti animation
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 },
-        });
-
-        // Additional confetti burst after a short delay
-        setTimeout(() => {
-          confetti({
-            particleCount: 50,
-            angle: 60,
-            spread: 55,
-            origin: { x: 0 },
-          });
-          confetti({
-            particleCount: 50,
-            angle: 120,
-            spread: 55,
-            origin: { x: 1 },
-          });
-        }, 250);
-
-        // Fetch updated user data
-        const refreshCommand = new QueryCommand({
-          TableName: "S3Console",
-          IndexName: "clerkId-index",
-          KeyConditionExpression: "clerkId = :clerkId",
-          ExpressionAttributeValues: {
-            ":clerkId": userId,
-          },
-        });
-
-        const refreshResponse = await docClient.send(refreshCommand);
-        setUserData(refreshResponse.Items?.[0]);
+        poll();
       } catch (error) {
-        console.error("Failed to process payment success:", error);
-      } finally {
+        console.error("Failed to check payment status:", error);
         setProcessingPayment(false);
         setLoading(false);
       }
     };
 
-    processPaymentSuccess();
+    checkPaymentStatus();
   }, [userId, router]);
 
   if (loading || processingPayment) {
@@ -152,13 +146,14 @@ export default function SuccessContent() {
           <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 dark:bg-green-800 rounded-full mb-6">
             <FaCheck className="h-10 w-10 text-green-600 dark:text-green-300" />
           </div>
-          
+
           <h1 className="text-4xl font-bold text-slate-900 dark:text-white mb-4">
             Payment Successful!
           </h1>
-          
+
           <p className="text-lg text-slate-600 dark:text-slate-400 mb-8">
-            Thank you for purchasing S3Console Pro. Your account has been upgraded.
+            Thank you for purchasing S3Console Pro. Your account has been
+            upgraded.
           </p>
 
           {userData && (
@@ -177,8 +172,9 @@ export default function SuccessContent() {
 
           <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-8">
             <p className="text-sm text-amber-800 dark:text-amber-200">
-              <strong>Important:</strong> If you're currently logged into the S3Console desktop application, 
-              please log out and log back in to activate your Pro license.
+              <strong>Important:</strong> If you're currently logged into the
+              S3Console desktop application, please log out and log back in to
+              activate your Pro license.
             </p>
           </div>
 

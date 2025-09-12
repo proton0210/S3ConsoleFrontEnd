@@ -26,7 +26,6 @@ declare global {
   }
 }
 
-
 export default function DownloadsPage() {
   const { userId } = useAuth();
   const [userData, setUserData] = useState<any>(null);
@@ -67,45 +66,31 @@ export default function DownloadsPage() {
             // Use correct event types from documentation
             if (event.event_type === "checkout.redirect") {
               console.log(
-                "✅ CHECKOUT.REDIRECT EVENT - Purchase successful!",
+                "✅ CHECKOUT.REDIRECT EVENT - User redirected from checkout",
                 event
               );
 
-              // Track purchase event with Twitter pixel
+              // Track purchase event with Twitter pixel (but don't process payment yet)
               if (
                 typeof window !== "undefined" &&
                 window.twq &&
                 currentUserData
               ) {
-                console.log("📊 Tracking purchase with Twitter pixel");
+                console.log("📊 Tracking purchase attempt with Twitter pixel");
                 window.twq("event", "tw-pyshe-pyshf", {
                   email_address: currentUserData.email || null,
-                  conversion_type: "purchase",
+                  conversion_type: "purchase_initiated",
                   value: "29.99",
                   currency: "USD",
                 });
               }
 
-              // Process payment success - triggers DynamoDB update, email, and confetti
-              console.log("🚀 CALLING processPaymentSuccess...");
-              console.log("🚀 Current userData available:", !!currentUserData);
-              try {
-                if (currentUserData) {
-                  await processPaymentSuccess(currentUserData);
-                  console.log(
-                    "✅ processPaymentSuccess completed successfully"
-                  );
-                } else {
-                  console.error(
-                    "❌ No userData available, triggering URL-based processing"
-                  );
-                  // Set a flag to trigger URL-based processing
-                  window.location.href =
-                    window.location.origin + "/downloads?success=true";
-                }
-              } catch (error) {
-                console.error("❌ processPaymentSuccess failed:", error);
-              }
+              console.log(
+                "🔄 Redirecting to success page - waiting for webhook to confirm payment"
+              );
+              // Just redirect to success page, don't process payment yet
+              window.location.href =
+                window.location.origin + "/downloads?success=true";
             } else if (event.event_type === "checkout.opened") {
               console.log("📂 Checkout overlay opened");
             } else if (event.event_type === "checkout.closed") {
@@ -139,15 +124,15 @@ export default function DownloadsPage() {
     }
   }, []); // Initialize only once
 
-  // Add window event listener as additional backup
+  // Add window event listener for checkout events
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       console.log("🔔 Window message received:", event);
       if (event.data && event.data.type === "dodo-payment-success") {
-        console.log("✅ Payment success detected via window message");
-        if (userDataRef.current) {
-          processPaymentSuccess(userDataRef.current);
-        }
+        console.log(
+          "✅ Payment redirect detected via window message - waiting for webhook"
+        );
+        setPaymentSuccess(true);
       }
     };
 
@@ -155,32 +140,89 @@ export default function DownloadsPage() {
     return () => window.removeEventListener("message", handleMessage);
   }, []);
 
-  // Check for payment success on page load (backup mechanism)
+  // Check for payment success redirect and start polling for webhook confirmation
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     const urlParams = new URLSearchParams(window.location.search);
     const isSuccess = urlParams.get("success");
 
-    console.log("URL success check:", {
-      isSuccess,
-      userData: userData?.email,
-      alreadyPaid: userData?.paid,
-      processingPayment,
-    });
+    if (isSuccess === "true") {
+      console.log(
+        "Payment redirect detected - waiting for webhook confirmation"
+      );
+      setPaymentSuccess(true);
+      setProcessingPayment(true);
 
-    if (
-      isSuccess === "true" &&
-      userData &&
-      !userData.paid &&
-      !processingPayment
-    ) {
-      console.log("Payment success detected from URL, processing...");
-      processPaymentSuccess(userData);
+      // Start polling for payment confirmation
+      const pollForPaymentConfirmation = async () => {
+        let attempts = 0;
+        const maxAttempts = 30; // Poll for 5 minutes (30 * 10 seconds)
+
+        const poll = async () => {
+          try {
+            console.log(
+              `Polling for payment confirmation (attempt ${
+                attempts + 1
+              }/${maxAttempts})`
+            );
+
+            const response = await fetch("/api/user-data", {
+              method: "GET",
+              headers: { "Content-Type": "application/json" },
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              if (data.success && data.userData.paid) {
+                console.log("✅ Payment confirmed by webhook!");
+                setUserData(data.userData);
+                setProcessingPayment(false);
+
+                // Trigger confetti
+                if (typeof window !== "undefined" && (window as any).confetti) {
+                  (window as any).confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                  });
+                }
+                return;
+              }
+            }
+
+            attempts++;
+            if (attempts < maxAttempts) {
+              setTimeout(poll, 10000); // Poll every 10 seconds
+            } else {
+              console.warn(
+                "Payment confirmation timeout - please refresh page"
+              );
+              setProcessingPayment(false);
+              alert(
+                "Payment processing is taking longer than expected. Please refresh the page to check your payment status."
+              );
+            }
+          } catch (error) {
+            console.error("Error polling for payment confirmation:", error);
+            attempts++;
+            if (attempts < maxAttempts) {
+              setTimeout(poll, 10000);
+            } else {
+              setProcessingPayment(false);
+            }
+          }
+        };
+
+        poll();
+      };
+
+      pollForPaymentConfirmation();
+
       // Clean up the URL
       window.history.replaceState({}, document.title, window.location.pathname);
     }
-  }, [userData, processingPayment]);
+  }, []);
 
   useEffect(() => {
     if (!userId) {
@@ -192,31 +234,40 @@ export default function DownloadsPage() {
       try {
         console.log("Fetching user data for userId:", userId);
         setLoading(true);
-        
+
         const response = await fetch("/api/user-data", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
           },
         });
-        
+
         console.log("User data API response status:", response.status);
         const data = await response.json();
         console.log("User data API response:", data);
-        
+
         if (response.ok && data.success) {
           console.log("User data fetched successfully:", data.userData);
           setUserData(data.userData);
         } else {
-          console.error("Failed to fetch user data:", data.error || "Unknown error");
+          console.error(
+            "Failed to fetch user data:",
+            data.error || "Unknown error"
+          );
           console.error("Response details:", data);
-          
+
           // Show error to user
-          alert(`Failed to load user data: ${data.error || "Unknown error"}. Please refresh the page.`);
+          alert(
+            `Failed to load user data: ${
+              data.error || "Unknown error"
+            }. Please refresh the page.`
+          );
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
-        alert("Failed to load user data. Please refresh the page and try again.");
+        alert(
+          "Failed to load user data. Please refresh the page and try again."
+        );
       } finally {
         setLoading(false);
       }
@@ -227,109 +278,6 @@ export default function DownloadsPage() {
       fetchUserData();
     }
   }, [userId]);
-
-
-  const processPaymentSuccess = async (userDataToProcess?: any) => {
-    // Use passed userData or fall back to state
-    const currentUserData = userDataToProcess || userData;
-    
-    console.log("=== PROCESSING PAYMENT SUCCESS ===");
-    console.log("processPaymentSuccess called with userData:", currentUserData);
-    console.log("Current user state:", {
-      email: currentUserData?.email,
-      paid: currentUserData?.paid,
-      onTrial: currentUserData?.onTrial,
-      name: currentUserData?.name,
-    });
-
-    if (!currentUserData) {
-      console.error("No userData available for payment processing");
-      return;
-    }
-
-    try {
-      setProcessingPayment(true);
-      console.log("Set processingPayment to true");
-      console.log("Calling payment-success API...");
-
-      // Call the API route to process payment
-      const response = await fetch("/api/payment-success", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: currentUserData.email,
-          name: currentUserData.name,
-        }),
-      });
-
-      const result = await response.json();
-      console.log("API response:", result);
-
-      if (!response.ok) {
-        throw new Error(result.error || "Failed to process payment");
-      }
-
-      if (result.success) {
-        console.log("Payment processed successfully!");
-        console.log("Updated user data:", result.userData);
-        console.log("Email sent:", result.emailSent);
-
-        // Trigger confetti animation
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 },
-        });
-
-        // Additional confetti burst
-        setTimeout(() => {
-          confetti({
-            particleCount: 50,
-            angle: 60,
-            spread: 55,
-            origin: { x: 0 },
-          });
-          confetti({
-            particleCount: 50,
-            angle: 120,
-            spread: 55,
-            origin: { x: 1 },
-          });
-        }, 250);
-
-        // Update local user data with the response from API
-        if (result.userData) {
-          setUserData({
-            ...currentUserData,
-            ...result.userData,
-          });
-        }
-        
-        setPaymentSuccess(true);
-        console.log("Payment processing completed successfully!");
-      } else {
-        throw new Error("Payment processing failed - no success response");
-      }
-    } catch (error) {
-      console.error("Failed to process payment:", error);
-      console.error("Error details:", {
-        message: (error as any)?.message,
-        code: (error as any)?.code,
-        statusCode: (error as any)?.$metadata?.httpStatusCode,
-        requestId: (error as any)?.$metadata?.requestId,
-      });
-
-      // Show error to user with more details
-      const errorMessage = (error as any)?.message || "Unknown error";
-      alert(
-        `There was an issue processing your payment: ${errorMessage}. Please contact support with your payment confirmation.`
-      );
-    } finally {
-      setProcessingPayment(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -707,7 +655,7 @@ export default function DownloadsPage() {
                         console.log("Current userData state:", userData);
                         console.log("userData email:", userData?.email);
                         console.log("userData loaded:", !!userData);
-                        
+
                         if (!userData?.email) {
                           console.error("User data not available", {
                             userData,
@@ -769,19 +717,14 @@ export default function DownloadsPage() {
                       : "Purchase S3Console - $29.99"}
                   </Button>
 
-                  {/* Debug button - remove in production */}
-                  {process.env.NODE_ENV === "development" && userData && (
-                    <Button
-                      onClick={() => {
-                        console.log(
-                          "🧪 Manual test: Calling processPaymentSuccess"
-                        );
-                        processPaymentSuccess(userData);
-                      }}
-                      className="w-full mt-2 bg-yellow-600 hover:bg-yellow-700 text-white text-sm"
-                    >
-                      🧪 Test Payment Processing (Dev Only)
-                    </Button>
+                  {/* Debug: Show webhook URL for testing */}
+                  {process.env.NODE_ENV === "development" && (
+                    <div className="mt-2 p-2 bg-yellow-100 dark:bg-yellow-900 rounded text-xs">
+                      <p className="text-yellow-800 dark:text-yellow-200">
+                        🧪 Webhook URL: {window.location.origin}
+                        /api/webhook/dodo
+                      </p>
+                    </div>
                   )}
                 </div>
               </div>
