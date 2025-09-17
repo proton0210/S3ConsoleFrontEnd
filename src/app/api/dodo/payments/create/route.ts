@@ -3,9 +3,6 @@ import { auth } from "@clerk/nextjs/server";
 import { DynamoDBClient, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 
-// Official Dodo Payments SDK
-import DodoPayments from "dodopayments";
-
 const dynamoClient = new DynamoDBClient({
   region: "ap-south-1",
   credentials: {
@@ -43,26 +40,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const client = new (DodoPayments as any)({
-      bearerToken: apiKey,
-    });
-
     // Product is fixed for S3Console Pro
     const productId = "pdt_HAAaTSsGKpgkDFzHYprZM";
 
-    // Create payment via API
-    const payment = await client.payments.create({
-      // Keep minimal payload; add billing fields later if required by your account
-      customer: { customer_id: userId, email, name },
-      product_cart: [{ product_id: productId, quantity: 1 }],
+    // Create payment via Dodo REST API
+    // Note: Endpoint path based on docs; adjust if needed in config
+    const resp = await fetch("https://api.dodopayments.com/v1/payments", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        customer: { customer_id: userId, email, name },
+        product_cart: [{ product_id: productId, quantity: 1 }],
+      }),
     });
 
-    const status = (payment && (payment.status || payment?.data?.status)) as
-      | string
-      | undefined;
-    const paymentId = (payment && (payment.id || payment?.data?.id)) as
-      | string
-      | undefined;
+    if (!resp.ok) {
+      const text = await resp.text().catch(() => "");
+      return NextResponse.json(
+        { success: false, error: text || `Dodo API error: ${resp.status}` },
+        { status: 502 }
+      );
+    }
+
+    const payment = await resp.json();
+    const status = (payment && (payment.status || payment?.data?.status)) as string | undefined;
+    const paymentId = (payment && (payment.id || payment?.data?.id)) as string | undefined;
 
     if (status === "completed") {
       // Immediately mark user as paid
@@ -119,4 +124,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
