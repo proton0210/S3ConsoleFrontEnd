@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import confetti from "canvas-confetti";
@@ -7,6 +7,23 @@ import confetti from "canvas-confetti";
 type UiStatus = "processing" | "succeeded" | "failed";
 
 export default function PaymentStatusPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="w-full h-full p-10 pb-0">
+          <div className="bg-white dark:bg-slate-800 rounded-[20px] flex flex-col p-10 max-w-3xl mx-auto text-center">
+            <h1 className="font-display text-3xl mb-6">Payment Status</h1>
+            <div className="text-yellow-600">Loading status…</div>
+          </div>
+        </main>
+      }
+    >
+      <PaymentStatusContent />
+    </Suspense>
+  );
+}
+
+function PaymentStatusContent() {
   const searchParams = useSearchParams();
   const finalizeOnce = useRef(false);
   const [uiStatus, setUiStatus] = useState<UiStatus>("processing");
