@@ -11,9 +11,7 @@ const requiredVars = [
   'RESEND_API_KEY',
   'NEXT_PUBLIC_DYNAMO_ACCESS_KEY_ID',
   'NEXT_PUBLIC_DYNAMO_SECRET_ACCESS_KEY',
-  'NEXT_PUBLIC_APP_URL',
-  // Server-only key used by API route
-  'DODO_API_KEY'
+  'NEXT_PUBLIC_APP_URL'
 ];
 
 const warnings = [];
