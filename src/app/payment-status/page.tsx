@@ -1,69 +1,73 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import confetti from "canvas-confetti";
 
+type UiStatus = "processing" | "succeeded" | "failed";
+
 export default function PaymentStatusPage() {
-  const [status, setStatus] = useState<"processing" | "succeeded" | "error">(
-    "processing"
-  );
-  const finalizedRef = useRef(false);
+  const searchParams = useSearchParams();
+  const finalizeOnce = useRef(false);
+  const [uiStatus, setUiStatus] = useState<UiStatus>("processing");
+
+  const statusParam = (searchParams.get("status") || "processing").toLowerCase();
 
   useEffect(() => {
-    const handler = async (event: MessageEvent) => {
+    if (statusParam === "failed") setUiStatus("failed");
+    else if (statusParam === "succeeded") setUiStatus("succeeded");
+    else setUiStatus("processing");
+  }, [statusParam]);
+
+  useEffect(() => {
+    if (statusParam !== "succeeded" || finalizeOnce.current) return;
+    finalizeOnce.current = true;
+
+    const run = async () => {
       try {
-        const allowedOrigins = ["https://live.dodopayments.com"];
-        if (!allowedOrigins.includes(String(event.origin))) return;
+        const ud = await fetch("/api/user-data", {
+          headers: { "Content-Type": "application/json" },
+        });
+        if (!ud.ok) throw new Error("Unable to load user data");
+        const j = await ud.json();
+        const email = j?.userData?.email as string | undefined;
+        const name = j?.userData?.name as string | undefined;
+        if (!email) throw new Error("Missing user email");
 
-        const type = (event?.data && (event.data.type || event.data?.event_type)) as string | undefined;
-        if (type !== "dodo-payment-success") return;
-        if (finalizedRef.current) return;
-        finalizedRef.current = true;
-
-        // Get current user email
-        setStatus("processing");
-        const ud = await fetch("/api/user-data", { headers: { "Content-Type": "application/json" } });
-        let email: string | undefined;
-        if (ud.ok) {
-          const j = await ud.json();
-          email = j?.userData?.email as string | undefined;
-        }
-        if (!email) {
-          setStatus("error");
-          return;
-        }
-
-        // Mark payment success
         const resp = await fetch("/api/payment-success", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email }),
+          body: JSON.stringify({ email, name }),
         });
-        if (!resp.ok) {
-          setStatus("error");
-          return;
-        }
+        if (!resp.ok) throw new Error("Failed to update payment status");
 
-        // Refresh to reflect paid status
         await fetch("/api/user-data", { headers: { "Content-Type": "application/json" } });
-        setStatus("succeeded");
-        try { confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } }); } catch {}
-      } catch {
-        setStatus("error");
+        try {
+          confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
+        } catch {}
+      } catch (e) {
+        console.error("Finalize error:", e);
       }
     };
-    window.addEventListener("message", handler);
-    return () => window.removeEventListener("message", handler);
-  }, []);
+    run();
+  }, [statusParam]);
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-8">
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow p-8 max-w-md w-full text-center">
-        {status === "processing" && <h2 className="text-xl">Processing your payment…</h2>}
-        {status === "succeeded" && <h2 className="text-xl text-green-600">Payment Successful!</h2>}
-        {status === "error" && <h2 className="text-xl text-red-600">We couldn’t verify the payment.</h2>}
-        <div className="mt-6">
-          <Button onClick={() => (window.location.href = "/downloads")}>Go to Downloads</Button>
+    <main className="w-full h-full p-10 pb-0">
+      <div className="bg-white dark:bg-slate-800 rounded-[20px] flex flex-col p-10 max-w-3xl mx-auto text-center">
+        <h1 className="font-display text-3xl mb-6">Payment Status</h1>
+        {uiStatus === "succeeded" && (
+          <div className="text-green-600">Your payment has been processed successfully.</div>
+        )}
+        {uiStatus === "failed" && (
+          <div className="text-red-600">We couldn't process your payment. Please try again.</div>
+        )}
+        {uiStatus === "processing" && (
+          <div className="text-yellow-600">Your payment is being processed…</div>
+        )}
+
+        <div className="mt-8">
+          <Button onClick={() => (window.location.href = "/downloads")}>Return to Downloads</Button>
         </div>
       </div>
     </main>

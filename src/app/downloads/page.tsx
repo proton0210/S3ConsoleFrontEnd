@@ -17,7 +17,6 @@ import { HiSparkles } from "react-icons/hi";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect, useRef } from "react";
 import confetti from "canvas-confetti";
-import { DodoPayments } from "dodopayments-checkout";
 
 // Declare global twq function for Twitter pixel
 declare global {
@@ -33,8 +32,7 @@ export default function DownloadsPage() {
   const [loading, setLoading] = useState(true);
   const [processingPayment, setProcessingPayment] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
-  const [dodoInitialized, setDodoInitialized] = useState(false);
-  const finalizedRef = useRef(false);
+  // Removed client-side overlay init; using server-created sessions instead
 
   // Create a ref to store the latest userData
   const userDataRef = useRef(userData);
@@ -44,98 +42,9 @@ export default function DownloadsPage() {
     userDataRef.current = userData;
   }, [userData]);
 
-  // Initialize Dodo overlay checkout (aligned with demo switch handling)
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (!DodoPayments || dodoInitialized) return;
+  // No client overlay init; redirect to hosted checkout URL
 
-    try {
-      DodoPayments.Initialize({
-        displayType: "overlay",
-        linkType: "static",
-        mode: "live",
-        theme: "light",
-        onEvent: (event) => {
-          switch (event?.event_type) {
-            case "checkout.opened":
-              setProcessingPayment(false);
-              break;
-            case "checkout.closed":
-              // no-op
-              break;
-            case "checkout.redirect": {
-              // Follow Dodo-provided redirect URL
-              const url = (event as any)?.data?.url as string | undefined;
-              if (url) window.location.href = url;
-              break;
-            }
-            case "checkout.error": {
-              const msg = (event as any)?.data?.message || "Checkout error";
-              console.error("Dodo checkout error:", msg);
-              alert(String(msg));
-              break;
-            }
-            default:
-              break;
-          }
-        },
-      });
-      setDodoInitialized(true);
-    } catch (e) {
-      console.error("Failed to initialize DodoPayments overlay", e);
-    }
-  }, [dodoInitialized]);
-
-  // Listen for Dodo success message and finalize once
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const handler = async (event: MessageEvent) => {
-      try {
-        // Strict origin check aligned to live environment
-        const allowedOrigins = ["https://live.dodopayments.com"];
-        if (!allowedOrigins.includes(String(event.origin))) return;
-        const type = (event?.data && (event.data.type || event.data?.event_type)) as string | undefined;
-        if (type !== "dodo-payment-success") return;
-        if (finalizedRef.current) return; // avoid duplicate finalization
-        if (!userDataRef.current?.email) return;
-
-        finalizedRef.current = true;
-        setProcessingPayment(true);
-
-        const resp = await fetch("/api/payment-success", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: userDataRef.current.email,
-            name: userDataRef.current?.name,
-          }),
-        });
-
-        if (!resp.ok) {
-          const t = await resp.text();
-          throw new Error(t || "Failed to mark payment success");
-        }
-
-        const r = await fetch("/api/user-data", { headers: { "Content-Type": "application/json" } });
-        if (r.ok) {
-          const d = await r.json();
-          if (d?.success) setUserData(d.userData);
-        }
-
-        setPaymentSuccess(true);
-        try { confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } }); } catch {}
-      } catch (err) {
-        console.error("Error finalizing overlay payment via message:", err);
-        alert("We couldn't finalize your payment. Please contact support.");
-      } finally {
-        setProcessingPayment(false);
-      }
-    };
-
-    window.addEventListener("message", handler);
-    return () => window.removeEventListener("message", handler);
-  }, []);
+  // No postMessage finalization here; follow demo flow with redirect to /payment-status
 
   useEffect(() => {
     if (!userId) {
@@ -531,26 +440,40 @@ export default function DownloadsPage() {
 
                 <div className="p-6">
                   <Button
-                    onClick={() => {
+                    onClick={async () => {
                       try {
-                        if (!dodoInitialized) {
-                          alert("Payment system is still loading. Please try again in a moment.");
-                          return;
-                        }
                         if (!userData?.email) {
-                          alert("User information is not loaded. Please refresh the page and try again.");
+                          alert(
+                            "User information is not loaded. Please refresh the page and try again."
+                          );
                           return;
                         }
-                        DodoPayments.Checkout.open({
-                          products: [
-                            { productId: "pdt_HAAaTSsGKpgkDFzHYprZM", quantity: 1 },
-                          ],
-                          redirectUrl: `${window.location.origin}/payment-status`,
-                          queryParams: { email: userData.email, disableEmail: "true" },
-                        });
+                        setProcessingPayment(true);
+                        const resp = await fetch(
+                          "/api/dodo/create-checkout",
+                          {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              productId: "pdt_HAAaTSsGKpgkDFzHYprZM",
+                              quantity: 1,
+                            }),
+                          }
+                        );
+                        const data = await resp.json();
+                        if (!resp.ok || !data?.checkout_url) {
+                          throw new Error(
+                            data?.error || "Failed to create checkout session"
+                          );
+                        }
+                        window.location.href = data.checkout_url as string;
                       } catch (e) {
-                        console.error("Failed to open overlay checkout", e);
-                        alert("Failed to open checkout. Please try again.");
+                        console.error("Create checkout session failed", e);
+                        alert(
+                          (e as any)?.message ||
+                            "Failed to start checkout. Please try again."
+                        );
+                        setProcessingPayment(false);
                       }
                     }}
                     className="w-full bg-primary hover:bg-primary/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-md"
