@@ -27,6 +27,12 @@ const environmentVariables: EnvVar[] = [
   
   // Payment Processing
   // Dodo Payments product ID is hardcoded: pdt_HAAaTSsGKpgkDFzHYprZM
+  {
+    name: 'DODO_API_KEY',
+    required: true,
+    sensitive: true,
+    description: 'Dodo Payments API key for server SDK'
+  },
   
   // Email Service
   {

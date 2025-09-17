@@ -16,7 +16,6 @@ import {
 import { HiSparkles } from "react-icons/hi";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect, useRef } from "react";
-import { DodoPayments } from "dodopayments-checkout";
 import confetti from "canvas-confetti";
 
 // Declare global twq function for Twitter pixel
@@ -32,7 +31,7 @@ export default function DownloadsPage() {
   const [loading, setLoading] = useState(true);
   const [processingPayment, setProcessingPayment] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
-  const [dodoInitialized, setDodoInitialized] = useState(false);
+  // Overlay SDK removed; no initialization state needed
 
   // Create a ref to store the latest userData
   const userDataRef = useRef(userData);
@@ -42,187 +41,7 @@ export default function DownloadsPage() {
     userDataRef.current = userData;
   }, [userData]);
 
-  // Initialize Dodo Payments once when component mounts
-  useEffect(() => {
-    console.log("Initialization effect running...");
-    console.log("typeof window:", typeof window);
-    console.log("DodoPayments:", DodoPayments);
-    console.log("dodoInitialized:", dodoInitialized);
-
-    if (typeof window !== "undefined" && DodoPayments && !dodoInitialized) {
-      try {
-        console.log("Attempting to initialize DodoPayments...");
-        DodoPayments.Initialize({
-          mode: "live", // Using live mode
-          onEvent: async (event) => {
-            console.log("🔔 DODO EVENT RECEIVED:", event);
-            console.log("🔔 Event type:", event.event_type);
-            console.log("🔔 Event data:", event.data);
-
-            // Get the latest userData from ref
-            const currentUserData = userDataRef.current;
-            console.log("🔔 Current userData from ref:", currentUserData);
-
-            // Use correct event types from documentation
-            if (event.event_type === "checkout.redirect") {
-              console.log(
-                "✅ CHECKOUT.REDIRECT EVENT - User redirected from checkout",
-                event
-              );
-
-              // Track purchase event with Twitter pixel (but don't process payment yet)
-              if (
-                typeof window !== "undefined" &&
-                window.twq &&
-                currentUserData
-              ) {
-                console.log("📊 Tracking purchase attempt with Twitter pixel");
-                window.twq("event", "tw-pyshe-pyshf", {
-                  email_address: currentUserData.email || null,
-                  conversion_type: "purchase_initiated",
-                  value: "29.99",
-                  currency: "USD",
-                });
-              }
-
-              console.log(
-                "🔄 Redirecting to success page - waiting for webhook to confirm payment"
-              );
-              // Just redirect to success page, don't process payment yet
-              window.location.href =
-                window.location.origin + "/downloads?success=true";
-            } else if (event.event_type === "checkout.opened") {
-              console.log("📂 Checkout overlay opened");
-            } else if (event.event_type === "checkout.closed") {
-              console.log("❌ Checkout has been closed");
-            } else if (event.event_type === "checkout.error") {
-              console.error("💥 Checkout error:", event.data?.message || event);
-            } else {
-              console.log("❓ Unknown event type:", event.event_type, event);
-            }
-          },
-          theme: "light",
-          linkType: "static",
-          displayType: "overlay",
-        });
-        setDodoInitialized(true);
-        console.log("DodoPayments initialized successfully");
-      } catch (error) {
-        console.error("Failed to initialize DodoPayments:", error);
-        console.error("Initialization error details:", {
-          message: (error as any)?.message,
-          stack: (error as any)?.stack,
-          type: typeof error,
-        });
-      }
-    } else {
-      console.log("Skipping initialization because:", {
-        windowUndefined: typeof window === "undefined",
-        noDodoPayments: !DodoPayments,
-        alreadyInitialized: dodoInitialized,
-      });
-    }
-  }, []); // Initialize only once
-
-  // Add window event listener for checkout events
-  useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      console.log("🔔 Window message received:", event);
-      if (event.data && event.data.type === "dodo-payment-success") {
-        console.log(
-          "✅ Payment redirect detected via window message - waiting for webhook"
-        );
-        setPaymentSuccess(true);
-      }
-    };
-
-    window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
-  }, []);
-
-  // Check for payment success redirect and start polling for webhook confirmation
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const isSuccess = urlParams.get("success");
-
-    if (isSuccess === "true") {
-      console.log(
-        "Payment redirect detected - waiting for webhook confirmation"
-      );
-      setPaymentSuccess(true);
-      setProcessingPayment(true);
-
-      // Start polling for payment confirmation
-      const pollForPaymentConfirmation = async () => {
-        let attempts = 0;
-        const maxAttempts = 30; // Poll for 5 minutes (30 * 10 seconds)
-
-        const poll = async () => {
-          try {
-            console.log(
-              `Polling for payment confirmation (attempt ${
-                attempts + 1
-              }/${maxAttempts})`
-            );
-
-            const response = await fetch("/api/user-data", {
-              method: "GET",
-              headers: { "Content-Type": "application/json" },
-            });
-
-            if (response.ok) {
-              const data = await response.json();
-              if (data.success && data.userData.paid) {
-                console.log("✅ Payment confirmed by webhook!");
-                setUserData(data.userData);
-                setProcessingPayment(false);
-
-                // Trigger confetti
-                if (typeof window !== "undefined" && (window as any).confetti) {
-                  (window as any).confetti({
-                    particleCount: 100,
-                    spread: 70,
-                    origin: { y: 0.6 },
-                  });
-                }
-                return;
-              }
-            }
-
-            attempts++;
-            if (attempts < maxAttempts) {
-              setTimeout(poll, 10000); // Poll every 10 seconds
-            } else {
-              console.warn(
-                "Payment confirmation timeout - please refresh page"
-              );
-              setProcessingPayment(false);
-              alert(
-                "Payment processing is taking longer than expected. Please refresh the page to check your payment status."
-              );
-            }
-          } catch (error) {
-            console.error("Error polling for payment confirmation:", error);
-            attempts++;
-            if (attempts < maxAttempts) {
-              setTimeout(poll, 10000);
-            } else {
-              setProcessingPayment(false);
-            }
-          }
-        };
-
-        poll();
-      };
-
-      pollForPaymentConfirmation();
-
-      // Clean up the URL
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  }, []);
+  // Overlay/webhook/polling removed — using server API + immediate completion only
 
   useEffect(() => {
     if (!userId) {
@@ -618,114 +437,70 @@ export default function DownloadsPage() {
 
                 <div className="p-6">
                   <Button
-                    onClick={() => {
+                    onClick={async () => {
                       try {
-                        console.log(
-                          "Button clicked - checking prerequisites..."
-                        );
-                        console.log("dodoInitialized:", dodoInitialized);
-                        console.log("DodoPayments object:", DodoPayments);
-                        console.log(
-                          "DodoPayments.Checkout:",
-                          DodoPayments?.Checkout
-                        );
-                        console.log("userData:", userData);
-
-                        // Check if DodoPayments is initialized
-                        if (!dodoInitialized) {
-                          console.error("DodoPayments not initialized yet");
-                          alert(
-                            "Payment system is still loading. Please wait a moment and try again."
-                          );
-                          return;
-                        }
-
-                        // Check if DodoPayments.Checkout exists
-                        if (!DodoPayments?.Checkout?.open) {
-                          console.error(
-                            "DodoPayments.Checkout.open is not available"
-                          );
-                          alert(
-                            "Payment system is not properly loaded. Please refresh the page and try again."
-                          );
-                          return;
-                        }
-
-                        // Check if userData exists
-                        console.log("Current userData state:", userData);
-                        console.log("userData email:", userData?.email);
-                        console.log("userData loaded:", !!userData);
-
                         if (!userData?.email) {
-                          console.error("User data not available", {
-                            userData,
-                            hasUserData: !!userData,
-                            email: userData?.email,
-                            loading,
-                          });
                           alert(
                             "User information is not loaded. Please refresh the page and try again."
                           );
                           return;
                         }
 
-                        console.log(
-                          "Opening checkout for product:",
-                          "pdt_HAAaTSsGKpgkDFzHYprZM"
+                        setProcessingPayment(true);
+
+                        const res = await fetch(
+                          "/api/dodo/payments/create",
+                          {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              email: userData.email,
+                              name: userData?.name,
+                            }),
+                          }
                         );
-                        console.log("User email:", userData.email);
 
-                        // Open checkout with your product
-                        DodoPayments.Checkout.open({
-                          products: [
-                            {
-                              productId: "pdt_HAAaTSsGKpgkDFzHYprZM",
-                              quantity: 1,
-                            },
-                          ],
-                          redirectUrl:
-                            window.location.origin + "/downloads?success=true",
-                          queryParams: {
-                            email: userData.email,
-                            disableEmail: "true",
-                          },
-                        });
+                        const data = await res.json();
 
-                        console.log("Checkout.open called successfully");
-                      } catch (error) {
-                        console.error("Failed to open checkout:", error);
-                        console.error("Error details:", {
-                          message: (error as any)?.message,
-                          stack: (error as any)?.stack,
-                          type: typeof error,
-                          name: (error as any)?.name,
-                        });
+                        if (res.ok && data.success && data.completed) {
+                          // Refresh user data then show success modal
+                          const refresh = await fetch("/api/user-data", {
+                            method: "GET",
+                            headers: { "Content-Type": "application/json" },
+                          });
+                          if (refresh.ok) {
+                            const rData = await refresh.json();
+                            if (rData?.success) {
+                              setUserData(rData.userData);
+                            }
+                          }
 
-                        // Show user-friendly error message
+                          setProcessingPayment(false);
+                          setPaymentSuccess(true);
+                          try {
+                            confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
+                          } catch {}
+                        } else {
+                          setProcessingPayment(false);
+                          alert(
+                            data?.error ||
+                              "Payment was not completed immediately. Please try again."
+                          );
+                        }
+                      } catch (error: any) {
+                        setProcessingPayment(false);
                         alert(
-                          "Failed to open checkout. Please try again or contact support. Error: " +
-                            ((error as any)?.message || "Unknown error")
+                          error?.message ||
+                            "Failed to process payment. Please try again."
                         );
                       }
                     }}
-                    disabled={!dodoInitialized}
-                    className="w-full bg-primary hover:bg-primary/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-primary hover:bg-primary/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-md"
                   >
                     <FaCrown className="mr-2 h-5 w-5" />
-                    {!dodoInitialized
-                      ? "Loading payment system..."
-                      : "Purchase S3Console - $29.99"}
+                    Purchase S3Console - $29.99
                   </Button>
 
-                  {/* Debug: Show webhook URL for testing */}
-                  {process.env.NODE_ENV === "development" && (
-                    <div className="mt-2 p-2 bg-yellow-100 dark:bg-yellow-900 rounded text-xs">
-                      <p className="text-yellow-800 dark:text-yellow-200">
-                        🧪 Webhook URL: {window.location.origin}
-                        /api/webhook/dodo
-                      </p>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
