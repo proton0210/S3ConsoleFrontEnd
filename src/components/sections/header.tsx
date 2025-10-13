@@ -2,10 +2,11 @@
 
 import Drawer from "@/components/drawer";
 import { Icons } from "@/components/icons";
-import Menu from "@/components/menu";
 import { buttonVariants } from "@/components/ui/button";
 import { siteConfig } from "@/lib/config";
 import { cn } from "@/lib/utils";
+import Menu from "@/components/menu";
+import HomeStickyPromo from "@/components/home-sticky-promo";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
@@ -33,12 +34,9 @@ export default function Header() {
   }, []);
 
   return (
-    <header
-      className={
-        "relative sticky top-0 z-50 py-2 bg-background/60 backdrop-blur"
-      }
-    >
-      <div className="flex justify-between items-center container">
+    <header className="relative sticky top-0 z-50 bg-background/60 backdrop-blur">
+      {pathname === "/" && <HomeStickyPromo />}
+      <div className="flex items-center justify-between container py-2">
         <Link
           href="/"
           title="brand-logo"
