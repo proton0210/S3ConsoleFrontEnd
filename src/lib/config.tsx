@@ -31,7 +31,7 @@ export const siteConfig = {
   publisher: "S3Console",
   category: "Software",
   links: {
-    email: "support@s3console.com",
+    email: "vidit@serverlesscreed.com",
     twitter: "https://twitter.com/s3console",
     discord: "https://discord.gg/s3console",
     github: "https://github.com/s3console",
