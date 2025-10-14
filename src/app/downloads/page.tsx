@@ -557,7 +557,7 @@ export default function DownloadsPage() {
                     className="w-full bg-primary hover:bg-primary/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-md"
                   >
                     <FaCrown className="mr-2 h-5 w-5" />
-                    Purchase S3Console - $29.99
+                    Purchase S3Console - $50
                   </Button>
 
                 </div>
