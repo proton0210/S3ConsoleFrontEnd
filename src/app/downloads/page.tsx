@@ -13,6 +13,7 @@ import {
   FaUser,
   FaEnvelope,
   FaCheck,
+  FaCopy,
 } from "react-icons/fa";
 import { HiSparkles } from "react-icons/hi";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,8 @@ export default function DownloadsPage() {
   const [loading, setLoading] = useState(true);
   const [processingPayment, setProcessingPayment] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [copiedEmail, setCopiedEmail] = useState(false);
+  const [copiedKey, setCopiedKey] = useState(false);
   // Removed client-side overlay init; using server-created sessions instead
 
   // Create a ref to store the latest userData
@@ -263,6 +266,21 @@ export default function DownloadsPage() {
     }, 8000);
   };
 
+  const copyToClipboard = async (text: string, type: 'email' | 'key') => {
+    try {
+      await navigator.clipboard.writeText(text);
+      if (type === 'email') {
+        setCopiedEmail(true);
+        setTimeout(() => setCopiedEmail(false), 2000);
+      } else {
+        setCopiedKey(true);
+        setTimeout(() => setCopiedKey(false), 2000);
+      }
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
+  };
+
   return (
     <>
       <Header />
@@ -446,7 +464,7 @@ export default function DownloadsPage() {
                     </div>
                     <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-700 rounded-lg">
                       <FaEnvelope className="h-4 w-4 text-slate-500" />
-                      <div>
+                      <div className="flex-1">
                         <p className="text-sm text-slate-500 dark:text-slate-400">
                           Email
                         </p>
@@ -454,6 +472,17 @@ export default function DownloadsPage() {
                           {userData.email}
                         </p>
                       </div>
+                      <button
+                        onClick={() => copyToClipboard(userData.email, 'email')}
+                        className="ml-auto p-2 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-md transition-colors"
+                        title="Copy email"
+                      >
+                        {copiedEmail ? (
+                          <FaCheck className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <FaCopy className="h-4 w-4 text-slate-500" />
+                        )}
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -474,6 +503,17 @@ export default function DownloadsPage() {
                           {userData.key}
                         </p>
                       </div>
+                      <button
+                        onClick={() => copyToClipboard(userData.key, 'key')}
+                        className="ml-auto p-2 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-md transition-colors"
+                        title="Copy license key"
+                      >
+                        {copiedKey ? (
+                          <FaCheck className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <FaCopy className="h-4 w-4 text-slate-500" />
+                        )}
+                      </button>
                     </div>
                     <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-700 rounded-lg">
                       <div
