@@ -19,11 +19,13 @@ import {
   FaSync,
   FaExclamationTriangle,
   FaInfoCircle,
+  FaPlus,
 } from "react-icons/fa";
 import { HiSparkles } from "react-icons/hi";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect, useRef } from "react";
 import confetti from "canvas-confetti";
+import CheckoutButton from "@/components/checkout-button";
 
 // Declare global twq function for Twitter pixel
 declare global {
@@ -37,7 +39,7 @@ export default function DownloadsPage() {
   const { userId } = useAuth();
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [processingPayment, setProcessingPayment] = useState(false);
+  const [processingPayment, setProcessingPayment] = useState(false); // Kept for compatibility if needed, but CheckoutButton handles its own state
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [copiedKey, setCopiedKey] = useState(false);
@@ -45,26 +47,18 @@ export default function DownloadsPage() {
   const [warningMessage, setWarningMessage] = useState<string | null>(null);
   const [requiresActivation, setRequiresActivation] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  // Removed client-side overlay init; using server-created sessions instead
-
-  // Create a ref to store the latest userData
+  
   const userDataRef = useRef(userData);
 
-  // Update the ref whenever userData changes
   useEffect(() => {
     userDataRef.current = userData;
   }, [userData]);
-
-  // No client overlay init; redirect to hosted checkout URL
-
-  // No postMessage finalization here; follow demo flow with redirect to /payment-status
 
   useEffect(() => {
     if (!userId) {
       redirect("/sign-in");
     }
 
-    // Fetch user data from API
     const fetchUserData = async () => {
       try {
         console.log("Fetching user data for userId:", userId);
@@ -85,7 +79,6 @@ export default function DownloadsPage() {
           console.log("User data fetched successfully:", data.userData);
           setUserData(data.userData);
           
-          // Handle warnings and activation requirements
           if (data.warning) {
             setWarningMessage(data.warning);
           } else {
@@ -102,9 +95,7 @@ export default function DownloadsPage() {
             "Failed to fetch user data:",
             data.error || "Unknown error"
           );
-          console.error("Response details:", data);
-
-          // Show error to user
+          
           alert(
             `Failed to load user data: ${
               data.error || "Unknown error"
@@ -121,7 +112,6 @@ export default function DownloadsPage() {
       }
     };
 
-    // Only fetch if we have a userId
     if (userId) {
       fetchUserData();
     }
@@ -136,11 +126,9 @@ export default function DownloadsPage() {
   }
 
   const handleMacDownload = () => {
-    // Start the download
     const downloadLink =
       "https://s3consolemac.s3.us-east-1.amazonaws.com/S3Console-1.0.70-arm64.dmg";
 
-    // Create a temporary anchor element for download
     const link = document.createElement("a");
     link.href = downloadLink;
     link.download = "S3Console-1.0.66-arm64.dmg";
@@ -148,7 +136,6 @@ export default function DownloadsPage() {
     link.click();
     document.body.removeChild(link);
 
-    // Track download event with Twitter pixel
     if (typeof window !== "undefined" && window.twq) {
       window.twq("event", "tw-pyshe-pyshf", {
         email_address: userData?.email || null,
@@ -156,42 +143,13 @@ export default function DownloadsPage() {
       });
     }
 
-    // Show notification
-    const notification = document.createElement("div");
-    notification.className =
-      "fixed bottom-8 right-8 bg-slate-900 text-white p-6 rounded-lg shadow-xl z-50 max-w-md animate-in slide-in-from-bottom";
-    notification.innerHTML = `
-      <div class="flex items-start gap-4">
-        <div class="flex-shrink-0">
-          <svg class="h-6 w-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-        </div>
-        <div class="flex-1">
-          <p class="font-semibold mb-1">Download Started!</p>
-          <p class="text-sm text-slate-300 mb-2">Your S3Console download should begin shortly.</p>
-          <p class="text-xs text-slate-400">If the download doesn't start automatically, <a href="${downloadLink}" class="text-primary hover:underline">click here</a>.</p>
-        </div>
-      </div>
-    `;
-
-    document.body.appendChild(notification);
-
-    // Remove notification after 8 seconds
-    setTimeout(() => {
-      notification.classList.add("animate-out", "slide-out-to-bottom");
-      setTimeout(() => {
-        document.body.removeChild(notification);
-      }, 300);
-    }, 8000);
+    showNotification(downloadLink);
   };
 
   const handleWindowsDownload = () => {
-    // Start the download
     const downloadLink =
       "https://s3consolewindows.s3.ap-south-1.amazonaws.com/S3Console-Setup-1.0.70.exe";
 
-    // Create a temporary anchor element for download
     const link = document.createElement("a");
     link.href = downloadLink;
     link.download = "S3Console-Setup-1.0.66.exe";
@@ -199,7 +157,6 @@ export default function DownloadsPage() {
     link.click();
     document.body.removeChild(link);
 
-    // Track download event with Twitter pixel
     if (typeof window !== "undefined" && window.twq) {
       window.twq("event", "tw-pyshe-pyshf", {
         email_address: userData?.email || null,
@@ -207,42 +164,13 @@ export default function DownloadsPage() {
       });
     }
 
-    // Show notification
-    const notification = document.createElement("div");
-    notification.className =
-      "fixed bottom-8 right-8 bg-slate-900 text-white p-6 rounded-lg shadow-xl z-50 max-w-md animate-in slide-in-from-bottom";
-    notification.innerHTML = `
-      <div class="flex items-start gap-4">
-        <div class="flex-shrink-0">
-          <svg class="h-6 w-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-        </div>
-        <div class="flex-1">
-          <p class="font-semibold mb-1">Download Started!</p>
-          <p class="text-sm text-slate-300 mb-2">Your S3Console download should begin shortly.</p>
-          <p class="text-xs text-slate-400">If the download doesn't start automatically, <a href="${downloadLink}" class="text-primary hover:underline">click here</a>.</p>
-        </div>
-      </div>
-    `;
-
-    document.body.appendChild(notification);
-
-    // Remove notification after 8 seconds
-    setTimeout(() => {
-      notification.classList.add("animate-out", "slide-out-to-bottom");
-      setTimeout(() => {
-        document.body.removeChild(notification);
-      }, 300);
-    }, 8000);
+    showNotification(downloadLink);
   };
 
   const handleLinuxDownload = () => {
-    // Start the download
     const downloadLink =
       "https://s3consolelinux.s3.ap-south-1.amazonaws.com/s3Console_1.0.74_amd64.deb";
 
-    // Create a temporary anchor element for download
     const link = document.createElement("a");
     link.href = downloadLink;
     link.download = "s3Console_1.0.74_amd64.deb";
@@ -250,7 +178,6 @@ export default function DownloadsPage() {
     link.click();
     document.body.removeChild(link);
 
-    // Track download event with Twitter pixel
     if (typeof window !== "undefined" && window.twq) {
       window.twq("event", "tw-pyshe-pyshf", {
         email_address: userData?.email || null,
@@ -258,7 +185,10 @@ export default function DownloadsPage() {
       });
     }
 
-    // Show notification
+    showNotification(downloadLink);
+  };
+
+  const showNotification = (downloadLink: string) => {
     const notification = document.createElement("div");
     notification.className =
       "fixed bottom-8 right-8 bg-slate-900 text-white p-6 rounded-lg shadow-xl z-50 max-w-md animate-in slide-in-from-bottom";
@@ -279,7 +209,6 @@ export default function DownloadsPage() {
 
     document.body.appendChild(notification);
 
-    // Remove notification after 8 seconds
     setTimeout(() => {
       notification.classList.add("animate-out", "slide-out-to-bottom");
       setTimeout(() => {
@@ -324,7 +253,6 @@ export default function DownloadsPage() {
         throw new Error(data.error || "Failed to deregister machine");
       }
 
-      // Refresh user data
       await refreshUserData();
     } catch (error) {
       console.error("Failed to deregister machine:", error);
@@ -369,23 +297,8 @@ export default function DownloadsPage() {
     <>
       <Header />
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
-        {/* Payment Processing Overlay */}
-        {processingPayment && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 max-w-md mx-auto text-center">
-              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-6"></div>
-              <h3 className="text-2xl font-semibold text-slate-900 dark:text-white mb-2">
-                Processing Payment...
-              </h3>
-              <p className="text-slate-600 dark:text-slate-400">
-                Please wait while we confirm your purchase
-              </p>
-            </div>
-          </div>
-        )}
-
         {/* Payment Success Modal */}
-        {paymentSuccess && !processingPayment && (
+        {paymentSuccess && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
             <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 max-w-md mx-auto text-center">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 dark:bg-green-800 rounded-full mb-6">
@@ -662,16 +575,23 @@ export default function DownloadsPage() {
                       </div>
                     </div>
                     {userData.paid && (
-                      <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-700 rounded-lg">
-                        <div className="h-3 w-3 rounded-full bg-blue-500"></div>
-                        <div>
-                          <p className="text-sm text-slate-500 dark:text-slate-400">
-                            Licenses
-                          </p>
-                          <p className="font-medium text-slate-900 dark:text-white">
-                            {userData.licenseCount || 1} license(s) purchased
-                          </p>
+                      <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-700 rounded-lg justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="h-3 w-3 rounded-full bg-blue-500"></div>
+                          <div>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                              Licenses
+                            </p>
+                            <p className="font-medium text-slate-900 dark:text-white">
+                              {userData.licenseCount || 1} license(s) purchased
+                            </p>
+                          </div>
                         </div>
+                        <CheckoutButton 
+                           text="Buy More" 
+                           quantity={1} 
+                           className="h-8 text-xs"
+                        />
                       </div>
                     )}
                   </div>
@@ -752,11 +672,16 @@ export default function DownloadsPage() {
                       
                       {/* Show if at limit */}
                       {(userData.machines.length >= (userData.licenseCount || 1)) && (
-                        <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                        <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg flex items-center justify-between">
                           <p className="text-sm text-amber-800 dark:text-amber-200">
                             <FaExclamationTriangle className="inline h-4 w-4 mr-2" />
-                            You've reached your machine limit. Deregister a machine or purchase an additional license to register more.
+                            You've reached your machine limit. Deregister a machine or purchase an additional license.
                           </p>
+                          <CheckoutButton 
+                            text="Add License" 
+                            quantity={1} 
+                            className="ml-4 bg-amber-600 hover:bg-amber-700 text-white border-none"
+                          />
                         </div>
                       )}
                     </div>
@@ -782,7 +707,7 @@ export default function DownloadsPage() {
             </div>
           )}
 
-          {/* Purchase Section */}
+          {/* Purchase Section - Only shown if NOT paid */}
           {!userData?.paid && (
             <div className="max-w-xl mx-auto">
               <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-700">
@@ -797,49 +722,10 @@ export default function DownloadsPage() {
                 </div>
 
                 <div className="p-6">
-                  <Button
-                    onClick={async () => {
-                      try {
-                        if (!userData?.email) {
-                          alert(
-                            "User information is not loaded. Please refresh the page and try again."
-                          );
-                          return;
-                        }
-                        setProcessingPayment(true);
-                        const resp = await fetch(
-                          "/api/dodo/create-checkout",
-                          {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                              productId: "pdt_HAAaTSsGKpgkDFzHYprZM",
-                              quantity: 1,
-                            }),
-                          }
-                        );
-                        const data = await resp.json();
-                        if (!resp.ok || !data?.checkout_url) {
-                          throw new Error(
-                            data?.error || "Failed to create checkout session"
-                          );
-                        }
-                        window.location.href = data.checkout_url as string;
-                      } catch (e) {
-                        console.error("Create checkout session failed", e);
-                        alert(
-                          (e as any)?.message ||
-                            "Failed to start checkout. Please try again."
-                        );
-                        setProcessingPayment(false);
-                      }
-                    }}
+                  <CheckoutButton 
+                    text="Purchase S3Console - $49" 
                     className="w-full bg-primary hover:bg-primary/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-md"
-                  >
-                    <FaCrown className="mr-2 h-5 w-5" />
-                    Purchase S3Console - $49
-                  </Button>
-
+                  />
                 </div>
               </div>
             </div>
