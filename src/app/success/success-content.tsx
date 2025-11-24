@@ -8,6 +8,7 @@ import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { FaCheck, FaCrown } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import Section from "@/components/section";
+import { usePostHog } from "posthog-js/react";
 
 const client = new DynamoDBClient({
   region: "ap-south-1",
@@ -23,6 +24,7 @@ export default function SuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { userId } = useAuth();
+  const posthog = usePostHog();
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState<any>(null);
   const [processingPayment, setProcessingPayment] = useState(true);
@@ -59,6 +61,13 @@ export default function SuccessContent() {
 
             if (user?.paid) {
               console.log("✅ Payment confirmed by webhook!");
+
+              posthog.capture('purchase_success', {
+                  amount: 49,
+                  currency: 'USD',
+                  license_key: user.key,
+                  userId: userId
+              });
 
               // Trigger confetti animation
               confetti({

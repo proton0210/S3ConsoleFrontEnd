@@ -3,6 +3,7 @@ import Header from "@/components/sections/header";
 import Section from "@/components/section";
 import { useAuth } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
+import { usePostHog } from "posthog-js/react";
 import {
   FaWindows,
   FaApple,
@@ -37,6 +38,7 @@ declare global {
 //checking
 export default function DownloadsPage() {
   const { userId } = useAuth();
+  const posthog = usePostHog();
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [processingPayment, setProcessingPayment] = useState(false); // Kept for compatibility if needed, but CheckoutButton handles its own state
@@ -117,6 +119,22 @@ export default function DownloadsPage() {
     }
   }, [userId]);
 
+  useEffect(() => {
+    // Track page view with user metadata
+    if (userId && userData) {
+      posthog.identify(userId, {
+        email: userData.email,
+        name: userData.name,
+        is_paid: userData.paid,
+        license_count: userData.licenseCount
+      });
+      
+      posthog.capture('downloads_page_viewed', {
+        has_license: userData.paid
+      });
+    }
+  }, [userId, userData, posthog]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -143,6 +161,11 @@ export default function DownloadsPage() {
       });
     }
 
+    posthog.capture('download_clicked', {
+      os: 'macOS',
+      version: '1.0.70-arm64'
+    });
+
     showNotification(downloadLink);
   };
 
@@ -164,6 +187,11 @@ export default function DownloadsPage() {
       });
     }
 
+    posthog.capture('download_clicked', {
+      os: 'Windows',
+      version: '1.0.70'
+    });
+
     showNotification(downloadLink);
   };
 
@@ -184,6 +212,11 @@ export default function DownloadsPage() {
         conversion_type: "linux_download",
       });
     }
+
+    posthog.capture('download_clicked', {
+      os: 'Linux',
+      version: '1.0.74_amd64'
+    });
 
     showNotification(downloadLink);
   };

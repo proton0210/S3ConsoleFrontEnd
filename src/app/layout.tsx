@@ -4,6 +4,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { StructuredData } from "@/components/structured-data";
 import { cn, constructMetadata } from "@/lib/utils";
 import { type Metadata, Viewport } from "next";
+import { CSPostHogProvider } from "@/components/posthog-provider";
 import {
   ClerkProvider,
   SignInButton,
@@ -37,7 +38,8 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <html lang="en" suppressHydrationWarning>
+      <CSPostHogProvider>
+        <html lang="en" suppressHydrationWarning>
         <head>
           <link rel="preconnect" href="https://rsms.me/" />
           <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
@@ -71,7 +73,8 @@ export default function RootLayout({
             <ThemeToggle />
           </ThemeProvider>
         </body>
-      </html>
-    </ClerkProvider>
+      </CSPostHogProvider>
+    </html>
+  </ClerkProvider>
   );
 }

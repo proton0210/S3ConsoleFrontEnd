@@ -1,6 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@clerk/nextjs";
+import { usePostHog } from "posthog-js/react";
 import { useState } from "react";
 import { FaCrown, FaSpinner } from "react-icons/fa";
 
@@ -18,11 +19,19 @@ export default function CheckoutButton({
   variant = "default"
 }: CheckoutButtonProps) {
   const { userId } = useAuth();
+  const posthog = usePostHog();
   const [loading, setLoading] = useState(false);
 
   const handleCheckout = async () => {
     try {
       setLoading(true);
+
+      posthog.capture('checkout_initiated', {
+        productId: "pdt_HAAaTSsGKpgkDFzHYprZM",
+        quantity: quantity,
+        userId: userId,
+        location: 'checkout_button'
+      });
       
       // Get user email from Clerk if needed, but usually backend handles it via userId
       // or we fetch it from user-data endpoint if we want to be sure.
