@@ -14,6 +14,11 @@ import {
   FaEnvelope,
   FaCheck,
   FaCopy,
+  FaTrash,
+  FaDesktop,
+  FaSync,
+  FaExclamationTriangle,
+  FaInfoCircle,
 } from "react-icons/fa";
 import { HiSparkles } from "react-icons/hi";
 import { Button } from "@/components/ui/button";
@@ -36,6 +41,10 @@ export default function DownloadsPage() {
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [copiedKey, setCopiedKey] = useState(false);
+  const [deletingMachine, setDeletingMachine] = useState<string | null>(null);
+  const [warningMessage, setWarningMessage] = useState<string | null>(null);
+  const [requiresActivation, setRequiresActivation] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   // Removed client-side overlay init; using server-created sessions instead
 
   // Create a ref to store the latest userData
@@ -75,6 +84,19 @@ export default function DownloadsPage() {
         if (response.ok && data.success) {
           console.log("User data fetched successfully:", data.userData);
           setUserData(data.userData);
+          
+          // Handle warnings and activation requirements
+          if (data.warning) {
+            setWarningMessage(data.warning);
+          } else {
+            setWarningMessage(null);
+          }
+          
+          if (data.requiresActivation) {
+            setRequiresActivation(true);
+          } else {
+            setRequiresActivation(false);
+          }
         } else {
           console.error(
             "Failed to fetch user data:",
@@ -281,6 +303,68 @@ export default function DownloadsPage() {
     }
   };
 
+  const handleDeregisterMachine = async (machineId: string) => {
+    if (!confirm(`Are you sure you want to deregister this machine? You'll need to register it again to use it.`)) {
+      return;
+    }
+
+    try {
+      setDeletingMachine(machineId);
+      const response = await fetch("/api/deregister-machine", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: userData?.email,
+          machineId: machineId,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to deregister machine");
+      }
+
+      // Refresh user data
+      await refreshUserData();
+    } catch (error) {
+      console.error("Failed to deregister machine:", error);
+      alert((error as Error).message || "Failed to deregister machine. Please try again.");
+    } finally {
+      setDeletingMachine(null);
+    }
+  };
+
+  const refreshUserData = async () => {
+    try {
+      setRefreshing(true);
+      const response = await fetch("/api/user-data", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await response.json();
+      if (response.ok && data.success) {
+        setUserData(data.userData);
+        if (data.warning) {
+          setWarningMessage(data.warning);
+        } else {
+          setWarningMessage(null);
+        }
+        if (data.requiresActivation) {
+          setRequiresActivation(true);
+        } else {
+          setRequiresActivation(false);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to refresh user data:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   return (
     <>
       <Header />
@@ -427,7 +511,7 @@ export default function DownloadsPage() {
                   <div className="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center">
                     <FaUser className="h-6 w-6 text-primary" />
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <h2 className="text-xl font-bold text-slate-900 dark:text-white">
                       Your Account
                     </h2>
@@ -435,14 +519,55 @@ export default function DownloadsPage() {
                       License and download information
                     </p>
                   </div>
-                  {userData.paid && (
-                    <div className="ml-auto flex items-center gap-2 bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
-                      <FaCrown className="h-4 w-4" />
-                      Pro License
-                    </div>
-                  )}
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={refreshUserData}
+                      disabled={refreshing}
+                      className="p-2 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-md transition-colors disabled:opacity-50"
+                      title="Refresh account data"
+                    >
+                      <FaSync className={`h-4 w-4 text-slate-600 dark:text-slate-400 ${refreshing ? 'animate-spin' : ''}`} />
+                    </button>
+                    {userData.paid && (
+                      <div className="flex items-center gap-2 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-3 py-1 rounded-full text-sm font-medium">
+                        <FaCrown className="h-4 w-4" />
+                        Pro License
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
+
+              {/* Warning Banner */}
+              {warningMessage && (
+                <div className={`px-8 py-4 border-b ${
+                  requiresActivation 
+                    ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800' 
+                    : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
+                }`}>
+                  <div className="flex items-start gap-3">
+                    {requiresActivation ? (
+                      <FaExclamationTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                    ) : (
+                      <FaInfoCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                    )}
+                    <div className="flex-1">
+                      <p className={`text-sm font-medium ${
+                        requiresActivation 
+                          ? 'text-amber-800 dark:text-amber-200' 
+                          : 'text-blue-800 dark:text-blue-200'
+                      }`}>
+                        {warningMessage}
+                      </p>
+                      {requiresActivation && (
+                        <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+                          Open the S3Console desktop app and activate your license with your email and license key to register this machine.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8">
                 <div className="space-y-4">
@@ -536,9 +661,124 @@ export default function DownloadsPage() {
                         </p>
                       </div>
                     </div>
+                    {userData.paid && (
+                      <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-700 rounded-lg">
+                        <div className="h-3 w-3 rounded-full bg-blue-500"></div>
+                        <div>
+                          <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Licenses
+                          </p>
+                          <p className="font-medium text-slate-900 dark:text-white">
+                            {userData.licenseCount || 1} license(s) purchased
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
+
+              {/* Machine Management Section */}
+              {userData.paid && (
+                <div className="border-t border-slate-200 dark:border-slate-700 p-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                      <FaDesktop className="h-5 w-5 text-primary" />
+                      Registered Machines
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-sm font-medium px-3 py-1 rounded-full ${
+                        (userData.machines?.length || 0) >= (userData.licenseCount || 1)
+                          ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                          : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                      }`}>
+                        {userData.machines?.length || 0} / {userData.licenseCount || 1}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* License Usage Info */}
+                  <div className="mb-4 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
+                    <p className="text-xs text-slate-600 dark:text-slate-400">
+                      You have <strong className="text-slate-900 dark:text-white">{userData.licenseCount || 1}</strong> license(s) purchased. 
+                      Each license allows you to register <strong className="text-slate-900 dark:text-white">1 machine</strong>.
+                      {userData.licenseCount > 1 && (
+                        <span> Purchase additional licenses to register more machines.</span>
+                      )}
+                    </p>
+                  </div>
+
+                  {userData.machines && Array.isArray(userData.machines) && userData.machines.length > 0 ? (
+                    <div className="space-y-2">
+                      {userData.machines.map((machineId: string, index: number) => (
+                        <div
+                          key={machineId}
+                          className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors"
+                        >
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                              index === 0 ? 'bg-green-100 dark:bg-green-900/30' : 'bg-blue-100 dark:bg-blue-900/30'
+                            }`}>
+                              <FaDesktop className={`h-4 w-4 ${
+                                index === 0 ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400'
+                              }`} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-slate-900 dark:text-white">
+                                Machine {index + 1}
+                                {index === 0 && userData.machines.length === 1 && (
+                                  <span className="ml-2 text-xs text-green-600 dark:text-green-400">(Primary)</span>
+                                )}
+                              </p>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 font-mono truncate" title={machineId}>
+                                {machineId}
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => handleDeregisterMachine(machineId)}
+                            disabled={deletingMachine === machineId}
+                            className="ml-3 p-2 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-md transition-colors disabled:opacity-50 flex-shrink-0"
+                            title="Deregister machine"
+                          >
+                            {deletingMachine === machineId ? (
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
+                            ) : (
+                              <FaTrash className="h-4 w-4 text-red-600" />
+                            )}
+                          </button>
+                        </div>
+                      ))}
+                      
+                      {/* Show if at limit */}
+                      {(userData.machines.length >= (userData.licenseCount || 1)) && (
+                        <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                          <p className="text-sm text-amber-800 dark:text-amber-200">
+                            <FaExclamationTriangle className="inline h-4 w-4 mr-2" />
+                            You've reached your machine limit. Deregister a machine or purchase an additional license to register more.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+                      <FaDesktop className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                      <p className="font-medium mb-1">No machines registered yet</p>
+                      <p className="text-sm mt-2">
+                        {requiresActivation ? (
+                          <>
+                            Activate your license in the desktop app to register this machine.
+                            <br />
+                            <span className="text-xs mt-1 block">Use your email: <code className="bg-slate-200 dark:bg-slate-700 px-1 rounded">{userData.email}</code> and license key shown above.</span>
+                          </>
+                        ) : (
+                          "Register a machine when you activate your license in the desktop app."
+                        )}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
@@ -597,7 +837,7 @@ export default function DownloadsPage() {
                     className="w-full bg-primary hover:bg-primary/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-md"
                   >
                     <FaCrown className="mr-2 h-5 w-5" />
-                    Purchase S3Console - $50
+                    Purchase S3Console - $49
                   </Button>
 
                 </div>

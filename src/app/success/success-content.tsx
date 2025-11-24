@@ -171,10 +171,16 @@ export default function SuccessContent() {
           )}
 
           <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-8">
-            <p className="text-sm text-amber-800 dark:text-amber-200">
-              <strong>Important:</strong> If you're currently logged into the
-              S3Console desktop application, please log out and log back in to
-              activate your Pro license.
+            <p className="text-sm text-amber-800 dark:text-amber-200 mb-2">
+              <strong>Important:</strong> To activate your Pro license:
+            </p>
+            <ol className="text-sm text-amber-800 dark:text-amber-200 list-decimal list-inside space-y-1 ml-2">
+              <li>Open the S3Console desktop application</li>
+              <li>Enter your email and license key (shown above)</li>
+              <li>Your machine will be automatically registered</li>
+            </ol>
+            <p className="text-xs text-amber-700 dark:text-amber-300 mt-3">
+              Each license allows you to register 1 machine. Purchase additional licenses to use S3Console on more machines.
             </p>
           </div>
 

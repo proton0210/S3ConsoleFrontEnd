@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { DynamoDBClient, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 
 const client = new DynamoDBClient({
   region: "ap-south-1",
@@ -45,26 +45,48 @@ export async function POST(request: NextRequest) {
 
     console.log("Processing payment success for:", { email, name });
 
-    // Update user's paid status in DynamoDB
+    // Update user's paid status in DynamoDB and increment licenseCount
     console.log("Updating DynamoDB for email:", email);
 
-    const updateCommand = new UpdateItemCommand({
+    // First, get current licenseCount to increment it
+    const getCommand = new QueryCommand({
       TableName: "S3Console",
-      Key: { email: { S: email } },
-      UpdateExpression: "SET paid = :paid, onTrial = :onTrial",
+      IndexName: "clerkId-index",
+      KeyConditionExpression: "clerkId = :clerkId",
       ExpressionAttributeValues: {
-        ":paid": { BOOL: true },
-        ":onTrial": { BOOL: false },
+        ":clerkId": userId,
+      },
+    });
+
+    const currentData = await docClient.send(getCommand);
+    const currentUserData = currentData.Items?.[0];
+    // Increment licenseCount.
+    // Handle legacy cases:
+    // 1. New user/Trial user: licenseCount is undefined/0 -> start at 0, add 1 = 1.
+    // 2. Existing PAID user (legacy): licenseCount is undefined -> assume 1, add 1 = 2.
+    // 3. Existing PAID user (new schema): licenseCount is N -> add 1 = N + 1.
+    const currentLicenseCount = currentUserData?.licenseCount ?? (currentUserData?.paid ? 1 : 0);
+    const newLicenseCount = currentLicenseCount + 1;
+
+    const updateCommand = new UpdateCommand({
+      TableName: "S3Console",
+      Key: { email: email },
+      UpdateExpression: "SET paid = :paid, onTrial = :onTrial, licenseCount = :lc",
+      ExpressionAttributeValues: {
+        ":paid": true,
+        ":onTrial": false,
+        ":lc": newLicenseCount,
       },
     });
 
     console.log("Update command details:", {
       TableName: "S3Console",
-      Key: { email: { S: email } },
-      UpdateExpression: "SET paid = :paid, onTrial = :onTrial",
+      Key: { email: email },
+      UpdateExpression: "SET paid = :paid, onTrial = :onTrial, licenseCount = :lc",
       ExpressionAttributeValues: {
-        ":paid": { BOOL: true },
-        ":onTrial": { BOOL: false },
+        ":paid": true,
+        ":onTrial": false,
+        ":lc": newLicenseCount,
       },
     });
 

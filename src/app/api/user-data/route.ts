@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
     const response = await docClient.send(command);
     console.log("DynamoDB response:", response);
 
-    const userData = response.Items?.[0];
+    let userData = response.Items?.[0];
     console.log("User data found:", userData);
 
     if (!userData) {
@@ -57,6 +57,37 @@ export async function GET(request: NextRequest) {
         },
         { status: 404 }
       );
+    }
+
+    // Initialize licenseCount for existing paid users who don't have it yet
+    if (userData.paid && userData.licenseCount === undefined) {
+      userData.licenseCount = 1;
+    }
+    if (!userData.licenseCount || userData.licenseCount === null) {
+      userData.licenseCount = 1;
+    }
+
+    // Initialize machines array if it doesn't exist (handle null, undefined, or missing)
+    if (!Array.isArray(userData.machines)) {
+      userData.machines = [];
+    }
+
+    // For paid users with no machines: show warning but don't log them off
+    // They need to activate their license in the desktop app to register their machine
+    if (userData.paid && userData.machines.length === 0) {
+      console.log("Paid user has no machines registered - showing warning");
+      return NextResponse.json({
+        success: true,
+        userData: {
+          ...userData,
+          paid: userData.paid, // Keep paid status
+          onTrial: userData.onTrial || false,
+          licenseCount: userData.licenseCount,
+          machines: [],
+        },
+        warning: "No machines registered yet. Please activate your license in the desktop app to register this machine.",
+        requiresActivation: true,
+      });
     }
 
     console.log("Returning user data successfully");

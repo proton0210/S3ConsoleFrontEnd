@@ -76,7 +76,7 @@ export const siteConfig = {
     {
       name: "LIFETIME ACCESS",
       href: "/downloads",
-      price: "$50",
+      price: "$49",
       period: "one-time",
       yearlyPrice: null,
       features: [
