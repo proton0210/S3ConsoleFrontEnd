@@ -73,8 +73,8 @@ export default function RootLayout({
             <ThemeToggle />
           </ThemeProvider>
         </body>
+      </html>
       </CSPostHogProvider>
-    </html>
-  </ClerkProvider>
+    </ClerkProvider>
   );
 }
