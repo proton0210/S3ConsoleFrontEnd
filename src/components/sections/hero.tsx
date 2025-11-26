@@ -15,17 +15,16 @@ const ease = [0.16, 1, 0.3, 1];
 function HeroPill() {
   return (
     <motion.div
-      
       className="flex w-auto items-center space-x-2 rounded-full bg-primary/20 px-2 py-1 ring-1 ring-accent whitespace-pre"
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, ease }}
     >
       <div className="w-fit rounded-full bg-accent px-2 py-0.5 text-center text-xs font-medium text-primary sm:text-sm">
-        🚀 New Feature
+        New
       </div>
       <p className="text-xs font-medium text-primary sm:text-sm">
-        AI Code Generation Now Available!
+        S3Console 2.0
       </p>
       <svg
         width="12"
@@ -85,9 +84,9 @@ function HeroTitles() {
           ease,
         }}
       >
-        Professional S3 bucket manager with intuitive GUI and AI-powered code generation.
-        Create presigned URLs, switch between AWS profiles instantly, preview files
-        without downloading.
+        Professional S3 bucket manager with intuitive GUI and AI-powered code
+        generation. Create presigned URLs, switch between AWS profiles
+        instantly, preview files without downloading.
       </motion.p>
     </div>
   );
@@ -106,7 +105,7 @@ function HeroCTA() {
         <SignedOut>
           <Link
             href="/sign-up"
-            onClick={() => posthog?.capture('hero_signup_clicked')}
+            onClick={() => posthog?.capture("hero_signup_clicked")}
             className={cn(
               buttonVariants({ variant: "default" }),
               "w-full sm:w-auto text-background flex gap-2"
@@ -118,7 +117,7 @@ function HeroCTA() {
         <SignedIn>
           <Link
             href="/downloads"
-            onClick={() => posthog?.capture('hero_download_clicked')}
+            onClick={() => posthog?.capture("hero_download_clicked")}
             className={cn(
               buttonVariants({ variant: "default" }),
               "w-full sm:w-auto text-background"

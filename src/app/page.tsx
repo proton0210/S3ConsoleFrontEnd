@@ -9,7 +9,6 @@ import Pricing from "@/components/sections/pricing";
 import Problem from "@/components/sections/problem";
 import Solution from "@/components/sections/solution";
 import TestimonialsCarousel from "@/components/sections/testimonials-carousel";
-import UpcomingFeatures from "@/components/sections/upcoming-features";
 import { StructuredData } from "@/components/structured-data";
 
 export default function Home() {
@@ -23,7 +22,6 @@ export default function Home() {
       <HowItWorks />
       <TestimonialsCarousel />
       <Features />
-      <UpcomingFeatures />
       <Pricing />
       <FAQ />
       <CTA />
