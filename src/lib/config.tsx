@@ -7,7 +7,7 @@ export const BLUR_FADE_DELAY = 0.15;
 
 export const siteConfig = {
   name: "S3Console",
-  description: "Native AWS S3 Desktop App for Mac & Windows - Manage S3 buckets with an intuitive GUI. Features presigned URLs, multi-profile support, and smart file preview.",
+  description: "Native AWS S3 Desktop App for Mac & Windows. Manage S3 buckets with an intuitive GUI. Features AI Code Generation, Presigned URLs, Multi-Profile Support, and Advanced Access Control.",
   url: process.env.NEXT_PUBLIC_APP_URL || "https://s3console.com",
   keywords: [
     "AWS S3 desktop app",
@@ -24,7 +24,12 @@ export const siteConfig = {
     "AWS S3 Mac app",
     "AWS S3 Windows app",
     "S3 bucket explorer",
-    "cloud storage manager"
+    "cloud storage manager",
+    "AWS SSO",
+    "S3 Cost Estimation",
+    "S3 Code Generation",
+    "S3 Access Control",
+    "S3 Bucket Policy Generator"
   ],
   author: "S3Console Team",
   creator: "S3Console",
@@ -80,16 +85,16 @@ export const siteConfig = {
       period: "one-time",
       yearlyPrice: null,
       features: [
-        "Lifetime Access",
-        "All Software Updates",
+        "Native Mac, Windows & Linux App",
+        "Lifetime License Key",
+        "All Future Updates Included",
         "AI Code Generation (NEW!)",
-        "Multi-Account Support",
+        "Unlimited AWS Profiles",
         "Secure Presigned URLs",
         "Smart Object Preview",
-        "Intuitive Desktop Interface",
         "Priority Email Support",
       ],
-      description: "Everything you need for professional S3 management",
+      description: "One-time payment. Use on all your devices.",
       buttonText: "Get Lifetime Access",
       isPopular: true,
     },

@@ -187,7 +187,7 @@ export default function Features({
               }`}
             >
               <Accordion.Root
-                className="grid md:grid-cols-4 gap-x-10 py-8"
+                className="grid md:grid-cols-3 gap-x-10 py-8"
                 type="single"
                 defaultValue={`item-${currentIndex}`}
                 value={`item-${currentIndex}`}
@@ -261,43 +261,6 @@ export default function Features({
                   </AccordionItem>
                 ))}
               </Accordion.Root>
-            </div>
-            <div
-              className={`w-auto overflow-hidden relative rounded-lg ${
-                ltr && "md:order-1"
-              }`}
-            >
-              {data[currentIndex]?.image ? (
-                <motion.img
-                  key={currentIndex}
-                  src={data[currentIndex].image}
-                  alt="feature"
-                  className="aspect-auto h-full w-full object-cover relative border rounded-lg shadow-lg"
-                  initial={{ opacity: 0, scale: 0.98 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.98 }}
-                  transition={{ duration: 0.25, ease: "easeOut" }}
-                />
-              ) : data[currentIndex]?.video ? (
-                <video
-                  preload="auto"
-                  src={data[currentIndex].video}
-                  className="aspect-auto h-full w-full rounded-lg object-cover border shadow-lg"
-                  autoPlay
-                  loop
-                  muted
-                />
-              ) : (
-                <div className="aspect-auto h-full w-full rounded-xl border border-neutral-300/50 bg-gray-200 p-1 min-h-[600px]"></div>
-              )}
-              <BorderBeam
-                size={400}
-                duration={12}
-                delay={9}
-                borderWidth={1.5}
-                colorFrom="hsl(var(--primary))"
-                colorTo="hsl(var(--primary)/0)"
-              />
             </div>
 
             <ul

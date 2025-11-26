@@ -17,11 +17,11 @@ export default function Home() {
       <StructuredData type="faq" />
       <Header />
       <Hero />
+      <Features />
       <Problem />
       <Solution />
       <HowItWorks />
       <TestimonialsCarousel />
-      <Features />
       <Pricing />
       <FAQ />
       <CTA />
