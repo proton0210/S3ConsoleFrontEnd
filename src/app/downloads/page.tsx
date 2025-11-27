@@ -7,6 +7,7 @@ import { usePostHog } from "posthog-js/react";
 import {
   FaWindows,
   FaApple,
+  FaLinux,
   FaDownload,
   FaCrown,
   FaKey,
@@ -23,6 +24,14 @@ import {
 } from "react-icons/fa";
 import { HiSparkles } from "react-icons/hi";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useState, useEffect, useRef } from "react";
 import confetti from "canvas-confetti";
 import CheckoutButton from "@/components/checkout-button";
@@ -48,7 +57,8 @@ export default function DownloadsPage() {
   const [warningMessage, setWarningMessage] = useState<string | null>(null);
   const [requiresActivation, setRequiresActivation] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-
+  const [showWindowsModal, setShowWindowsModal] = useState(false);
+  
   const userDataRef = useRef(userData);
 
   useEffect(() => {
@@ -79,13 +89,13 @@ export default function DownloadsPage() {
         if (response.ok && data.success) {
           console.log("User data fetched successfully:", data.userData);
           setUserData(data.userData);
-
+          
           if (data.warning) {
             setWarningMessage(data.warning);
           } else {
             setWarningMessage(null);
           }
-
+          
           if (data.requiresActivation) {
             setRequiresActivation(true);
           } else {
@@ -96,7 +106,7 @@ export default function DownloadsPage() {
             "Failed to fetch user data:",
             data.error || "Unknown error"
           );
-
+          
           alert(
             `Failed to load user data: ${
               data.error || "Unknown error"
@@ -125,11 +135,11 @@ export default function DownloadsPage() {
         email: userData.email,
         name: userData.name,
         is_paid: userData.paid,
-        license_count: userData.licenseCount,
+        license_count: userData.licenseCount
       });
-
-      posthog.capture("downloads_page_viewed", {
-        has_license: userData.paid,
+      
+      posthog.capture('downloads_page_viewed', {
+        has_license: userData.paid
       });
     }
   }, [userId, userData, posthog]);
@@ -144,11 +154,11 @@ export default function DownloadsPage() {
 
   const handleMacDownload = () => {
     const downloadLink =
-      "https://s3consolemac.s3.us-east-1.amazonaws.com/S3Console-2.0.5-arm64.dmg";
+      "https://s3consolemac.s3.us-east-1.amazonaws.com/S3Console-1.0.70-arm64.dmg";
 
     const link = document.createElement("a");
     link.href = downloadLink;
-    link.download = "S3Console-2.0.5-arm64.dmg";
+    link.download = "S3Console-1.0.66-arm64.dmg";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -160,21 +170,26 @@ export default function DownloadsPage() {
       });
     }
 
-    posthog.capture("download_clicked", {
-      os: "macOS",
-      version: "2.0.5-arm64",
+    posthog.capture('download_clicked', {
+      os: 'macOS',
+      version: '1.0.70-arm64'
     });
 
     showNotification(downloadLink);
   };
 
   const handleWindowsDownload = () => {
+    setShowWindowsModal(true);
+  };
+
+  const proceedWithWindowsDownload = () => {
+    setShowWindowsModal(false);
     const downloadLink =
-      "https://s3consolewindows.s3.ap-south-1.amazonaws.com/S3Console-Setup-2.0.5.exe";
+      "https://s3consolewindows.s3.ap-south-1.amazonaws.com/S3Console-Setup-1.0.70.exe";
 
     const link = document.createElement("a");
     link.href = downloadLink;
-    link.download = "S3Console-Setup-2.0.5.exe";
+    link.download = "S3Console-Setup-1.0.66.exe";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -186,9 +201,35 @@ export default function DownloadsPage() {
       });
     }
 
-    posthog.capture("download_clicked", {
-      os: "Windows",
-      version: "2.0.5",
+    posthog.capture('download_clicked', {
+      os: 'Windows',
+      version: '1.0.70'
+    });
+
+    showNotification(downloadLink);
+  };
+
+  const handleLinuxDownload = () => {
+    const downloadLink =
+      "https://s3consolelinux.s3.ap-south-1.amazonaws.com/s3Console_1.0.74_amd64.deb";
+
+    const link = document.createElement("a");
+    link.href = downloadLink;
+    link.download = "s3Console_1.0.74_amd64.deb";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    if (typeof window !== "undefined" && window.twq) {
+      window.twq("event", "tw-pyshe-pyshf", {
+        email_address: userData?.email || null,
+        conversion_type: "linux_download",
+      });
+    }
+
+    posthog.capture('download_clicked', {
+      os: 'Linux',
+      version: '1.0.74_amd64'
     });
 
     showNotification(downloadLink);
@@ -223,10 +264,10 @@ export default function DownloadsPage() {
     }, 8000);
   };
 
-  const copyToClipboard = async (text: string, type: "email" | "key") => {
+  const copyToClipboard = async (text: string, type: 'email' | 'key') => {
     try {
       await navigator.clipboard.writeText(text);
-      if (type === "email") {
+      if (type === 'email') {
         setCopiedEmail(true);
         setTimeout(() => setCopiedEmail(false), 2000);
       } else {
@@ -234,16 +275,12 @@ export default function DownloadsPage() {
         setTimeout(() => setCopiedKey(false), 2000);
       }
     } catch (err) {
-      console.error("Failed to copy text: ", err);
+      console.error('Failed to copy text: ', err);
     }
   };
 
   const handleDeregisterMachine = async (machineId: string) => {
-    if (
-      !confirm(
-        `Are you sure you want to deregister this machine? You'll need to register it again to use it.`
-      )
-    ) {
+    if (!confirm(`Are you sure you want to deregister this machine? You'll need to register it again to use it.`)) {
       return;
     }
 
@@ -266,10 +303,7 @@ export default function DownloadsPage() {
       await refreshUserData();
     } catch (error) {
       console.error("Failed to deregister machine:", error);
-      alert(
-        (error as Error).message ||
-          "Failed to deregister machine. Please try again."
-      );
+      alert((error as Error).message || "Failed to deregister machine. Please try again.");
     } finally {
       setDeletingMachine(null);
     }
@@ -310,6 +344,55 @@ export default function DownloadsPage() {
     <>
       <Header />
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+        {/* Windows Safety Modal */}
+        <Dialog open={showWindowsModal} onOpenChange={setShowWindowsModal}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-xl">
+                <FaWindows className="h-6 w-6 text-blue-600" />
+                Windows Download Safety
+              </DialogTitle>
+              <DialogDescription className="pt-4 text-base space-y-4 text-left">
+                <p className="text-slate-700 dark:text-slate-300">
+                  You may see a warning from Windows SmartScreen saying this file isn't commonly downloaded.
+                </p>
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 p-4 rounded-lg">
+                  <p className="font-semibold text-blue-800 dark:text-blue-200 mb-1 flex items-center gap-2">
+                    <FaCheck className="h-4 w-4" />
+                    S3Console is 100% Safe
+                  </p>
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    We are a new verified publisher, so Microsoft is still building trust with our certificate. This warning is a standard security check for new software.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <p className="font-medium text-slate-900 dark:text-white">If you see a warning:</p>
+                  <ol className="list-decimal pl-5 space-y-1 text-sm text-slate-600 dark:text-slate-400">
+                    <li>Click <span className="font-semibold">Keep</span> or the <span className="font-semibold">...</span> menu on the download</li>
+                    <li>Select <span className="font-semibold">Keep anyway</span> if prompted</li>
+                    <li>When opening the installer, click <span className="font-semibold">More info</span> &rarr; <span className="font-semibold">Run anyway</span></li>
+                  </ol>
+                </div>
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="sm:justify-between gap-2 mt-2">
+              <Button
+                variant="ghost"
+                onClick={() => setShowWindowsModal(false)}
+                className="mt-2 sm:mt-0"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={proceedWithWindowsDownload}
+                className="bg-primary hover:bg-primary/90 text-white"
+              >
+                I Understand, Download
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         {/* Payment Success Modal */}
         {paymentSuccess && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
@@ -355,7 +438,7 @@ export default function DownloadsPage() {
           </div>
 
           {/* Download Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 mb-16">
             {/* Windows Card */}
             <div className="group relative overflow-hidden border border-slate-200 dark:border-slate-700 rounded-2xl p-8 text-center transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20 bg-white dark:bg-slate-800 hover:border-primary/30">
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -401,6 +484,32 @@ export default function DownloadsPage() {
                 </Button>
               </div>
             </div>
+
+            {/* Linux Card */}
+            <div className="group relative overflow-hidden border border-slate-200 dark:border-slate-700 rounded-2xl p-8 text-center transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20 bg-white dark:bg-slate-800 hover:border-primary/30">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="relative z-10">
+                <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/10 rounded-2xl mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <FaLinux className="h-10 w-10 text-primary" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">
+                  Linux
+                </h3>
+                <p className="text-slate-600 dark:text-slate-400 mb-6">
+                  Ubuntu &amp; other major distributions
+                </p>
+                <Button
+                  onClick={handleLinuxDownload}
+                  className="w-full bg-primary hover:bg-primary/90 text-white group-hover:shadow-lg transition-all duration-300"
+                >
+                  <FaDownload className="mr-2 h-4 w-4" />
+                  Download for Linux
+                </Button>
+                <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
+                  Debian/Ubuntu (.deb package)
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* User Dashboard */}
@@ -426,11 +535,7 @@ export default function DownloadsPage() {
                       className="p-2 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-md transition-colors disabled:opacity-50"
                       title="Refresh account data"
                     >
-                      <FaSync
-                        className={`h-4 w-4 text-slate-600 dark:text-slate-400 ${
-                          refreshing ? "animate-spin" : ""
-                        }`}
-                      />
+                      <FaSync className={`h-4 w-4 text-slate-600 dark:text-slate-400 ${refreshing ? 'animate-spin' : ''}`} />
                     </button>
                     {userData.paid && (
                       <div className="flex items-center gap-2 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-3 py-1 rounded-full text-sm font-medium">
@@ -444,13 +549,11 @@ export default function DownloadsPage() {
 
               {/* Warning Banner */}
               {warningMessage && (
-                <div
-                  className={`px-8 py-4 border-b ${
-                    requiresActivation
-                      ? "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800"
-                      : "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
-                  }`}
-                >
+                <div className={`px-8 py-4 border-b ${
+                  requiresActivation 
+                    ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800' 
+                    : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
+                }`}>
                   <div className="flex items-start gap-3">
                     {requiresActivation ? (
                       <FaExclamationTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
@@ -458,20 +561,16 @@ export default function DownloadsPage() {
                       <FaInfoCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
                     )}
                     <div className="flex-1">
-                      <p
-                        className={`text-sm font-medium ${
-                          requiresActivation
-                            ? "text-amber-800 dark:text-amber-200"
-                            : "text-blue-800 dark:text-blue-200"
-                        }`}
-                      >
+                      <p className={`text-sm font-medium ${
+                        requiresActivation 
+                          ? 'text-amber-800 dark:text-amber-200' 
+                          : 'text-blue-800 dark:text-blue-200'
+                      }`}>
                         {warningMessage}
                       </p>
                       {requiresActivation && (
                         <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
-                          Open the S3Console desktop app and activate your
-                          license with your email and license key to register
-                          this machine.
+                          Open the S3Console desktop app and activate your license with your email and license key to register this machine.
                         </p>
                       )}
                     </div>
@@ -508,7 +607,7 @@ export default function DownloadsPage() {
                         </p>
                       </div>
                       <button
-                        onClick={() => copyToClipboard(userData.email, "email")}
+                        onClick={() => copyToClipboard(userData.email, 'email')}
                         className="ml-auto p-2 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-md transition-colors"
                         title="Copy email"
                       >
@@ -539,7 +638,7 @@ export default function DownloadsPage() {
                         </p>
                       </div>
                       <button
-                        onClick={() => copyToClipboard(userData.key, "key")}
+                        onClick={() => copyToClipboard(userData.key, 'key')}
                         className="ml-auto p-2 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-md transition-colors"
                         title="Copy license key"
                       >
@@ -584,10 +683,10 @@ export default function DownloadsPage() {
                             </p>
                           </div>
                         </div>
-                        <CheckoutButton
-                          text="Buy More"
-                          quantity={1}
-                          className="h-8 text-xs"
+                        <CheckoutButton 
+                           text="Buy More" 
+                           quantity={1} 
+                           className="h-8 text-xs"
                         />
                       </div>
                     )}
@@ -604,114 +703,79 @@ export default function DownloadsPage() {
                       Registered Machines
                     </h3>
                     <div className="flex items-center gap-2">
-                      <span
-                        className={`text-sm font-medium px-3 py-1 rounded-full ${
-                          (userData.machines?.length || 0) >=
-                          (userData.licenseCount || 1)
-                            ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"
-                            : "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
-                        }`}
-                      >
-                        {userData.machines?.length || 0} /{" "}
-                        {userData.licenseCount || 1}
+                      <span className={`text-sm font-medium px-3 py-1 rounded-full ${
+                        (userData.machines?.length || 0) >= (userData.licenseCount || 1)
+                          ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                          : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                      }`}>
+                        {userData.machines?.length || 0} / {userData.licenseCount || 1}
                       </span>
                     </div>
                   </div>
-
+                  
                   {/* License Usage Info */}
                   <div className="mb-4 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
                     <p className="text-xs text-slate-600 dark:text-slate-400">
-                      You have{" "}
-                      <strong className="text-slate-900 dark:text-white">
-                        {userData.licenseCount || 1}
-                      </strong>{" "}
-                      license(s) purchased. Each license allows you to register{" "}
-                      <strong className="text-slate-900 dark:text-white">
-                        1 machine
-                      </strong>
-                      .
+                      You have <strong className="text-slate-900 dark:text-white">{userData.licenseCount || 1}</strong> license(s) purchased. 
+                      Each license allows you to register <strong className="text-slate-900 dark:text-white">1 machine</strong>.
                       {userData.licenseCount > 1 && (
-                        <span>
-                          {" "}
-                          Purchase additional licenses to register more
-                          machines.
-                        </span>
+                        <span> Purchase additional licenses to register more machines.</span>
                       )}
                     </p>
                   </div>
 
-                  {userData.machines &&
-                  Array.isArray(userData.machines) &&
-                  userData.machines.length > 0 ? (
+                  {userData.machines && Array.isArray(userData.machines) && userData.machines.length > 0 ? (
                     <div className="space-y-2">
-                      {userData.machines.map(
-                        (machineId: string, index: number) => (
-                          <div
-                            key={machineId}
-                            className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors"
-                          >
-                            <div className="flex items-center gap-3 flex-1 min-w-0">
-                              <div
-                                className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                                  index === 0
-                                    ? "bg-green-100 dark:bg-green-900/30"
-                                    : "bg-blue-100 dark:bg-blue-900/30"
-                                }`}
-                              >
-                                <FaDesktop
-                                  className={`h-4 w-4 ${
-                                    index === 0
-                                      ? "text-green-600 dark:text-green-400"
-                                      : "text-blue-600 dark:text-blue-400"
-                                  }`}
-                                />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-slate-900 dark:text-white">
-                                  Machine {index + 1}
-                                  {index === 0 &&
-                                    userData.machines.length === 1 && (
-                                      <span className="ml-2 text-xs text-green-600 dark:text-green-400">
-                                        (Primary)
-                                      </span>
-                                    )}
-                                </p>
-                                <p
-                                  className="text-xs text-slate-500 dark:text-slate-400 font-mono truncate"
-                                  title={machineId}
-                                >
-                                  {machineId}
-                                </p>
-                              </div>
+                      {userData.machines.map((machineId: string, index: number) => (
+                        <div
+                          key={machineId}
+                          className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors"
+                        >
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                              index === 0 ? 'bg-green-100 dark:bg-green-900/30' : 'bg-blue-100 dark:bg-blue-900/30'
+                            }`}>
+                              <FaDesktop className={`h-4 w-4 ${
+                                index === 0 ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400'
+                              }`} />
                             </div>
-                            <button
-                              onClick={() => handleDeregisterMachine(machineId)}
-                              disabled={deletingMachine === machineId}
-                              className="ml-3 p-2 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-md transition-colors disabled:opacity-50 flex-shrink-0"
-                              title="Deregister machine"
-                            >
-                              {deletingMachine === machineId ? (
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
-                              ) : (
-                                <FaTrash className="h-4 w-4 text-red-600" />
-                              )}
-                            </button>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-slate-900 dark:text-white">
+                                Machine {index + 1}
+                                {index === 0 && userData.machines.length === 1 && (
+                                  <span className="ml-2 text-xs text-green-600 dark:text-green-400">(Primary)</span>
+                                )}
+                              </p>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 font-mono truncate" title={machineId}>
+                                {machineId}
+                              </p>
+                            </div>
                           </div>
-                        )
-                      )}
-
+                          <button
+                            onClick={() => handleDeregisterMachine(machineId)}
+                            disabled={deletingMachine === machineId}
+                            className="ml-3 p-2 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-md transition-colors disabled:opacity-50 flex-shrink-0"
+                            title="Deregister machine"
+                          >
+                            {deletingMachine === machineId ? (
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
+                            ) : (
+                              <FaTrash className="h-4 w-4 text-red-600" />
+                            )}
+                          </button>
+                        </div>
+                      ))}
+                      
                       {/* Show if at limit */}
-                      {userData.machines.length >=
-                        (userData.licenseCount || 1) && (
+                      {(userData.machines.length >= (userData.licenseCount || 1)) && (
                         <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg flex items-center justify-between">
                           <p className="text-sm text-amber-800 dark:text-amber-200">
                             <FaExclamationTriangle className="inline h-4 w-4 mr-2" />
-                            You've reached your machine limit. Deregister a
-                            machine or purchase an additional license.
+                            You've reached your machine limit. Deregister a machine or purchase an additional license.
                           </p>
-                          <CheckoutButton
-                            text="Add License"
-                            quantity={1}
+                          <CheckoutButton 
+                            text="Add License" 
+                            quantity={1} 
                             className="ml-4 bg-amber-600 hover:bg-amber-700 text-white border-none"
                           />
                         </div>
@@ -720,22 +784,13 @@ export default function DownloadsPage() {
                   ) : (
                     <div className="text-center py-8 text-slate-500 dark:text-slate-400">
                       <FaDesktop className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                      <p className="font-medium mb-1">
-                        No machines registered yet
-                      </p>
+                      <p className="font-medium mb-1">No machines registered yet</p>
                       <p className="text-sm mt-2">
                         {requiresActivation ? (
                           <>
-                            Activate your license in the desktop app to register
-                            this machine.
+                            Activate your license in the desktop app to register this machine.
                             <br />
-                            <span className="text-xs mt-1 block">
-                              Use your email:{" "}
-                              <code className="bg-slate-200 dark:bg-slate-700 px-1 rounded">
-                                {userData.email}
-                              </code>{" "}
-                              and license key shown above.
-                            </span>
+                            <span className="text-xs mt-1 block">Use your email: <code className="bg-slate-200 dark:bg-slate-700 px-1 rounded">{userData.email}</code> and license key shown above.</span>
                           </>
                         ) : (
                           "Register a machine when you activate your license in the desktop app."
@@ -763,8 +818,8 @@ export default function DownloadsPage() {
                 </div>
 
                 <div className="p-6">
-                  <CheckoutButton
-                    text="Purchase S3Console - $49"
+                  <CheckoutButton 
+                    text="Purchase S3Console - $49" 
                     className="w-full bg-primary hover:bg-primary/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-md"
                   />
                 </div>
