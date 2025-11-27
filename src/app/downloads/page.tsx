@@ -46,7 +46,7 @@ declare global {
 
 //checking
 export default function DownloadsPage() {
-  const { userId } = useAuth();
+  const { userId, isLoaded } = useAuth();
   const posthog = usePostHog();
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -67,6 +67,11 @@ export default function DownloadsPage() {
   }, [userData]);
 
   useEffect(() => {
+    // Wait for Clerk to load before checking auth
+    if (!isLoaded) {
+      return;
+    }
+
     if (!userId && typeof window !== "undefined") {
       window.location.href = "/sign-in";
       return;
@@ -128,11 +133,11 @@ export default function DownloadsPage() {
     if (userId) {
       fetchUserData();
     }
-  }, [userId]);
+  }, [userId, isLoaded]);
 
   useEffect(() => {
     // Track page view with user metadata
-    if (userId && userData) {
+    if (userId && userData && posthog) {
       posthog.identify(userId, {
         email: userData.email,
         name: userData.name,
@@ -140,7 +145,7 @@ export default function DownloadsPage() {
         license_count: userData.licenseCount
       });
       
-      posthog.capture('downloads_page_viewed', {
+      posthog?.capture('downloads_page_viewed', {
         has_license: userData.paid
       });
     }
@@ -172,7 +177,7 @@ export default function DownloadsPage() {
       });
     }
 
-    posthog.capture('download_clicked', {
+    posthog?.capture('download_clicked', {
       os: 'macOS',
       version: '2.0.5-arm64'
     });
@@ -203,7 +208,7 @@ export default function DownloadsPage() {
       });
     }
 
-    posthog.capture('download_clicked', {
+    posthog?.capture('download_clicked', {
       os: 'Windows',
       version: '2.0.5'
     });
