@@ -1,8 +1,10 @@
 "use client";
+
+export const dynamic = 'force-dynamic';
+
 import Header from "@/components/sections/header";
 import Section from "@/components/section";
 import { useAuth } from "@clerk/nextjs";
-import { redirect } from "next/navigation";
 import { usePostHog } from "posthog-js/react";
 import {
   FaWindows,
@@ -65,8 +67,9 @@ export default function DownloadsPage() {
   }, [userData]);
 
   useEffect(() => {
-    if (!userId) {
-      redirect("/sign-in");
+    if (!userId && typeof window !== "undefined") {
+      window.location.href = "/sign-in";
+      return;
     }
 
     const fetchUserData = async () => {
