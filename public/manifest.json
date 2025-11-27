@@ -1,0 +1,27 @@
+{
+  "name": "S3Console - AWS S3 Desktop App",
+  "short_name": "S3Console",
+  "description": "Native AWS S3 Desktop App for Mac & Windows. Manage S3 buckets with an intuitive GUI. Features AI Code Generation, Presigned URLs, Multi-Profile Support, and Advanced Access Control.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity", "developer"],
+  "lang": "en-US",
+  "dir": "ltr"
+}
+

@@ -15,13 +15,22 @@ export function constructMetadata({
   title = siteConfig.name,
   description = siteConfig.description,
   image = absoluteUrl("/og"),
+  canonical,
+  noindex = false,
+  nofollow = false,
   ...props
 }: {
   title?: string;
   description?: string;
   image?: string;
+  canonical?: string;
+  noindex?: boolean;
+  nofollow?: boolean;
   [key: string]: Metadata[keyof Metadata];
 }): Metadata {
+  const url = canonical || siteConfig.url;
+  const ogImage = image || absoluteUrl("/og");
+  
   return {
     title: {
       template: "%s | " + siteConfig.name,
@@ -29,30 +38,67 @@ export function constructMetadata({
     },
     description: description || siteConfig.description,
     keywords: siteConfig.keywords,
+    authors: [
+      {
+        name: siteConfig.author,
+        url: siteConfig.url,
+      },
+    ],
+    creator: siteConfig.creator,
+    publisher: siteConfig.publisher,
+    category: siteConfig.category,
+    robots: {
+      index: !noindex,
+      follow: !nofollow,
+      googleBot: {
+        index: !noindex,
+        follow: !nofollow,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
+    },
+    alternates: {
+      canonical: url,
+    },
     openGraph: {
       title,
       description,
-      url: siteConfig.url,
+      url: url,
       siteName: siteConfig.name,
       images: [
         {
-          url: image,
+          url: ogImage,
           width: 1200,
           height: 630,
           alt: title,
+          type: "image/png",
         },
       ],
       type: "website",
       locale: "en_US",
     },
-    icons: "/favicon.ico",
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [ogImage],
+      creator: "@s3console",
+      site: "@s3console",
+    },
+    icons: {
+      icon: "/favicon.ico",
+      shortcut: "/favicon.ico",
+      apple: "/favicon.ico",
+    },
+    manifest: "/manifest.json",
     metadataBase: new URL(siteConfig.url),
-    authors: [
-      {
-        name: siteConfig.name,
-        url: siteConfig.url,
-      },
-    ],
+    verification: {
+      // Add verification codes here when available
+      // google: "your-google-verification-code",
+      // yandex: "your-yandex-verification-code",
+      // yahoo: "your-yahoo-verification-code",
+    },
     ...props,
   };
 }

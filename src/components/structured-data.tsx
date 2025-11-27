@@ -19,11 +19,16 @@ export function StructuredData({ type = "website", data }: StructuredDataProps) 
     operatingSystem: "macOS, Windows",
     offers: {
       "@type": "Offer",
-      price: "50",
+      price: "49",
       priceCurrency: "USD",
       priceValidUntil: "2025-12-31",
       availability: "https://schema.org/InStock",
       url: `${baseUrl}/downloads`,
+      priceSpecification: {
+        "@type": "UnitPriceSpecification",
+        price: "49",
+        priceCurrency: "USD",
+      },
     },
     publisher: {
       "@type": "Organization",
@@ -44,10 +49,16 @@ export function StructuredData({ type = "website", data }: StructuredDataProps) 
     operatingSystem: ["macOS", "Windows"],
     offers: {
       "@type": "Offer",
-      price: "50",
+      price: "49",
       priceCurrency: "USD",
       priceValidUntil: "2025-12-31",
       availability: "https://schema.org/InStock",
+      url: `${baseUrl}/downloads`,
+      priceSpecification: {
+        "@type": "UnitPriceSpecification",
+        price: "49",
+        priceCurrency: "USD",
+      },
     },
     featureList: [
       "AWS S3 bucket management",
@@ -72,12 +83,35 @@ export function StructuredData({ type = "website", data }: StructuredDataProps) 
     "@type": "Organization",
     name: siteConfig.creator,
     url: baseUrl,
-    logo: `${baseUrl}/logo.png`,
+    logo: {
+      "@type": "ImageObject",
+      url: `${baseUrl}/logo.png`,
+      width: 512,
+      height: 512,
+    },
     email: siteConfig.links.email,
     sameAs: [
       siteConfig.links.twitter,
       siteConfig.links.github,
       siteConfig.links.instagram,
+    ],
+    contactPoint: {
+      "@type": "ContactPoint",
+      email: siteConfig.links.email,
+      contactType: "Customer Service",
+    },
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: baseUrl,
+      },
     ],
   };
 
@@ -123,6 +157,13 @@ export function StructuredData({ type = "website", data }: StructuredDataProps) 
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(organizationSchema),
+        }}
+      />
+      <Script
+        id="structured-data-breadcrumb"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbSchema),
         }}
       />
     </>

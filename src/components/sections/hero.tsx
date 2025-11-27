@@ -56,6 +56,7 @@ function HeroTitles() {
           staggerChildren: 0.2,
         }}
       >
+        <span className="sr-only">AWS S3 Desktop App for Mac & Windows</span>
         {["AWS S3", "Desktop", "App", "for Mac", "& Windows"].map(
           (text, index) => (
             <motion.span
@@ -68,6 +69,7 @@ function HeroTitles() {
                 delay: index * 0.2,
                 ease,
               }}
+              aria-hidden={index > 0}
             >
               {text}
             </motion.span>
@@ -158,7 +160,7 @@ function HeroImage() {
         animationStyle="from-center"
         videoSrc="https://www.youtube.com/embed/J5Dk-eize_0"
         thumbnailSrc="/dashboard.png"
-        thumbnailAlt="Hero Video"
+        thumbnailAlt="S3Console Desktop App - AWS S3 bucket management interface showing file browser, presigned URL generation, and multi-profile support"
         className="border rounded-lg shadow-lg max-w-screen-lg mt-16"
       />
     </motion.div>

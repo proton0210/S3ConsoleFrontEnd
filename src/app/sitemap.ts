@@ -1,13 +1,9 @@
 import { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  // Use a fixed base URL for now
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "";
-
-  // Get current date
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://s3console.com";
   const currentDate = new Date();
 
-  // Define static pages with their properties
   return [
     {
       url: baseUrl,
@@ -22,25 +18,31 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     {
+      url: `${baseUrl}/sign-up`,
+      lastModified: currentDate,
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
       url: `${baseUrl}/sign-in`,
       lastModified: currentDate,
       changeFrequency: "monthly",
       priority: 0.5,
     },
     {
-      url: `${baseUrl}/sign-up`,
-      lastModified: currentDate,
-      changeFrequency: "monthly",
-      priority: 0.6,
-    },
-    {
-      url: `${baseUrl}/downloads/`,
-      lastModified: currentDate,
-      changeFrequency: "monthly",
-      priority: 0.4,
-    },
-    {
       url: `${baseUrl}/downloads/cancel`,
+      lastModified: currentDate,
+      changeFrequency: "monthly",
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/payment-status`,
+      lastModified: currentDate,
+      changeFrequency: "monthly",
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/success`,
       lastModified: currentDate,
       changeFrequency: "monthly",
       priority: 0.3,

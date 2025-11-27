@@ -85,7 +85,7 @@ export const siteConfig = {
       period: "one-time",
       yearlyPrice: null,
       features: [
-        "Native Mac, Windows & Linux App",
+        "Native Mac & Windows App",
         "Lifetime License Key",
         "All Future Updates Included",
         "AI Code Generation (NEW!)",
