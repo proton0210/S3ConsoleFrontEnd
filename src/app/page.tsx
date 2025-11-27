@@ -9,14 +9,14 @@ import Pricing from "@/components/sections/pricing";
 import Problem from "@/components/sections/problem";
 import Solution from "@/components/sections/solution";
 import TestimonialsCarousel from "@/components/sections/testimonials-carousel";
-import UpcomingFeatures from "@/components/sections/upcoming-features";
 import { StructuredData } from "@/components/structured-data";
 import { constructMetadata } from "@/lib/utils";
 import { Metadata } from "next";
 
 export const metadata: Metadata = constructMetadata({
   title: "S3Console - AWS S3 Desktop App for Mac & Windows",
-  description: "Professional AWS S3 bucket manager with intuitive GUI. Features AI Code Generation, Presigned URLs, Multi-Profile Support, and Advanced Access Control. Download for Mac & Windows.",
+  description:
+    "Professional AWS S3 bucket manager with intuitive GUI. Features AI Code Generation, Presigned URLs, Multi-Profile Support, and Advanced Access Control. Download for Mac & Windows.",
 });
 
 export default function Home() {
@@ -30,7 +30,6 @@ export default function Home() {
       <HowItWorks />
       <TestimonialsCarousel />
       <Features />
-      <UpcomingFeatures />
       <Pricing />
       <FAQ />
       <CTA />
