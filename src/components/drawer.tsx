@@ -56,6 +56,29 @@ export default function drawerDemo() {
           )}
         </DrawerHeader>
         <DrawerFooter>
+          <div className="mb-4">
+            <p className="font-semibold mb-2">Contact The Developer</p>
+            <div className="flex gap-4">
+              <Link
+                href="https://x.com/Vidit_210"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Icons.twitter className="h-5 w-5 fill-current" />
+                <span>X</span>
+              </Link>
+              <Link
+                href="https://www.linkedin.com/in/vidit-shah/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Icons.linkedin className="h-5 w-5" />
+                <span>LinkedIn</span>
+              </Link>
+            </div>
+          </div>
           <SignedOut>
             <Link
               href="/sign-in"

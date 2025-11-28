@@ -11,6 +11,13 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
 
 export default function Header() {
   const [addBorder, setAddBorder] = useState(false);
@@ -54,7 +61,40 @@ export default function Header() {
               </nav>
             )}
 
-            <div className="gap-2 flex">
+            <div className="gap-2 flex items-center">
+              <NavigationMenu>
+                <NavigationMenuList>
+                  <NavigationMenuItem>
+                    <NavigationMenuTrigger>Contact The Developer</NavigationMenuTrigger>
+                    <NavigationMenuContent>
+                      <ul className="w-[200px] p-2">
+                        <li>
+                          <Link
+                            href="https://x.com/Vidit_210"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-3 rounded-md p-3 hover:bg-accent transition-colors"
+                          >
+                            <Icons.twitter className="h-5 w-5 fill-current" />
+                            <span>X (Twitter)</span>
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
+                            href="https://www.linkedin.com/in/vidit-shah/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-3 rounded-md p-3 hover:bg-accent transition-colors"
+                          >
+                            <Icons.linkedin className="h-5 w-5" />
+                            <span>LinkedIn</span>
+                          </Link>
+                        </li>
+                      </ul>
+                    </NavigationMenuContent>
+                  </NavigationMenuItem>
+                </NavigationMenuList>
+              </NavigationMenu>
               <SignedOut>
                 <Link
                   href="/sign-in"
