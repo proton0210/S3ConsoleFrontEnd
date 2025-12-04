@@ -59,7 +59,7 @@ export default function DownloadsPage() {
   const [requiresActivation, setRequiresActivation] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [showWindowsModal, setShowWindowsModal] = useState(false);
-  
+
   const userDataRef = useRef(userData);
 
   useEffect(() => {
@@ -96,13 +96,13 @@ export default function DownloadsPage() {
         if (response.ok && data.success) {
           console.log("User data fetched successfully:", data.userData);
           setUserData(data.userData);
-          
+
           if (data.warning) {
             setWarningMessage(data.warning);
           } else {
             setWarningMessage(null);
           }
-          
+
           if (data.requiresActivation) {
             setRequiresActivation(true);
           } else {
@@ -113,10 +113,9 @@ export default function DownloadsPage() {
             "Failed to fetch user data:",
             data.error || "Unknown error"
           );
-          
+
           alert(
-            `Failed to load user data: ${
-              data.error || "Unknown error"
+            `Failed to load user data: ${data.error || "Unknown error"
             }. Please refresh the page.`
           );
         }
@@ -144,7 +143,7 @@ export default function DownloadsPage() {
         is_paid: userData.paid,
         license_count: userData.licenseCount
       });
-      
+
       posthog?.capture('downloads_page_viewed', {
         has_license: userData.paid
       });
@@ -161,7 +160,7 @@ export default function DownloadsPage() {
 
   const handleMacDownload = () => {
     const downloadLink =
-      "https://s3consolemac.s3.us-east-1.amazonaws.com/S3Console-2.1.0-arm64.dmg";
+      "https://s3consolemac.s3.us-east-1.amazonaws.com/S3Console-2.1.1-arm64.dmg";
 
     const link = document.createElement("a");
     link.href = downloadLink;
@@ -192,7 +191,7 @@ export default function DownloadsPage() {
   const proceedWithWindowsDownload = () => {
     setShowWindowsModal(false);
     const downloadLink =
-      "https://s3consolewindows.s3.ap-south-1.amazonaws.com/S3Console-Setup-2.1.0.exe";
+      "https://s3consolewindows.s3.ap-south-1.amazonaws.com/S3Console-Setup-2.1.1.exe";
 
     const link = document.createElement("a");
     link.href = downloadLink;
@@ -504,11 +503,10 @@ export default function DownloadsPage() {
 
               {/* Warning Banner */}
               {warningMessage && (
-                <div className={`px-8 py-4 border-b ${
-                  requiresActivation 
-                    ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800' 
+                <div className={`px-8 py-4 border-b ${requiresActivation
+                    ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
                     : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
-                }`}>
+                  }`}>
                   <div className="flex items-start gap-3">
                     {requiresActivation ? (
                       <FaExclamationTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
@@ -516,11 +514,10 @@ export default function DownloadsPage() {
                       <FaInfoCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
                     )}
                     <div className="flex-1">
-                      <p className={`text-sm font-medium ${
-                        requiresActivation 
-                          ? 'text-amber-800 dark:text-amber-200' 
+                      <p className={`text-sm font-medium ${requiresActivation
+                          ? 'text-amber-800 dark:text-amber-200'
                           : 'text-blue-800 dark:text-blue-200'
-                      }`}>
+                        }`}>
                         {warningMessage}
                       </p>
                       {requiresActivation && (
@@ -606,18 +603,16 @@ export default function DownloadsPage() {
                     </div>
                     <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-700 rounded-lg">
                       <div
-                        className={`h-3 w-3 rounded-full ${
-                          userData.paid ? "bg-green-500" : "bg-amber-500"
-                        }`}
+                        className={`h-3 w-3 rounded-full ${userData.paid ? "bg-green-500" : "bg-amber-500"
+                          }`}
                       ></div>
                       <div>
                         <p className="text-sm text-slate-500 dark:text-slate-400">
                           Status
                         </p>
                         <p
-                          className={`font-medium ${
-                            userData.paid ? "text-green-600" : "text-amber-600"
-                          }`}
+                          className={`font-medium ${userData.paid ? "text-green-600" : "text-amber-600"
+                            }`}
                         >
                           {userData.paid
                             ? "Pro License Active"
@@ -638,10 +633,10 @@ export default function DownloadsPage() {
                             </p>
                           </div>
                         </div>
-                        <CheckoutButton 
-                           text="Buy More" 
-                           quantity={1} 
-                           className="h-8 text-xs"
+                        <CheckoutButton
+                          text="Buy More"
+                          quantity={1}
+                          className="h-8 text-xs"
                         />
                       </div>
                     )}
@@ -658,20 +653,19 @@ export default function DownloadsPage() {
                       Registered Machines
                     </h3>
                     <div className="flex items-center gap-2">
-                      <span className={`text-sm font-medium px-3 py-1 rounded-full ${
-                        (userData.machines?.length || 0) >= (userData.licenseCount || 1)
+                      <span className={`text-sm font-medium px-3 py-1 rounded-full ${(userData.machines?.length || 0) >= (userData.licenseCount || 1)
                           ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
                           : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                      }`}>
+                        }`}>
                         {userData.machines?.length || 0} / {userData.licenseCount || 1}
                       </span>
                     </div>
                   </div>
-                  
+
                   {/* License Usage Info */}
                   <div className="mb-4 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
                     <p className="text-xs text-slate-600 dark:text-slate-400">
-                      You have <strong className="text-slate-900 dark:text-white">{userData.licenseCount || 1}</strong> license(s) purchased. 
+                      You have <strong className="text-slate-900 dark:text-white">{userData.licenseCount || 1}</strong> license(s) purchased.
                       Each license allows you to register <strong className="text-slate-900 dark:text-white">1 machine</strong>.
                       {userData.licenseCount > 1 && (
                         <span> Purchase additional licenses to register more machines.</span>
@@ -687,12 +681,10 @@ export default function DownloadsPage() {
                           className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors"
                         >
                           <div className="flex items-center gap-3 flex-1 min-w-0">
-                            <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                              index === 0 ? 'bg-green-100 dark:bg-green-900/30' : 'bg-blue-100 dark:bg-blue-900/30'
-                            }`}>
-                              <FaDesktop className={`h-4 w-4 ${
-                                index === 0 ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400'
-                              }`} />
+                            <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${index === 0 ? 'bg-green-100 dark:bg-green-900/30' : 'bg-blue-100 dark:bg-blue-900/30'
+                              }`}>
+                              <FaDesktop className={`h-4 w-4 ${index === 0 ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400'
+                                }`} />
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium text-slate-900 dark:text-white">
@@ -720,7 +712,7 @@ export default function DownloadsPage() {
                           </button>
                         </div>
                       ))}
-                      
+
                       {/* Show if at limit */}
                       {(userData.machines.length >= (userData.licenseCount || 1)) && (
                         <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg flex items-center justify-between">
@@ -728,9 +720,9 @@ export default function DownloadsPage() {
                             <FaExclamationTriangle className="inline h-4 w-4 mr-2" />
                             You've reached your machine limit. Deregister a machine or purchase an additional license.
                           </p>
-                          <CheckoutButton 
-                            text="Add License" 
-                            quantity={1} 
+                          <CheckoutButton
+                            text="Add License"
+                            quantity={1}
                             className="ml-4 bg-amber-600 hover:bg-amber-700 text-white border-none"
                           />
                         </div>
@@ -773,8 +765,8 @@ export default function DownloadsPage() {
                 </div>
 
                 <div className="p-6">
-                  <CheckoutButton 
-                    text="Purchase S3Console - $49" 
+                  <CheckoutButton
+                    text="Purchase S3Console - $49"
                     className="w-full bg-primary hover:bg-primary/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-md"
                   />
                 </div>
