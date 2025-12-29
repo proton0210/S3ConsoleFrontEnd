@@ -765,6 +765,9 @@ export default function DownloadsPage() {
                 </div>
 
                 <div className="p-6">
+                  <p className="text-sm text-muted-foreground text-center mb-4">
+                    Please note: depending on your country's tax rules, additional VAT/GST may be added to the final amount.
+                  </p>
                   <CheckoutButton
                     text="Purchase S3Console - $99"
                     className="w-full bg-primary hover:bg-primary/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-md"
