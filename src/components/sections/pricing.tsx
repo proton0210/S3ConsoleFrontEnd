@@ -14,6 +14,9 @@ export default function PricingSection() {
     <Section title="Pricing" subtitle="Simple, transparent pricing">
       <div className="flex justify-center">
         <div className="max-w-md w-full">
+          <p className="text-sm text-muted-foreground text-center mb-6">
+            Please note: depending on your country's tax rules, additional VAT/GST may be added to the final amount.
+          </p>
           {siteConfig.pricing.map((plan, index) => (
             <motion.div
               key={index}

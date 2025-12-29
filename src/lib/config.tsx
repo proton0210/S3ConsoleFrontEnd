@@ -7,7 +7,8 @@ export const BLUR_FADE_DELAY = 0.15;
 
 export const siteConfig = {
   name: "S3Console",
-  description: "Native AWS S3 Desktop App for Mac & Windows. Manage S3 buckets with an intuitive GUI. Features AI Code Generation, Presigned URLs, Multi-Profile Support, and Advanced Access Control.",
+  description:
+    "Native AWS S3 Desktop App for Mac & Windows. Manage S3 buckets with an intuitive GUI. Features AI Code Generation, Presigned URLs, Multi-Profile Support, and Advanced Access Control.",
   url: process.env.NEXT_PUBLIC_APP_URL || "https://s3console.com",
   keywords: [
     "AWS S3 desktop app",
@@ -29,7 +30,7 @@ export const siteConfig = {
     "S3 Cost Estimation",
     "S3 Code Generation",
     "S3 Access Control",
-    "S3 Bucket Policy Generator"
+    "S3 Bucket Policy Generator",
   ],
   author: "S3Console Team",
   creator: "S3Console",
@@ -49,19 +50,22 @@ export const siteConfig = {
         main: {
           icon: null,
           title: "Native S3 Desktop App",
-          description: "Professional S3 management with an intuitive interface.",
+          description:
+            "Professional S3 management with an intuitive interface.",
           href: "#",
         },
         items: [
           {
             href: "#",
             title: "AI Code Generation",
-            description: "Generate S3 operation code with AI-powered suggestions.",
+            description:
+              "Generate S3 operation code with AI-powered suggestions.",
           },
           {
             href: "#",
             title: "Secure Presigned URLs",
-            description: "Create and share temporary download links with expiration dates.",
+            description:
+              "Create and share temporary download links with expiration dates.",
           },
           {
             href: "#",
@@ -81,7 +85,7 @@ export const siteConfig = {
     {
       name: "LIFETIME ACCESS",
       href: "/downloads",
-      price: "$49",
+      price: "$99",
       period: "one-time",
       yearlyPrice: null,
       features: [
@@ -105,8 +109,8 @@ export const siteConfig = {
       answer: (
         <span>
           S3Console is a platform that helps you build and manage your AWS S3
-          storage. It provides tools and services to streamline the
-          management and monitoring of S3 buckets and objects.
+          storage. It provides tools and services to streamline the management
+          and monitoring of S3 buckets and objects.
         </span>
       ),
     },
@@ -115,8 +119,9 @@ export const siteConfig = {
       answer: (
         <span>
           You can get started with S3Console by signing up for an account on our
-          website, connecting your AWS credentials, and following our quick-start guide.
-          We also offer tutorials and documentation to help you along the way.
+          website, connecting your AWS credentials, and following our
+          quick-start guide. We also offer tutorials and documentation to help
+          you along the way.
         </span>
       ),
     },
@@ -124,10 +129,10 @@ export const siteConfig = {
       question: "What S3 features does S3Console support?",
       answer: (
         <span>
-          S3Console supports a wide range of S3 features, including but not limited
-          to bucket management, object operations, versioning, and lifecycle policies.
-          We continuously update our platform to support the latest
-          S3 capabilities.
+          S3Console supports a wide range of S3 features, including but not
+          limited to bucket management, object operations, versioning, and
+          lifecycle policies. We continuously update our platform to support the
+          latest S3 capabilities.
         </span>
       ),
     },

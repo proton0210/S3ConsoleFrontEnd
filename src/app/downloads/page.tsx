@@ -766,7 +766,7 @@ export default function DownloadsPage() {
 
                 <div className="p-6">
                   <CheckoutButton
-                    text="Purchase S3Console - $49"
+                    text="Purchase S3Console - $99"
                     className="w-full bg-primary hover:bg-primary/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-md"
                   />
                 </div>
