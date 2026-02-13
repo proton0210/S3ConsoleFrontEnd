@@ -98,6 +98,16 @@ const categories: { name: string; features: ComparisonFeature[] }[] = [
         transmit: false,
         cloudberry: false,
         s3browser: true,
+        filezilla: true,
+      },
+      {
+        feature: "CLI Login (aws login) — In-App",
+        s3console: true,
+        awsConsole: "N/A",
+        cyberduck: false,
+        transmit: false,
+        cloudberry: false,
+        s3browser: false,
         filezilla: false,
       },
       {
