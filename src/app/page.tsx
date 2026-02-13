@@ -1,3 +1,4 @@
+import Comparison from "@/components/sections/comparison";
 import CTA from "@/components/sections/cta";
 import FAQ from "@/components/sections/faq";
 import Features from "@/components/sections/features";
@@ -30,6 +31,7 @@ export default function Home() {
       <HowItWorks />
       <TestimonialsCarousel />
       <Features />
+      <Comparison />
       <Pricing />
       <FAQ />
       <CTA />

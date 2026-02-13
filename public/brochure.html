@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1080" />
+  <title>S3Console — S3 Management, Finally Fixed.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      width: 1080px;
+      margin: 0 auto;
+      background: #FAFBFF;
+      color: #0F172A;
+      line-height: 1.5;
+    }
+    .page { width: 1080px; min-height: 100vh; }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 28px 48px;
+      background: #fff;
+      border-bottom: 1px solid #E2E8F0;
+    }
+    .header-logo { display: flex; align-items: center; gap: 12px; }
+    .header-logo img { height: 36px; width: auto; }
+    .header-logo span { font-size: 20px; font-weight: 700; color: #0F172A; }
+    .header-domain { font-size: 15px; font-weight: 500; color: #64748B; }
+
+    /* Hero */
+    .hero {
+      padding: 56px 48px 48px;
+      background: linear-gradient(180deg, #EFF6FF 0%, #FAFBFF 45%);
+      text-align: center;
+    }
+    .hero h1 {
+      font-size: 42px;
+      font-weight: 700;
+      color: #0F172A;
+      line-height: 1.2;
+      margin-bottom: 16px;
+      letter-spacing: -0.02em;
+    }
+    .hero .tagline {
+      font-size: 20px;
+      color: #64748B;
+      max-width: 640px;
+      margin: 0 auto 24px;
+    }
+    .hero .cta-badge {
+      display: inline-block;
+      background: #2563EB;
+      color: #fff;
+      font-size: 18px;
+      font-weight: 600;
+      padding: 14px 28px;
+      border-radius: 12px;
+      margin-bottom: 40px;
+    }
+    .hero .screenshot-wrap {
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 20px 50px -12px rgba(0,0,0,.15);
+      max-width: 980px;
+      margin: 0 auto;
+    }
+    .hero .screenshot-wrap img { width: 100%; height: auto; display: block; }
+
+    /* Section titles */
+    .section-title { font-size: 28px; font-weight: 700; color: #0F172A; margin-bottom: 8px; }
+    .section-sub  { font-size: 16px; color: #64748B; margin-bottom: 28px; }
+
+    /* Pain */
+    .pain {
+      padding: 56px 48px;
+      background: #FAFBFF;
+    }
+    .pain .section-title { text-align: center; }
+    .pain .section-sub { text-align: center; }
+    .pain-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 24px;
+    }
+    .pain-card {
+      background: #fff;
+      border: 1px solid #E2E8F0;
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.04);
+    }
+    .pain-card h3 { font-size: 18px; font-weight: 600; color: #0F172A; margin-bottom: 10px; }
+    .pain-card p { font-size: 15px; color: #64748B; }
+
+    /* Benefits */
+    .benefits {
+      padding: 56px 48px;
+      background: linear-gradient(180deg, #DBEAFE 0%, #EFF6FF 100%);
+    }
+    .benefits .section-title { text-align: center; }
+    .benefits .section-sub { text-align: center; }
+    .benefits-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 24px;
+    }
+    .benefit-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 32px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,.06);
+    }
+    .benefit-card .stat { font-size: 32px; font-weight: 700; color: #2563EB; margin-bottom: 8px; }
+    .benefit-card .label { font-size: 16px; font-weight: 600; color: #0F172A; margin-bottom: 6px; }
+    .benefit-card .desc { font-size: 14px; color: #64748B; }
+
+    /* Features */
+    .features {
+      padding: 56px 48px;
+      background: #FAFBFF;
+    }
+    .features .section-title { text-align: center; }
+    .features .section-sub { text-align: center; }
+    .features-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 20px;
+    }
+    .feature-card {
+      background: #fff;
+      border: 1px solid #E2E8F0;
+      border-radius: 14px;
+      padding: 24px;
+    }
+    .feature-card .icon { font-size: 24px; margin-bottom: 12px; }
+    .feature-card h3 { font-size: 16px; font-weight: 600; color: #0F172A; margin-bottom: 6px; }
+    .feature-card p { font-size: 14px; color: #64748B; }
+
+    /* Comparison */
+    .comparison {
+      padding: 56px 48px;
+      background: #fff;
+      border-top: 1px solid #E2E8F0;
+    }
+    .comparison .section-title { text-align: center; }
+    .comparison .section-sub { text-align: center; }
+    .comp-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    .comp-table th, .comp-table td { padding: 14px 16px; text-align: center; border: 1px solid #E2E8F0; }
+    .comp-table th { background: #F8FAFC; font-weight: 600; color: #0F172A; }
+    .comp-table td:first-child { text-align: left; font-weight: 500; color: #334155; }
+    .comp-table .col-s3c { background: #EFF6FF; font-weight: 600; color: #2563EB; }
+    .comp-table .check { color: #16A34A; }
+    .comp-table .cross { color: #DC2626; }
+
+    /* Pricing */
+    .pricing {
+      padding: 56px 48px;
+      background: linear-gradient(180deg, #EFF6FF 0%, #DBEAFE 100%);
+    }
+    .pricing .section-title { text-align: center; font-size: 32px; }
+    .pricing .price { font-size: 40px; font-weight: 700; color: #2563EB; text-align: center; margin: 16px 0 8px; }
+    .pricing .price-note { text-align: center; font-size: 16px; color: #64748B; margin-bottom: 24px; }
+    .pricing ul {
+      max-width: 480px;
+      margin: 0 auto;
+      list-style: none;
+    }
+    .pricing li { padding: 8px 0; font-size: 15px; color: #334155; padding-left: 24px; position: relative; }
+    .pricing li::before { content: '✓'; position: absolute; left: 0; color: #16A34A; font-weight: 700; }
+
+    /* CTA */
+    .cta {
+      padding: 56px 48px 64px;
+      background: #0F172A;
+      color: #fff;
+      text-align: center;
+    }
+    .cta h2 { font-size: 28px; font-weight: 700; margin-bottom: 12px; }
+    .cta p { font-size: 16px; color: #94A3B8; margin-bottom: 24px; }
+    .cta .btn {
+      display: inline-block;
+      background: #2563EB;
+      color: #fff;
+      font-size: 18px;
+      font-weight: 600;
+      padding: 16px 36px;
+      border-radius: 12px;
+      text-decoration: none;
+    }
+    .cta .url { font-size: 14px; color: #64748B; margin-top: 16px; }
+    .cta .url a { color: #60A5FA; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-logo">
+        <img src="logo.png" alt="S3Console" />
+        <span>S3Console</span>
+      </div>
+      <div class="header-domain">s3console.com</div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero">
+      <h1>S3 Management, Finally Fixed.</h1>
+      <p class="tagline">The desktop app AWS developers wish Amazon built. Native Mac & Windows.</p>
+      <div class="cta-badge">Get Lifetime Access — $99</div>
+      <div class="screenshot-wrap">
+        <img src="dashboard.png" alt="S3Console desktop app" />
+      </div>
+    </section>
+
+    <!-- Pain -->
+    <section class="pain">
+      <h2 class="section-title">The S3 Struggle is Real</h2>
+      <p class="section-sub">Sound familiar?</p>
+      <div class="pain-grid">
+        <div class="pain-card">
+          <h3>Complex AWS Console</h3>
+          <p>Finding files, managing permissions, and bulk operations feel like navigating a maze.</p>
+        </div>
+        <div class="pain-card">
+          <h3>Sharing Files is a Hassle</h3>
+          <p>Presigned URLs mean CLI commands or complex console steps. It shouldn’t.</p>
+        </div>
+        <div class="pain-card">
+          <h3>Multi-Account Chaos</h3>
+          <p>Switching profiles, regions, and accounts = constant re-auth and tab juggling.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Benefits -->
+    <section class="benefits">
+      <h2 class="section-title">Why Teams Switch to S3Console</h2>
+      <p class="section-sub">Built for real production S3 workloads.</p>
+      <div class="benefits-grid">
+        <div class="benefit-card">
+          <div class="stat">10x</div>
+          <div class="label">Faster</div>
+          <p class="desc">Than the AWS Console for daily S3 tasks.</p>
+        </div>
+        <div class="benefit-card">
+          <div class="stat">70%</div>
+          <div class="label">Less Time</div>
+          <p class="desc">On S3-related workflows.</p>
+        </div>
+        <div class="benefit-card">
+          <div class="stat">Zero</div>
+          <div class="label">Config</div>
+          <p class="desc">Works with your existing AWS profiles instantly.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features">
+      <h2 class="section-title">Everything You Need</h2>
+      <p class="section-sub">Professional S3 management in one app.</p>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="icon">⚡</div>
+          <h3>AI Code Generation</h3>
+          <p>Production-ready TS, JS, Python with one click.</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">🔗</div>
+          <h3>One-Click Presigned URLs</h3>
+          <p>Time-limited links in seconds, no CLI.</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">👤</div>
+          <h3>Multi-Profile Switching</h3>
+          <p>Switch accounts and regions instantly.</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">👁</div>
+          <h3>Smart File Preview</h3>
+          <p>Preview images and text without downloading.</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">☁</div>
+          <h3>CloudFront Integration</h3>
+          <p>Distributions and cache invalidation in-app.</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">📦</div>
+          <h3>Batch Operations</h3>
+          <p>Bulk delete, empty buckets, progress tracking.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Comparison -->
+    <section class="comparison">
+      <h2 class="section-title">S3Console vs. Everything Else</h2>
+      <p class="section-sub">The only S3 desktop client with code generation, in-app execution, and native AWS Identity Center support.</p>
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th class="col-s3c">S3Console</th>
+            <th>AWS Console</th>
+            <th>Cyberduck</th>
+            <th>Transmit 5</th>
+            <th>CloudBerry</th>
+            <th>S3 Browser</th>
+            <th>FileZilla Pro</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Developer Tools -->
+          <tr><td colspan="8" style="font-weight:700;font-size:13px;letter-spacing:0.05em;text-transform:uppercase;color:#94A3B8;padding:20px 16px 8px;border:none;">Developer Tools</td></tr>
+          <tr>
+            <td>Code Generation (TS/JS/Python)</td>
+            <td class="col-s3c check">✓</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+          </tr>
+          <tr>
+            <td>In-App Code Execution</td>
+            <td class="col-s3c check">✓</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+          </tr>
+          <tr>
+            <td>AWS CLI Generation & Execution</td>
+            <td class="col-s3c check">✓</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td>CLI only</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+          </tr>
+          <tr>
+            <td>Bucket Policy Templates</td>
+            <td class="col-s3c">6 built-in</td>
+            <td>Manual JSON</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+          </tr>
+          <tr>
+            <td>IAM Policy Generator</td>
+            <td class="col-s3c check">✓</td>
+            <td>Separate</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+          </tr>
+          <!-- Authentication -->
+          <tr><td colspan="8" style="font-weight:700;font-size:13px;letter-spacing:0.05em;text-transform:uppercase;color:#94A3B8;padding:20px 16px 8px;border:none;">Authentication</td></tr>
+          <tr>
+            <td>AWS SSO / IAM Identity Center</td>
+            <td class="col-s3c check">✓</td>
+            <td class="check">✓</td>
+            <td>Via CLI</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="check">✓</td>
+            <td class="cross">✗</td>
+          </tr>
+          <tr>
+            <td>STS / Session Tokens</td>
+            <td class="col-s3c check">✓</td>
+            <td class="check">✓</td>
+            <td class="check">✓</td>
+            <td class="cross">✗</td>
+            <td class="check">✓</td>
+            <td class="check">✓</td>
+            <td class="cross">✗</td>
+          </tr>
+          <tr>
+            <td>Multi-Profile Switching</td>
+            <td class="col-s3c check">✓</td>
+            <td>Tab juggling</td>
+            <td>Bookmarks</td>
+            <td>Favorites</td>
+            <td class="check">✓</td>
+            <td class="check">✓</td>
+            <td>Site Manager</td>
+          </tr>
+          <tr>
+            <td>Auto Token Refresh</td>
+            <td class="col-s3c check">✓</td>
+            <td class="check">✓</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+          </tr>
+          <!-- Cloud & CDN -->
+          <tr><td colspan="8" style="font-weight:700;font-size:13px;letter-spacing:0.05em;text-transform:uppercase;color:#94A3B8;padding:20px 16px 8px;border:none;">Cloud & CDN</td></tr>
+          <tr>
+            <td>CloudFront Management</td>
+            <td class="col-s3c check">✓</td>
+            <td>Separate</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td>View only</td>
+            <td class="cross">✗</td>
+          </tr>
+          <tr>
+            <td>Cache Invalidation</td>
+            <td class="col-s3c check">✓</td>
+            <td>Separate</td>
+            <td>CDN only</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+          </tr>
+          <tr>
+            <td>Real-Time Cost Estimation</td>
+            <td class="col-s3c check">✓</td>
+            <td>Separate billing</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+          </tr>
+          <!-- File Operations -->
+          <tr><td colspan="8" style="font-weight:700;font-size:13px;letter-spacing:0.05em;text-transform:uppercase;color:#94A3B8;padding:20px 16px 8px;border:none;">File Operations</td></tr>
+          <tr>
+            <td>Presigned URL Generation</td>
+            <td class="col-s3c">2 clicks</td>
+            <td>8+ steps</td>
+            <td class="check">✓</td>
+            <td class="cross">✗</td>
+            <td>Pro only</td>
+            <td class="check">✓</td>
+            <td class="cross">✗</td>
+          </tr>
+          <tr>
+            <td>Inline File Preview</td>
+            <td class="col-s3c check">✓</td>
+            <td>Limited</td>
+            <td>Quick Look</td>
+            <td class="check">✓</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+          </tr>
+          <tr>
+            <td>Bucket Policy Editor</td>
+            <td class="col-s3c">Visual + JSON</td>
+            <td>JSON only</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+          </tr>
+          <tr>
+            <td>CORS Configuration</td>
+            <td class="col-s3c check">✓</td>
+            <td class="check">✓</td>
+            <td class="check">✓</td>
+            <td class="cross">✗</td>
+            <td class="cross">✗</td>
+            <td class="check">✓</td>
+            <td class="cross">✗</td>
+          </tr>
+          <!-- Platform & Pricing -->
+          <tr><td colspan="8" style="font-weight:700;font-size:13px;letter-spacing:0.05em;text-transform:uppercase;color:#94A3B8;padding:20px 16px 8px;border:none;">Platform & Pricing</td></tr>
+          <tr>
+            <td>macOS</td>
+            <td class="col-s3c check">✓</td>
+            <td>Browser</td>
+            <td class="check">✓</td>
+            <td class="check">✓</td>
+            <td class="check">✓</td>
+            <td class="cross">✗</td>
+            <td class="check">✓</td>
+          </tr>
+          <tr>
+            <td>Windows</td>
+            <td class="col-s3c check">✓</td>
+            <td>Browser</td>
+            <td class="check">✓</td>
+            <td class="cross">✗</td>
+            <td class="check">✓</td>
+            <td class="check">✓</td>
+            <td class="check">✓</td>
+          </tr>
+          <tr>
+            <td>Pricing</td>
+            <td class="col-s3c" style="font-weight:600;">$99 lifetime</td>
+            <td>Free (with AWS)</td>
+            <td>Free / donate</td>
+            <td>$45 one-time</td>
+            <td>$59.99 Pro</td>
+            <td>$49.99 Pro</td>
+            <td>~$14/yr</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Pricing -->
+    <section class="pricing">
+      <h2 class="section-title">Simple Pricing</h2>
+      <div class="price">$99</div>
+      <p class="price-note">Once. Yours forever.</p>
+      <ul>
+        <li>Native Mac & Windows app</li>
+        <li>Lifetime license key</li>
+        <li>All future updates included</li>
+        <li>AI Code Generation</li>
+        <li>Unlimited AWS profiles</li>
+        <li>Secure presigned URLs</li>
+        <li>Priority email support</li>
+      </ul>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta">
+      <h2>Start Managing S3 Like a Pro</h2>
+      <p>One-time payment. No subscriptions. 30-day money-back guarantee.</p>
+      <a href="https://s3console.com/downloads" class="btn">Get Lifetime Access</a>
+      <p class="url">s3console.com/downloads</p>
+    </section>
+  </div>
+</body>
+</html>
