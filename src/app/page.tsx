@@ -28,10 +28,10 @@ export default function Home() {
       <Hero />
       <Problem />
       <Solution />
+      <Comparison />
       <HowItWorks />
       <TestimonialsCarousel />
       <Features />
-      <Comparison />
       <Pricing />
       <FAQ />
       <CTA />
