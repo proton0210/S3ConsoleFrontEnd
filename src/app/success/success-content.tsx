@@ -63,10 +63,10 @@ export default function SuccessContent() {
               console.log("✅ Payment confirmed by webhook!");
 
               posthog.capture('purchase_success', {
-                  amount: 49,
-                  currency: 'USD',
-                  license_key: user.key,
-                  userId: userId
+                amount: 49,
+                currency: 'USD',
+                license_key: user.key,
+                userId: userId
               });
 
               // Trigger confetti animation
@@ -189,7 +189,7 @@ export default function SuccessContent() {
               <li>Your machine will be automatically registered</li>
             </ol>
             <p className="text-xs text-amber-700 dark:text-amber-300 mt-3">
-              Each license allows you to register 1 machine. Purchase additional licenses to use S3Console on more machines.
+              Each seat lets you register 1 machine. Need it on more machines? Purchase an extra seat for $49 — you'll use your <strong>same license key</strong> to activate it, no new key needed.
             </p>
           </div>
 

@@ -626,10 +626,10 @@ export default function DownloadsPage() {
                           <div className="h-3 w-3 rounded-full bg-blue-500"></div>
                           <div>
                             <p className="text-sm text-slate-500 dark:text-slate-400">
-                              Licenses
+                              Seats
                             </p>
                             <p className="font-medium text-slate-900 dark:text-white">
-                              {userData.licenseCount || 1} license(s) purchased
+                              {userData.licenseCount || 1} seat{(userData.licenseCount || 1) > 1 ? 's' : ''} — use your same license key on each
                             </p>
                           </div>
                         </div>
@@ -719,7 +719,7 @@ export default function DownloadsPage() {
                         <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg flex items-center justify-between">
                           <p className="text-sm text-amber-800 dark:text-amber-200">
                             <FaExclamationTriangle className="inline h-4 w-4 mr-2" />
-                            You've reached your machine limit. Deregister a machine or purchase an additional license.
+                            All your seats are in use. Add a seat for $49 — activate it with your <strong>same license key</strong>, no new key needed.
                           </p>
                           <CheckoutButton
                             text="Add License — $49"
