@@ -504,8 +504,8 @@ export default function DownloadsPage() {
               {/* Warning Banner */}
               {warningMessage && (
                 <div className={`px-8 py-4 border-b ${requiresActivation
-                    ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
-                    : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
+                  ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
+                  : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
                   }`}>
                   <div className="flex items-start gap-3">
                     {requiresActivation ? (
@@ -515,8 +515,8 @@ export default function DownloadsPage() {
                     )}
                     <div className="flex-1">
                       <p className={`text-sm font-medium ${requiresActivation
-                          ? 'text-amber-800 dark:text-amber-200'
-                          : 'text-blue-800 dark:text-blue-200'
+                        ? 'text-amber-800 dark:text-amber-200'
+                        : 'text-blue-800 dark:text-blue-200'
                         }`}>
                         {warningMessage}
                       </p>
@@ -634,8 +634,9 @@ export default function DownloadsPage() {
                           </div>
                         </div>
                         <CheckoutButton
-                          text="Buy More"
+                          text="Buy More ($49)"
                           quantity={1}
+                          productId="pdt_0NZOqsYOeAAr3cIBLzt0V"
                           className="h-8 text-xs"
                         />
                       </div>
@@ -654,8 +655,8 @@ export default function DownloadsPage() {
                     </h3>
                     <div className="flex items-center gap-2">
                       <span className={`text-sm font-medium px-3 py-1 rounded-full ${(userData.machines?.length || 0) >= (userData.licenseCount || 1)
-                          ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
-                          : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                        ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                        : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
                         }`}>
                         {userData.machines?.length || 0} / {userData.licenseCount || 1}
                       </span>
@@ -721,8 +722,9 @@ export default function DownloadsPage() {
                             You've reached your machine limit. Deregister a machine or purchase an additional license.
                           </p>
                           <CheckoutButton
-                            text="Add License"
+                            text="Add License — $49"
                             quantity={1}
+                            productId="pdt_0NZOqsYOeAAr3cIBLzt0V"
                             className="ml-4 bg-amber-600 hover:bg-amber-700 text-white border-none"
                           />
                         </div>

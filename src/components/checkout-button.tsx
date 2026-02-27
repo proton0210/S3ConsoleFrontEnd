@@ -9,13 +9,15 @@ interface CheckoutButtonProps {
   text?: string;
   className?: string;
   quantity?: number;
+  productId?: string;
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
 }
 
-export default function CheckoutButton({ 
-  text = "Purchase S3Console", 
+export default function CheckoutButton({
+  text = "Purchase S3Console",
   className,
   quantity = 1,
+  productId,
   variant = "default"
 }: CheckoutButtonProps) {
   const { userId } = useAuth();
@@ -26,22 +28,24 @@ export default function CheckoutButton({
     try {
       setLoading(true);
 
+      const resolvedProductId = productId || "pdt_HAAaTSsGKpgkDFzHYprZM";
+
       posthog.capture('checkout_initiated', {
-        productId: "pdt_HAAaTSsGKpgkDFzHYprZM",
+        productId: resolvedProductId,
         quantity: quantity,
         userId: userId,
         location: 'checkout_button'
       });
-      
+
       // Get user email from Clerk if needed, but usually backend handles it via userId
       // or we fetch it from user-data endpoint if we want to be sure.
       // For now, we'll rely on the create-checkout endpoint.
-      
+
       const resp = await fetch("/api/dodo/create-checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          productId: "pdt_HAAaTSsGKpgkDFzHYprZM",
+          productId: resolvedProductId,
           quantity: quantity,
         }),
       });
@@ -61,9 +65,9 @@ export default function CheckoutButton({
   };
 
   return (
-    <Button 
-      size="lg" 
-      onClick={handleCheckout} 
+    <Button
+      size="lg"
+      onClick={handleCheckout}
       disabled={loading}
       className={className}
       variant={variant}
