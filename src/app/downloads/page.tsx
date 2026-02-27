@@ -666,11 +666,11 @@ export default function DownloadsPage() {
                   {/* License Usage Info */}
                   <div className="mb-4 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
                     <p className="text-xs text-slate-600 dark:text-slate-400">
-                      You have <strong className="text-slate-900 dark:text-white">{userData.licenseCount || 1}</strong> license(s) purchased.
-                      Each license allows you to register <strong className="text-slate-900 dark:text-white">1 machine</strong>.
-                      {userData.licenseCount > 1 && (
-                        <span> Purchase additional licenses to register more machines.</span>
-                      )}
+                      You have <strong className="text-slate-900 dark:text-white">{userData.licenseCount || 1}</strong> seat{(userData.licenseCount || 1) > 1 ? 's' : ''} — each seat lets you register <strong className="text-slate-900 dark:text-white">1 machine</strong>.
+                      {(userData.licenseCount || 1) > 1
+                        ? <span> Use your <strong className="text-slate-900 dark:text-white">same license key</strong> to activate S3Console on each machine.</span>
+                        : <span> Need it on another machine? Purchase an extra seat for $49 and activate with your existing license key.</span>
+                      }
                     </p>
                   </div>
 
