@@ -160,11 +160,11 @@ export default function DownloadsPage() {
 
   const handleMacDownload = () => {
     const downloadLink =
-      "https://s3consolemac.s3.us-east-1.amazonaws.com/S3Console-2.1.1-arm64.dmg";
+      "https://s3consolemac.s3.us-east-1.amazonaws.com/S3Console-2.1.9-arm64.dmg";
 
     const link = document.createElement("a");
     link.href = downloadLink;
-    link.download = "S3Console-2.1.0-arm64.dmg";
+    link.download = "S3Console-2.1.9-arm64.dmg";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -191,11 +191,11 @@ export default function DownloadsPage() {
   const proceedWithWindowsDownload = () => {
     setShowWindowsModal(false);
     const downloadLink =
-      "https://s3consolewindows.s3.ap-south-1.amazonaws.com/S3Console-Setup-2.1.1.exe";
+      "https://s3consolewindows.s3.ap-south-1.amazonaws.com/S3Console-Setup-2.1.9.exe";
 
     const link = document.createElement("a");
     link.href = downloadLink;
-    link.download = "S3Console-Setup-2.1.0.exe";
+    link.download = "S3Console-Setup-2.1.9.exe";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
