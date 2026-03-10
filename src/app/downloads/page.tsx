@@ -9,6 +9,7 @@ import { usePostHog } from "posthog-js/react";
 import {
   FaWindows,
   FaApple,
+  FaLinux,
   FaDownload,
   FaCrown,
   FaKey,
@@ -160,11 +161,11 @@ export default function DownloadsPage() {
 
   const handleMacDownload = () => {
     const downloadLink =
-      "https://s3consolemac.s3.us-east-1.amazonaws.com/S3Console-2.1.9-arm64.dmg";
+      "https://s3consolemac.s3.us-east-1.amazonaws.com/S3Console-2.3.2-arm64.dmg";
 
     const link = document.createElement("a");
     link.href = downloadLink;
-    link.download = "S3Console-2.1.9-arm64.dmg";
+    link.download = "S3Console-2.3.2-arm64.dmg";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -184,6 +185,32 @@ export default function DownloadsPage() {
     showNotification(downloadLink);
   };
 
+  const handleLinuxDownload = () => {
+    const downloadLink =
+      "https://s3consolelinux.s3.ap-south-1.amazonaws.com/s3Console_2.3.2_arm64.deb";
+
+    const link = document.createElement("a");
+    link.href = downloadLink;
+    link.download = "s3Console_2.3.2_arm64.deb";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    if (typeof window !== "undefined" && window.twq) {
+      window.twq("event", "tw-pyshe-pyshf", {
+        email_address: userData?.email || null,
+        conversion_type: "linux_download",
+      });
+    }
+
+    posthog?.capture("download_clicked", {
+      os: "Linux",
+      version: "2.3.2-arm64",
+    });
+
+    showNotification(downloadLink);
+  };
+
   const handleWindowsDownload = () => {
     setShowWindowsModal(true);
   };
@@ -191,11 +218,11 @@ export default function DownloadsPage() {
   const proceedWithWindowsDownload = () => {
     setShowWindowsModal(false);
     const downloadLink =
-      "https://s3consolewindows.s3.ap-south-1.amazonaws.com/S3Console-Setup-2.1.9.exe";
+      "https://s3consolewindows.s3.ap-south-1.amazonaws.com/S3Console-Setup-2.3.2.exe";
 
     const link = document.createElement("a");
     link.href = downloadLink;
-    link.download = "S3Console-Setup-2.1.9.exe";
+    link.download = "S3Console-Setup-2.3.2.exe";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -418,7 +445,7 @@ export default function DownloadsPage() {
           </div>
 
           {/* Download Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 max-w-5xl mx-auto">
             {/* Windows Card */}
             <div className="group relative overflow-hidden border border-slate-200 dark:border-slate-700 rounded-2xl p-8 text-center transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20 bg-white dark:bg-slate-800 hover:border-primary/30">
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -461,6 +488,29 @@ export default function DownloadsPage() {
                 >
                   <FaDownload className="mr-2 h-4 w-4" />
                   Download for macOS
+                </Button>
+              </div>
+            </div>
+
+            {/* Linux Card */}
+            <div className="group relative overflow-hidden border border-slate-200 dark:border-slate-700 rounded-2xl p-8 text-center transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20 bg-white dark:bg-slate-800 hover:border-primary/30">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="relative z-10">
+                <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/10 rounded-2xl mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <FaLinux className="h-10 w-10 text-primary" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">
+                  Linux
+                </h3>
+                <p className="text-slate-600 dark:text-slate-400 mb-6">
+                  Debian/Ubuntu (ARM64 .deb)
+                </p>
+                <Button
+                  onClick={handleLinuxDownload}
+                  className="w-full bg-primary hover:bg-primary/90 text-white group-hover:shadow-lg transition-all duration-300"
+                >
+                  <FaDownload className="mr-2 h-4 w-4" />
+                  Download for Linux
                 </Button>
               </div>
             </div>
