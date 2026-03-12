@@ -330,10 +330,10 @@ export default function PrivacyPage() {
             <p className="text-muted-foreground leading-relaxed mt-3">
               To exercise any of these rights, contact us at{" "}
               <a
-                href="mailto:support@s3console.com"
+                href="mailto:vidit@serverlesscreed.com"
                 className="text-primary hover:underline"
               >
-                support@s3console.com
+                vidit@serverlesscreed.com
               </a>
               . We will respond within 30 days.
             </p>
@@ -375,10 +375,10 @@ export default function PrivacyPage() {
               <br />
               Email:{" "}
               <a
-                href="mailto:support@s3console.com"
+                href="mailto:vidit@serverlesscreed.com"
                 className="text-primary hover:underline"
               >
-                support@s3console.com
+                vidit@serverlesscreed.com
               </a>
               <br />
               Website:{" "}
