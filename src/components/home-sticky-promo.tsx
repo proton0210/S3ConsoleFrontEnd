@@ -8,9 +8,16 @@ import { cn } from "@/lib/utils";
 
 const HERO_ID = "hero";
 
+const promo = {
+  badge: "DynoConsole",
+  description: "Manage your DynamoDB tables like a pro.",
+  href: "https://dynoconsole.com/",
+  cta: "Explore DynoConsole",
+  variant: "outline" as const,
+};
+
 export default function HomeStickyPromo() {
   const [isHeroVisible, setIsHeroVisible] = useState(false);
-  const [activePromo, setActivePromo] = useState<"dyno" | "academy">("dyno");
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -45,40 +52,9 @@ export default function HomeStickyPromo() {
     return () => observer.disconnect();
   }, []);
 
-  useEffect(() => {
-    if (!isHeroVisible) {
-      return;
-    }
-
-    setActivePromo("dyno");
-
-    const interval = window.setInterval(() => {
-      setActivePromo((prev) => (prev === "dyno" ? "academy" : "dyno"));
-    }, 3000);
-
-    return () => window.clearInterval(interval);
-  }, [isHeroVisible]);
-
   if (!isHeroVisible) {
     return null;
   }
-
-  const promo =
-    activePromo === "dyno"
-      ? {
-          badge: "DynoConsole",
-          description: "Manage your DynamoDB tables like a pro.",
-          href: "https://dynoconsole.com/",
-          cta: "Explore DynoConsole",
-          variant: "outline" as const,
-        }
-      : {
-          badge: "Serverless Academy",
-          description: "Master serverless and get job ready with hands-on labs.",
-          href: "https://www.academy.serverlesscreed.com/",
-          cta: "Join Serverless Academy",
-          variant: "secondary" as const,
-        };
 
   return (
     <div className="border-b border-border/60 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/70">
