@@ -16,7 +16,7 @@ export function StructuredData({ type = "website", data }: StructuredDataProps) 
     description: siteConfig.description,
     url: baseUrl,
     applicationCategory: "BusinessApplication",
-    operatingSystem: "macOS, Windows",
+    operatingSystem: "macOS, Windows, Linux",
     offers: {
       "@type": "Offer",
       price: "49",
@@ -46,7 +46,7 @@ export function StructuredData({ type = "website", data }: StructuredDataProps) 
     description: siteConfig.description,
     applicationCategory: "BusinessApplication",
     applicationSubCategory: "Cloud Storage Management",
-    operatingSystem: ["macOS", "Windows"],
+    operatingSystem: ["macOS", "Windows", "Linux"],
     offers: {
       "@type": "Offer",
       price: "49",
@@ -67,7 +67,7 @@ export function StructuredData({ type = "website", data }: StructuredDataProps) 
       "Smart file preview",
       "Drag-and-drop file upload",
       "Bulk file operations",
-      "Cross-platform support (Mac & Windows)",
+      "Cross-platform support (Mac, Windows & Linux)",
     ],
     screenshot: `${baseUrl}/dashboard.png`,
     softwareVersion: "1.0",

@@ -56,8 +56,8 @@ function HeroTitles() {
           staggerChildren: 0.2,
         }}
       >
-        <span className="sr-only">AWS S3 Desktop App for Mac & Windows</span>
-        {["AWS S3", "Desktop", "App", "for Mac", "& Windows"].map(
+        <span className="sr-only">AWS S3 Desktop App for Mac, Windows & Linux</span>
+        {["AWS S3", "Desktop", "App", "for Mac,", "Windows", "& Linux"].map(
           (text, index) => (
             <motion.span
               key={index}

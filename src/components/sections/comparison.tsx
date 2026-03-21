@@ -312,7 +312,7 @@ const categories: { name: string; features: ComparisonFeature[] }[] = [
       },
       {
         feature: "Linux",
-        s3console: "Coming soon",
+        s3console: true,
         awsConsole: "Browser",
         cyberduck: false,
         transmit: false,
@@ -469,9 +469,9 @@ export default function Comparison() {
             </p>
           </div>
           <div className="rounded-xl border border-border bg-background p-5 text-center">
-            <p className="text-3xl font-bold text-primary">2</p>
+            <p className="text-3xl font-bold text-primary">3</p>
             <p className="text-sm text-muted-foreground mt-1">
-              Platforms — macOS & Windows native
+              Platforms — macOS, Windows & Linux
             </p>
           </div>
         </motion.div>

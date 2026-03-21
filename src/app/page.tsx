@@ -15,9 +15,9 @@ import { constructMetadata } from "@/lib/utils";
 import { Metadata } from "next";
 
 export const metadata: Metadata = constructMetadata({
-  title: "S3Console - AWS S3 Desktop App for Mac & Windows",
+  title: "S3Console - AWS S3 Desktop App for Mac, Windows & Linux",
   description:
-    "Professional AWS S3 bucket manager with intuitive GUI. Features AI Code Generation, Presigned URLs, Multi-Profile Support, and Advanced Access Control. Download for Mac & Windows.",
+    "Professional AWS S3 bucket manager with intuitive GUI. Features AI Code Generation, Presigned URLs, Multi-Profile Support, and Advanced Access Control. Download for Mac, Windows & Linux.",
 });
 
 export default function Home() {

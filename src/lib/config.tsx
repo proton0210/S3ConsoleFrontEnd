@@ -8,7 +8,7 @@ export const BLUR_FADE_DELAY = 0.15;
 export const siteConfig = {
   name: "S3Console",
   description:
-    "Native AWS S3 Desktop App for Mac & Windows. Manage S3 buckets with an intuitive GUI. Features AI Code Generation, Presigned URLs, Multi-Profile Support, and Advanced Access Control.",
+    "Native AWS S3 Desktop App for Mac, Windows & Linux. Manage S3 buckets with an intuitive GUI. Features AI Code Generation, Presigned URLs, Multi-Profile Support, and Advanced Access Control.",
   url: process.env.NEXT_PUBLIC_APP_URL || "https://s3console.com",
   keywords: [
     "AWS S3 desktop app",
@@ -24,6 +24,7 @@ export const siteConfig = {
     "S3 file preview",
     "AWS S3 Mac app",
     "AWS S3 Windows app",
+    "AWS S3 Linux app",
     "S3 bucket explorer",
     "cloud storage manager",
     "AWS SSO",
@@ -89,7 +90,7 @@ export const siteConfig = {
       period: "one-time",
       yearlyPrice: null,
       features: [
-        "Native Mac & Windows App",
+        "Native Mac, Windows & Linux App",
         "Lifetime License Key",
         "All Future Updates Included",
         "AI Code Generation (NEW!)",
