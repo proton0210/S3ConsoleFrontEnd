@@ -26,7 +26,7 @@ export default function PrivacyPage() {
           </p>
         </header>
 
-        <div className="prose prose-neutral dark:prose-invert max-w-none">
+        <div className="prose prose-neutral max-w-none">
           <section className="mb-8">
             <h2 className="text-xl font-semibold mb-3">1. Introduction</h2>
             <p className="text-muted-foreground leading-relaxed">

@@ -347,15 +347,15 @@ const categories: { name: string; features: ComparisonFeature[] }[] = [
 function CellContent({ value }: { value: CellValue }) {
   if (value === true) {
     return (
-      <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/30">
-        <Check className="w-4 h-4 text-green-600 dark:text-green-400" />
+      <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-100">
+        <Check className="w-4 h-4 text-green-600" />
       </span>
     );
   }
   if (value === false) {
     return (
-      <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-100 dark:bg-red-900/30">
-        <X className="w-4 h-4 text-red-500 dark:text-red-400" />
+      <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-100">
+        <X className="w-4 h-4 text-red-500" />
       </span>
     );
   }

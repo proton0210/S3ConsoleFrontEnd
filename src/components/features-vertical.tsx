@@ -204,7 +204,7 @@ export default function Features({
                   >
                     {linePosition === "left" || linePosition === "right" ? (
                       <div
-                        className={`absolute bottom-0 top-0 h-full w-0.5 overflow-hidden rounded-lg bg-neutral-300/50 dark:bg-neutral-300/30 ${
+                        className={`absolute bottom-0 top-0 h-full w-0.5 overflow-hidden rounded-lg bg-neutral-300/50 ${
                           linePosition === "right"
                             ? "left-auto right-0"
                             : "left-0 right-auto"
@@ -213,7 +213,7 @@ export default function Features({
                         <div
                           className={`absolute left-0 top-0 w-full ${
                             currentIndex === index ? "h-full" : "h-0"
-                          } origin-top bg-primary transition-all ease-linear dark:bg-white`}
+                          } origin-top bg-primary transition-all ease-linear`}
                           style={{
                             transitionDuration:
                               currentIndex === index
@@ -226,7 +226,7 @@ export default function Features({
 
                     {linePosition === "top" || linePosition === "bottom" ? (
                       <div
-                        className={`absolute left-0 right-0 w-full h-0.5 overflow-hidden rounded-lg bg-neutral-300/50 dark:bg-neutral-300/30 ${
+                        className={`absolute left-0 right-0 w-full h-0.5 overflow-hidden rounded-lg bg-neutral-300/50 ${
                           linePosition === "bottom" ? "bottom-0" : "top-0"
                         }`}
                       >
@@ -235,7 +235,7 @@ export default function Features({
                             linePosition === "bottom" ? "bottom-0" : "top-0"
                           } h-full ${
                             currentIndex === index ? "w-full" : "w-0"
-                          } origin-left bg-primary transition-all ease-linear dark:bg-white`}
+                          } origin-left bg-primary transition-all ease-linear`}
                           style={{
                             transitionDuration:
                               currentIndex === index
@@ -311,7 +311,7 @@ export default function Features({
                     scrollSnapAlign: "center",
                   }}
                 >
-                  <div className="absolute bottom-0 left-0 right-auto top-0 h-0.5 w-full overflow-hidden rounded-lg bg-neutral-300/50 dark:bg-neutral-300/30">
+                  <div className="absolute bottom-0 left-0 right-auto top-0 h-0.5 w-full overflow-hidden rounded-lg bg-neutral-300/50">
                     <div
                       className={`absolute left-0 top-0 h-full ${
                         currentIndex === index ? "w-full" : "w-0"

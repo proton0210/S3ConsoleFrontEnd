@@ -17,7 +17,7 @@ export const Highlight = ({
   return (
     <span
       className={cn(
-        "bg-primary/20 p-1 py-0.5 font-bold text-primary dark:bg-primary/20 dark:text-primary",
+        "bg-primary/20 p-1 py-0.5 font-bold text-primary",
         className
       )}
     >
@@ -46,15 +46,12 @@ export const TestimonialCard = ({
   <div
     className={cn(
       "mb-4 flex w-full cursor-pointer break-inside-avoid flex-col items-center justify-between gap-6 rounded-xl p-4",
-      // light styles
-      " border border-neutral-200 bg-white",
-      // dark styles
-      "dark:bg-black dark:[border:1px_solid_rgba(255,255,255,.1)] dark:[box-shadow:0_-20px_80px_-20px_#ffffff1f_inset]",
+      "border border-neutral-200 bg-white",
       className
     )}
     {...props} // Spread the rest of the props here
   >
-    <div className="select-none text-sm font-normal text-neutral-700 dark:text-neutral-400">
+    <div className="select-none text-sm font-normal text-neutral-700">
       {description}
       <div className="flex flex-row py-1">
         <Star className="size-4 text-yellow-500 fill-yellow-500" />

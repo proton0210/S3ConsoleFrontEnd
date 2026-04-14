@@ -350,7 +350,7 @@ export default function DownloadsPage() {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         {/* Windows Safety Modal */}
         <Dialog open={showWindowsModal} onOpenChange={setShowWindowsModal}>
           <DialogContent className="sm:max-w-md">
@@ -360,21 +360,21 @@ export default function DownloadsPage() {
                 Windows Download Safety
               </DialogTitle>
               <DialogDescription className="pt-4 text-base space-y-4 text-left">
-                <p className="text-slate-700 dark:text-slate-300">
+                <p className="text-slate-700">
                   You may see a warning from Windows SmartScreen saying this file isn't commonly downloaded.
                 </p>
-                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 p-4 rounded-lg">
-                  <p className="font-semibold text-blue-800 dark:text-blue-200 mb-1 flex items-center gap-2">
+                <div className="bg-blue-50 border border-blue-100 p-4 rounded-lg">
+                  <p className="font-semibold text-blue-800 mb-1 flex items-center gap-2">
                     <FaCheck className="h-4 w-4" />
                     S3Console is 100% Safe
                   </p>
-                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                  <p className="text-sm text-blue-700">
                     We are a new verified publisher, so Microsoft is still building trust with our certificate. This warning is a standard security check for new software.
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <p className="font-medium text-slate-900 dark:text-white">If you see a warning:</p>
-                  <ol className="list-decimal pl-5 space-y-1 text-sm text-slate-600 dark:text-slate-400">
+                  <p className="font-medium text-slate-900">If you see a warning:</p>
+                  <ol className="list-decimal pl-5 space-y-1 text-sm text-slate-600">
                     <li>Click <span className="font-semibold">Keep</span> or the <span className="font-semibold">...</span> menu on the download</li>
                     <li>Select <span className="font-semibold">Keep anyway</span> if prompted</li>
                     <li>When opening the installer, click <span className="font-semibold">More info</span> &rarr; <span className="font-semibold">Run anyway</span></li>
@@ -403,18 +403,18 @@ export default function DownloadsPage() {
         {/* Payment Success Modal */}
         {paymentSuccess && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 max-w-md mx-auto text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 dark:bg-green-800 rounded-full mb-6">
-                <FaCheck className="h-8 w-8 text-green-600 dark:text-green-300" />
+            <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md mx-auto text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-6">
+                <FaCheck className="h-8 w-8 text-green-600" />
               </div>
-              <h3 className="text-2xl font-semibold text-slate-900 dark:text-white mb-2">
+              <h3 className="text-2xl font-semibold text-slate-900 mb-2">
                 Payment Successful!
               </h3>
-              <p className="text-slate-600 dark:text-slate-400 mb-6">
+              <p className="text-slate-600 mb-6">
                 Your S3Console Pro license is now active
               </p>
-              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-6">
-                <p className="text-sm text-amber-800 dark:text-amber-200">
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+                <p className="text-sm text-amber-800">
                   <strong>Important:</strong> Please log out and log back in to
                   the desktop app to activate your Pro license.
                 </p>
@@ -435,10 +435,10 @@ export default function DownloadsPage() {
               <HiSparkles className="h-4 w-4" />
               S3Console Downloads
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent mb-4">
               Get Started with S3Console
             </h1>
-            <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
               Download the desktop application and manage your AWS S3 buckets
               with ease
             </p>
@@ -447,16 +447,16 @@ export default function DownloadsPage() {
           {/* Download Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 max-w-5xl mx-auto">
             {/* Windows Card */}
-            <div className="group relative overflow-hidden border border-slate-200 dark:border-slate-700 rounded-2xl p-8 text-center transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20 bg-white dark:bg-slate-800 hover:border-primary/30">
+            <div className="group relative overflow-hidden border border-slate-200 rounded-2xl p-8 text-center transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20 bg-white hover:border-primary/30">
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="relative z-10">
                 <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/10 rounded-2xl mb-6 group-hover:scale-110 transition-transform duration-300">
                   <FaWindows className="h-10 w-10 text-primary" />
                 </div>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">
+                <h3 className="text-2xl font-bold text-slate-900 mb-3">
                   Windows
                 </h3>
-                <p className="text-slate-600 dark:text-slate-400 mb-6">
+                <p className="text-slate-600 mb-6">
                   Windows 10/11 (64-bit)
                 </p>
                 <Button
@@ -470,16 +470,16 @@ export default function DownloadsPage() {
             </div>
 
             {/* macOS Card */}
-            <div className="group relative overflow-hidden border border-slate-200 dark:border-slate-700 rounded-2xl p-8 text-center transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20 bg-white dark:bg-slate-800 hover:border-primary/30">
+            <div className="group relative overflow-hidden border border-slate-200 rounded-2xl p-8 text-center transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20 bg-white hover:border-primary/30">
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="relative z-10">
                 <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/10 rounded-2xl mb-6 group-hover:scale-110 transition-transform duration-300">
                   <FaApple className="h-10 w-10 text-primary" />
                 </div>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">
+                <h3 className="text-2xl font-bold text-slate-900 mb-3">
                   macOS
                 </h3>
-                <p className="text-slate-600 dark:text-slate-400 mb-6">
+                <p className="text-slate-600 mb-6">
                   macOS 10.15+ (Intel & Apple Silicon)
                 </p>
                 <Button
@@ -493,16 +493,16 @@ export default function DownloadsPage() {
             </div>
 
             {/* Linux Card */}
-            <div className="group relative overflow-hidden border border-slate-200 dark:border-slate-700 rounded-2xl p-8 text-center transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20 bg-white dark:bg-slate-800 hover:border-primary/30">
+            <div className="group relative overflow-hidden border border-slate-200 rounded-2xl p-8 text-center transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20 bg-white hover:border-primary/30">
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="relative z-10">
                 <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/10 rounded-2xl mb-6 group-hover:scale-110 transition-transform duration-300">
                   <FaLinux className="h-10 w-10 text-primary" />
                 </div>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">
+                <h3 className="text-2xl font-bold text-slate-900 mb-3">
                   Linux
                 </h3>
-                <p className="text-slate-600 dark:text-slate-400 mb-6">
+                <p className="text-slate-600 mb-6">
                   Debian/Ubuntu (ARM64 .deb)
                 </p>
                 <Button
@@ -518,17 +518,17 @@ export default function DownloadsPage() {
 
           {/* User Dashboard */}
           {userData && (
-            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden mb-12">
-              <div className="bg-gradient-to-r from-primary/10 to-primary/5 px-8 py-6 border-b border-slate-200 dark:border-slate-700">
+            <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden mb-12">
+              <div className="bg-gradient-to-r from-primary/10 to-primary/5 px-8 py-6 border-b border-slate-200">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center">
                     <FaUser className="h-6 w-6 text-primary" />
                   </div>
                   <div className="flex-1">
-                    <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                    <h2 className="text-xl font-bold text-slate-900">
                       Your Account
                     </h2>
-                    <p className="text-slate-600 dark:text-slate-400">
+                    <p className="text-slate-600">
                       License and download information
                     </p>
                   </div>
@@ -536,13 +536,13 @@ export default function DownloadsPage() {
                     <button
                       onClick={refreshUserData}
                       disabled={refreshing}
-                      className="p-2 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-md transition-colors disabled:opacity-50"
+                      className="p-2 hover:bg-slate-200 rounded-md transition-colors disabled:opacity-50"
                       title="Refresh account data"
                     >
-                      <FaSync className={`h-4 w-4 text-slate-600 dark:text-slate-400 ${refreshing ? 'animate-spin' : ''}`} />
+                      <FaSync className={`h-4 w-4 text-slate-600 ${refreshing ? 'animate-spin' : ''}`} />
                     </button>
                     {userData.paid && (
-                      <div className="flex items-center gap-2 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-3 py-1 rounded-full text-sm font-medium">
+                      <div className="flex items-center gap-2 bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
                         <FaCrown className="h-4 w-4" />
                         Pro License
                       </div>
@@ -554,24 +554,24 @@ export default function DownloadsPage() {
               {/* Warning Banner */}
               {warningMessage && (
                 <div className={`px-8 py-4 border-b ${requiresActivation
-                  ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
-                  : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
+                  ? 'bg-amber-50 border-amber-200'
+                  : 'bg-blue-50 border-blue-200'
                   }`}>
                   <div className="flex items-start gap-3">
                     {requiresActivation ? (
-                      <FaExclamationTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                      <FaExclamationTriangle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
                     ) : (
-                      <FaInfoCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                      <FaInfoCircle className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
                     )}
                     <div className="flex-1">
                       <p className={`text-sm font-medium ${requiresActivation
-                        ? 'text-amber-800 dark:text-amber-200'
-                        : 'text-blue-800 dark:text-blue-200'
+                        ? 'text-amber-800'
+                        : 'text-blue-800'
                         }`}>
                         {warningMessage}
                       </p>
                       {requiresActivation && (
-                        <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+                        <p className="text-xs text-amber-700 mt-1">
                           Open the S3Console desktop app and activate your license with your email and license key to register this machine.
                         </p>
                       )}
@@ -582,35 +582,35 @@ export default function DownloadsPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8">
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
                     <FaUser className="h-5 w-5 text-primary" />
                     User Information
                   </h3>
                   <div className="space-y-3">
-                    <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-700 rounded-lg">
+                    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
                       <FaUser className="h-4 w-4 text-slate-500" />
                       <div>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-500">
                           Name
                         </p>
-                        <p className="font-medium text-slate-900 dark:text-white">
+                        <p className="font-medium text-slate-900">
                           {userData.name}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-700 rounded-lg">
+                    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
                       <FaEnvelope className="h-4 w-4 text-slate-500" />
                       <div className="flex-1">
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-500">
                           Email
                         </p>
-                        <p className="font-medium text-slate-900 dark:text-white">
+                        <p className="font-medium text-slate-900">
                           {userData.email}
                         </p>
                       </div>
                       <button
                         onClick={() => copyToClipboard(userData.email, 'email')}
-                        className="ml-auto p-2 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-md transition-colors"
+                        className="ml-auto p-2 hover:bg-slate-200 rounded-md transition-colors"
                         title="Copy email"
                       >
                         {copiedEmail ? (
@@ -624,24 +624,24 @@ export default function DownloadsPage() {
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
                     <FaKey className="h-5 w-5 text-primary" />
                     License Information
                   </h3>
                   <div className="space-y-3">
-                    <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-700 rounded-lg">
+                    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
                       <FaKey className="h-4 w-4 text-slate-500" />
                       <div className="flex-1">
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-500">
                           License Key
                         </p>
-                        <p className="font-mono text-sm text-slate-900 dark:text-white break-all">
+                        <p className="font-mono text-sm text-slate-900 break-all">
                           {userData.key}
                         </p>
                       </div>
                       <button
                         onClick={() => copyToClipboard(userData.key, 'key')}
-                        className="ml-auto p-2 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-md transition-colors"
+                        className="ml-auto p-2 hover:bg-slate-200 rounded-md transition-colors"
                         title="Copy license key"
                       >
                         {copiedKey ? (
@@ -651,13 +651,13 @@ export default function DownloadsPage() {
                         )}
                       </button>
                     </div>
-                    <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-700 rounded-lg">
+                    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
                       <div
                         className={`h-3 w-3 rounded-full ${userData.paid ? "bg-green-500" : "bg-amber-500"
                           }`}
                       ></div>
                       <div>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-500">
                           Status
                         </p>
                         <p
@@ -671,14 +671,14 @@ export default function DownloadsPage() {
                       </div>
                     </div>
                     {userData.paid && (
-                      <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-700 rounded-lg justify-between">
+                      <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg justify-between">
                         <div className="flex items-center gap-3">
                           <div className="h-3 w-3 rounded-full bg-blue-500"></div>
                           <div>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                            <p className="text-sm text-slate-500">
                               Seats
                             </p>
-                            <p className="font-medium text-slate-900 dark:text-white">
+                            <p className="font-medium text-slate-900">
                               {userData.licenseCount || 1} seat{(userData.licenseCount || 1) > 1 ? 's' : ''} — use your same license key on each
                             </p>
                           </div>
@@ -697,16 +697,16 @@ export default function DownloadsPage() {
 
               {/* Machine Management Section */}
               {userData.paid && (
-                <div className="border-t border-slate-200 dark:border-slate-700 p-8">
+                <div className="border-t border-slate-200 p-8">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                    <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
                       <FaDesktop className="h-5 w-5 text-primary" />
                       Registered Machines
                     </h3>
                     <div className="flex items-center gap-2">
                       <span className={`text-sm font-medium px-3 py-1 rounded-full ${(userData.machines?.length || 0) >= (userData.licenseCount || 1)
-                        ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
-                        : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                        ? 'bg-red-100 text-red-700'
+                        : 'bg-green-100 text-green-700'
                         }`}>
                         {userData.machines?.length || 0} / {userData.licenseCount || 1}
                       </span>
@@ -714,11 +714,11 @@ export default function DownloadsPage() {
                   </div>
 
                   {/* License Usage Info */}
-                  <div className="mb-4 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
-                    <p className="text-xs text-slate-600 dark:text-slate-400">
-                      You have <strong className="text-slate-900 dark:text-white">{userData.licenseCount || 1}</strong> seat{(userData.licenseCount || 1) > 1 ? 's' : ''} — each seat lets you register <strong className="text-slate-900 dark:text-white">1 machine</strong>.
+                  <div className="mb-4 p-3 bg-slate-50 rounded-lg">
+                    <p className="text-xs text-slate-600">
+                      You have <strong className="text-slate-900">{userData.licenseCount || 1}</strong> seat{(userData.licenseCount || 1) > 1 ? 's' : ''} — each seat lets you register <strong className="text-slate-900">1 machine</strong>.
                       {(userData.licenseCount || 1) > 1
-                        ? <span> Use your <strong className="text-slate-900 dark:text-white">same license key</strong> to activate S3Console on each machine.</span>
+                        ? <span> Use your <strong className="text-slate-900">same license key</strong> to activate S3Console on each machine.</span>
                         : <span> Need it on another machine? Purchase an extra seat for $49 and activate with your existing license key.</span>
                       }
                     </p>
@@ -729,22 +729,22 @@ export default function DownloadsPage() {
                       {userData.machines.map((machineId: string, index: number) => (
                         <div
                           key={machineId}
-                          className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors"
+                          className="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors"
                         >
                           <div className="flex items-center gap-3 flex-1 min-w-0">
-                            <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${index === 0 ? 'bg-green-100 dark:bg-green-900/30' : 'bg-blue-100 dark:bg-blue-900/30'
+                            <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${index === 0 ? 'bg-green-100' : 'bg-blue-100'
                               }`}>
-                              <FaDesktop className={`h-4 w-4 ${index === 0 ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400'
+                              <FaDesktop className={`h-4 w-4 ${index === 0 ? 'text-green-600' : 'text-blue-600'
                                 }`} />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-slate-900 dark:text-white">
+                              <p className="text-sm font-medium text-slate-900">
                                 Machine {index + 1}
                                 {index === 0 && userData.machines.length === 1 && (
-                                  <span className="ml-2 text-xs text-green-600 dark:text-green-400">(Primary)</span>
+                                  <span className="ml-2 text-xs text-green-600">(Primary)</span>
                                 )}
                               </p>
-                              <p className="text-xs text-slate-500 dark:text-slate-400 font-mono truncate" title={machineId}>
+                              <p className="text-xs text-slate-500 font-mono truncate" title={machineId}>
                                 {machineId}
                               </p>
                             </div>
@@ -752,7 +752,7 @@ export default function DownloadsPage() {
                           <button
                             onClick={() => handleDeregisterMachine(machineId)}
                             disabled={deletingMachine === machineId}
-                            className="ml-3 p-2 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-md transition-colors disabled:opacity-50 flex-shrink-0"
+                            className="ml-3 p-2 hover:bg-red-100 rounded-md transition-colors disabled:opacity-50 flex-shrink-0"
                             title="Deregister machine"
                           >
                             {deletingMachine === machineId ? (
@@ -766,8 +766,8 @@ export default function DownloadsPage() {
 
                       {/* Show if at limit */}
                       {(userData.machines.length >= (userData.licenseCount || 1)) && (
-                        <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg flex items-center justify-between">
-                          <p className="text-sm text-amber-800 dark:text-amber-200">
+                        <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center justify-between">
+                          <p className="text-sm text-amber-800">
                             <FaExclamationTriangle className="inline h-4 w-4 mr-2" />
                             All your seats are in use. Add a seat for $49 — activate it with your <strong>same license key</strong>, no new key needed.
                           </p>
@@ -781,7 +781,7 @@ export default function DownloadsPage() {
                       )}
                     </div>
                   ) : (
-                    <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+                    <div className="text-center py-8 text-slate-500">
                       <FaDesktop className="h-12 w-12 mx-auto mb-3 opacity-50" />
                       <p className="font-medium mb-1">No machines registered yet</p>
                       <p className="text-sm mt-2">
@@ -789,7 +789,7 @@ export default function DownloadsPage() {
                           <>
                             Activate your license in the desktop app to register this machine.
                             <br />
-                            <span className="text-xs mt-1 block">Use your email: <code className="bg-slate-200 dark:bg-slate-700 px-1 rounded">{userData.email}</code> and license key shown above.</span>
+                            <span className="text-xs mt-1 block">Use your email: <code className="bg-slate-200 px-1 rounded">{userData.email}</code> and license key shown above.</span>
                           </>
                         ) : (
                           "Register a machine when you activate your license in the desktop app."
@@ -805,7 +805,7 @@ export default function DownloadsPage() {
           {/* Purchase Section - Only shown if NOT paid */}
           {!userData?.paid && (
             <div className="max-w-xl mx-auto">
-              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+              <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
                 <div className="bg-gradient-to-r from-primary to-primary/80 p-6 text-white text-center">
                   <FaCrown className="h-10 w-10 mx-auto mb-3" />
                   <h3 className="text-2xl font-bold mb-1">

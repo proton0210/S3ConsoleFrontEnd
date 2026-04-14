@@ -134,13 +134,13 @@ export default function SuccessContent() {
 
   if (loading || processingPayment) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto mb-8"></div>
-          <h2 className="text-2xl font-semibold text-slate-900 dark:text-white mb-2">
+          <h2 className="text-2xl font-semibold text-slate-900 mb-2">
             Processing your payment...
           </h2>
-          <p className="text-slate-600 dark:text-slate-400">
+          <p className="text-slate-600">
             Please wait while we confirm your purchase
           </p>
         </div>
@@ -149,18 +149,18 @@ export default function SuccessContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900 dark:to-green-800 flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center">
       <Section className="text-center">
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-12 max-w-2xl mx-auto">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 dark:bg-green-800 rounded-full mb-6">
-            <FaCheck className="h-10 w-10 text-green-600 dark:text-green-300" />
+        <div className="bg-white rounded-2xl shadow-2xl p-12 max-w-2xl mx-auto">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-6">
+            <FaCheck className="h-10 w-10 text-green-600" />
           </div>
 
-          <h1 className="text-4xl font-bold text-slate-900 dark:text-white mb-4">
+          <h1 className="text-4xl font-bold text-slate-900 mb-4">
             Payment Successful!
           </h1>
 
-          <p className="text-lg text-slate-600 dark:text-slate-400 mb-8">
+          <p className="text-lg text-slate-600 mb-8">
             Thank you for purchasing S3Console Pro. Your account has been
             upgraded.
           </p>
@@ -169,26 +169,26 @@ export default function SuccessContent() {
             <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl p-6 mb-8">
               <div className="flex items-center justify-center gap-2 mb-4">
                 <FaCrown className="h-6 w-6 text-primary" />
-                <span className="text-xl font-semibold text-slate-900 dark:text-white">
+                <span className="text-xl font-semibold text-slate-900">
                   Pro License Active
                 </span>
               </div>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
+              <p className="text-sm text-slate-600">
                 License Key: <span className="font-mono">{userData.key}</span>
               </p>
             </div>
           )}
 
-          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-8">
-            <p className="text-sm text-amber-800 dark:text-amber-200 mb-2">
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-8">
+            <p className="text-sm text-amber-800 mb-2">
               <strong>Important:</strong> To activate your Pro license:
             </p>
-            <ol className="text-sm text-amber-800 dark:text-amber-200 list-decimal list-inside space-y-1 ml-2">
+            <ol className="text-sm text-amber-800 list-decimal list-inside space-y-1 ml-2">
               <li>Open the S3Console desktop application</li>
               <li>Enter your email and license key (shown above)</li>
               <li>Your machine will be automatically registered</li>
             </ol>
-            <p className="text-xs text-amber-700 dark:text-amber-300 mt-3">
+            <p className="text-xs text-amber-700 mt-3">
               Each seat lets you register 1 machine. Need it on more machines? Purchase an extra seat for $49 — you'll use your <strong>same license key</strong> to activate it, no new key needed.
             </p>
           </div>

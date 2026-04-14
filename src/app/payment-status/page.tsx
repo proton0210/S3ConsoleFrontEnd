@@ -11,7 +11,7 @@ export default function PaymentStatusPage() {
     <Suspense
       fallback={
         <main className="w-full h-full p-10 pb-0">
-          <div className="bg-white dark:bg-slate-800 rounded-[20px] flex flex-col p-10 max-w-3xl mx-auto text-center">
+          <div className="bg-white rounded-[20px] flex flex-col p-10 max-w-3xl mx-auto text-center">
             <h1 className="font-display text-3xl mb-6">Payment Status</h1>
             <div className="text-yellow-600">Loading status…</div>
           </div>
@@ -71,7 +71,7 @@ function PaymentStatusContent() {
 
   return (
     <main className="w-full h-full p-10 pb-0">
-      <div className="bg-white dark:bg-slate-800 rounded-[20px] flex flex-col p-10 max-w-3xl mx-auto text-center">
+      <div className="bg-white rounded-[20px] flex flex-col p-10 max-w-3xl mx-auto text-center">
         <h1 className="font-display text-3xl mb-6">Payment Status</h1>
         {uiStatus === "succeeded" && (
           <div className="text-green-600">Your payment has been processed successfully.</div>

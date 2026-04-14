@@ -27,7 +27,7 @@ export default function Logos() {
                 width={112}
                 height={40}
                 src={`https://cdn.magicui.design/companies/${logo}.svg`}
-                className="h-10 w-28 dark:brightness-0 dark:invert grayscale opacity-30"
+                className="h-10 w-28 grayscale opacity-30"
                 alt={logo}
               />
             ))}
