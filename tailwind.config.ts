@@ -17,7 +17,21 @@ const config = {
       },
     },
     extend: {
+      fontFamily: {
+        mono: ["var(--font-mono)", "ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "monospace"],
+        display: ["var(--font-display)", "Times New Roman", "Georgia", "serif"],
+        sans: ["var(--font-mono)", "ui-monospace", "monospace"],
+      },
       colors: {
+        paper: "hsl(var(--paper))",
+        ink: "hsl(var(--ink))",
+        signal: "hsl(var(--signal))",
+        char: {
+          200: "hsl(var(--char-200))",
+          400: "hsl(var(--char-400))",
+          600: "hsl(var(--char-600))",
+          800: "hsl(var(--char-800))",
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

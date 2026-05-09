@@ -382,7 +382,13 @@ async function applyLicenseUpdate(
   // licenseCount to 2 — but only if the row doesn't already have a value.
   // Use if_not_exists() so a support-bumped 5-machine row is preserved
   // through subsequent webhook updates.
-  if (patch.paid === true) {
+  //
+  // Defensive guard: skip if the caller is already setting licenseCount
+  // explicitly in the patch — adding our clause would produce a duplicate
+  // `#licenseCount` placeholder and DynamoDB would reject the update with
+  // a ValidationException. (Today no caller passes licenseCount, but this
+  // keeps the helper safe if a future caller does.)
+  if (patch.paid === true && !("licenseCount" in patch)) {
     setClauses.push(`#licenseCount = if_not_exists(#licenseCount, :__defaultLc)`);
     exprNames["#licenseCount"] = "licenseCount";
     exprValues[":__defaultLc"] = 2;

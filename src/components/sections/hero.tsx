@@ -1,181 +1,222 @@
 "use client";
 
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { usePostHog } from "posthog-js/react";
-
-import { Icons } from "@/components/icons";
-import HeroVideoDialog from "@/components/magicui/hero-video";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import Link from "next/link";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
+import HeroVideoDialog from "@/components/magicui/hero-video";
 
-const ease = [0.16, 1, 0.3, 1];
+const ease = [0.16, 1, 0.3, 1] as const;
 
-function HeroPill() {
+const FEATURES = [
+  "ai code generation",
+  "presigned urls in one click",
+  "multi-profile aws auth",
+  "preview without download",
+  "never stores your credentials",
+] as const;
+
+function StatusLine() {
   return (
     <motion.div
-      className="flex w-auto items-center space-x-2 rounded-full bg-primary/20 px-2 py-1 ring-1 ring-accent whitespace-pre"
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8, ease }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6, ease }}
+      className="flex items-center gap-3 text-[11px] uppercase tracking-[0.18em] text-char-600"
     >
-      <div className="w-fit rounded-full bg-accent px-2 py-0.5 text-center text-xs font-medium text-primary sm:text-sm">
-        New
-      </div>
-      <p className="text-xs font-medium text-primary sm:text-sm">
-        S3Console 2.0
-      </p>
-      <svg
-        width="12"
-        height="12"
-        className="ml-1"
-        viewBox="0 0 12 12"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M8.78141 5.33312L5.20541 1.75712L6.14808 0.814453L11.3334 5.99979L6.14808 11.1851L5.20541 10.2425L8.78141 6.66645H0.666748V5.33312H8.78141Z"
-          fill="hsl(var(--primary))"
-        />
-      </svg>
+      <span className="inline-flex items-center gap-1.5">
+        <span className="relative flex h-1.5 w-1.5">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-signal opacity-75" />
+          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-signal" />
+        </span>
+        v2.3.5 — shipping
+      </span>
+      <span aria-hidden className="text-char-400">/</span>
+      <span>mac · windows · linux</span>
     </motion.div>
   );
 }
 
-function HeroTitles() {
+function Title() {
   return (
-    <div className="flex w-full max-w-2xl flex-col space-y-4 overflow-hidden pt-8">
-      <motion.h1
-        className="text-center text-4xl font-medium leading-tight text-foreground sm:text-5xl md:text-6xl"
-        initial={{ filter: "blur(10px)", opacity: 0, y: 50 }}
-        animate={{ filter: "blur(0px)", opacity: 1, y: 0 }}
-        transition={{
-          duration: 1,
-          ease,
-          staggerChildren: 0.2,
-        }}
-      >
-        <span className="sr-only">AWS S3 Desktop App for Mac, Windows & Linux</span>
-        {["AWS S3", "Desktop", "App", "for Mac,", "Windows", "& Linux"].map(
-          (text, index) => (
-            <motion.span
-              key={index}
-              className="inline-block px-1 md:px-2 text-balance font-semibold"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                duration: 0.8,
-                delay: index * 0.2,
-                ease,
-              }}
-              aria-hidden={index > 0}
-            >
-              {text}
-            </motion.span>
-          )
-        )}
-      </motion.h1>
-      <motion.p
-        className="mx-auto max-w-xl text-center text-lg leading-7 text-muted-foreground sm:text-xl sm:leading-9 text-balance"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{
-          delay: 0.6,
-          duration: 0.8,
-          ease,
-        }}
-      >
-        Professional S3 bucket manager with intuitive GUI and AI-powered code
-        generation. Create presigned URLs, switch between AWS profiles
-        instantly, preview files without downloading.
-      </motion.p>
-    </div>
+    <motion.h1
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.9, delay: 0.15, ease }}
+      className="mt-8 text-balance text-center font-display font-light leading-[0.94] text-ink text-[clamp(3rem,9vw,7.25rem)]"
+    >
+      <span className="block">A desktop client</span>
+      <span className="block italic text-char-800">for Amazon&nbsp;S3,</span>
+      <span className="block">
+        built like a <span className="text-signal not-italic">terminal</span>.
+      </span>
+    </motion.h1>
   );
 }
 
-function HeroCTA() {
+function Subhead() {
+  return (
+    <motion.p
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7, delay: 0.5, ease }}
+      className="mt-8 max-w-2xl text-center text-[15px] leading-relaxed text-char-600"
+    >
+      Browse buckets, mint presigned URLs, and switch AWS profiles
+      with the speed of a CLI and the clarity of a real GUI.
+      Credentials stay on your machine — always.
+    </motion.p>
+  );
+}
+
+function PromptBox() {
   const posthog = usePostHog();
-  return (
-    <>
-      <motion.div
-        className="mx-auto mt-6 flex w-full max-w-2xl flex-col items-center justify-center space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.8, duration: 0.8, ease }}
-      >
-        <SignedOut>
-          <Link
-            href="/downloads"
-            onClick={() => posthog?.capture("hero_download_clicked")}
-            className={cn(
-              buttonVariants({ variant: "default" }),
-              "w-full sm:w-auto text-background flex gap-2"
-            )}
-          >
-            Download — start 14-day trial
-          </Link>
-        </SignedOut>
-        <SignedIn>
-          <Link
-            href="/downloads"
-            onClick={() => posthog?.capture("hero_download_clicked")}
-            className={cn(
-              buttonVariants({ variant: "default" }),
-              "w-full sm:w-auto text-background"
-            )}
-          >
-            Download S3Console
-          </Link>
-        </SignedIn>
-      </motion.div>
-      <motion.div
-        className="mt-5 text-center"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.0, duration: 0.8 }}
-      >
-        <p className="text-sm text-muted-foreground">
-          14-day free trial. Plans from $9/month. No credit card to start.
-        </p>
-        <p className="text-xs text-muted-foreground/80 mt-2 max-w-md mx-auto">
-          * Security-first design: We never store your AWS credentials. All
-          authentication happens locally on your device for maximum security and
-          privacy.
-        </p>
-      </motion.div>
-    </>
-  );
-}
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => (t + 1) % FEATURES.length), 2400);
+    return () => clearInterval(id);
+  }, []);
 
-function HeroImage() {
   return (
     <motion.div
-      className="relative mx-auto flex w-full items-center justify-center"
-      initial={{ opacity: 0, y: 50 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 1.2, duration: 1, ease }}
+      transition={{ duration: 0.8, delay: 0.7, ease }}
+      className="mt-10 w-full max-w-xl"
     >
-      <HeroVideoDialog
-        animationStyle="from-center"
-        videoSrc="https://www.youtube.com/embed/J5Dk-eize_0"
-        thumbnailSrc="/dashboard.png"
-        thumbnailAlt="S3Console Desktop App - AWS S3 bucket management interface showing file browser, presigned URL generation, and multi-profile support"
-        className="border rounded-lg shadow-lg max-w-screen-lg mt-16"
-      />
+      <div className="border border-ink bg-ink text-paper">
+        {/* terminal title bar */}
+        <div className="flex items-center justify-between border-b border-paper/15 px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] text-paper/60">
+          <span className="flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-paper/30" />
+            <span className="h-2 w-2 rounded-full bg-paper/30" />
+            <span className="h-2 w-2 rounded-full bg-signal" />
+          </span>
+          <span>~/s3console</span>
+          <span>shell</span>
+        </div>
+
+        {/* prompt body */}
+        <div className="px-4 py-5 text-[13px] leading-7">
+          <div>
+            <span className="text-signal">$</span>{" "}
+            <span className="text-paper/70">s3console</span>{" "}
+            <span className="text-paper">--start</span>
+          </div>
+          <div className="mt-1 text-paper/60">
+            → loading{" "}
+            <span key={tick} className="type-in text-signal">
+              {FEATURES[tick]}
+            </span>
+          </div>
+          <div className="mt-1 text-paper/40">
+            ✓ ready in 0.42s
+          </div>
+          <div className="mt-3">
+            <span className="text-signal">$</span>{" "}
+            <span className="caret" />
+          </div>
+        </div>
+
+        {/* CTA bar */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 border-t border-paper/15">
+          <SignedOut>
+            <Link
+              href="/downloads"
+              onClick={() => posthog?.capture("hero_download_clicked")}
+              className="group flex items-center justify-between bg-signal px-5 py-4 text-paper hover:bg-paper hover:text-ink transition-colors"
+            >
+              <span className="text-[13px] uppercase tracking-[0.18em]">
+                Download · 14-day trial
+              </span>
+              <span className="arrow-tick">→</span>
+            </Link>
+            <Link
+              href="/pricing"
+              className="group flex items-center justify-between border-t sm:border-t-0 sm:border-l border-paper/15 px-5 py-4 hover:bg-paper hover:text-ink transition-colors"
+            >
+              <span className="text-[13px] uppercase tracking-[0.18em] text-paper/80 group-hover:text-ink">
+                See pricing
+              </span>
+              <span className="arrow-tick text-paper/60 group-hover:text-ink">→</span>
+            </Link>
+          </SignedOut>
+          <SignedIn>
+            <Link
+              href="/downloads"
+              onClick={() => posthog?.capture("hero_download_clicked")}
+              className="group col-span-2 flex items-center justify-between bg-signal px-5 py-4 text-paper hover:bg-paper hover:text-ink transition-colors"
+            >
+              <span className="text-[13px] uppercase tracking-[0.18em]">
+                Download S3Console
+              </span>
+              <span className="arrow-tick">→</span>
+            </Link>
+          </SignedIn>
+        </div>
+      </div>
+
+      <p className="mt-4 text-center text-[11px] uppercase tracking-[0.18em] text-char-600">
+        from $9/month  ·  no credit card to start  ·  14-day trial
+      </p>
     </motion.div>
   );
 }
 
-export default function Hero2() {
+function ScreenShot() {
   return (
-    <section id="hero">
-      <div className="relative flex w-full flex-col items-center justify-start px-4 pt-16 sm:px-6 sm:pt-12 md:pt-16 lg:px-8">
-        <HeroPill />
-        <HeroTitles />
-        <HeroCTA />
-        <HeroImage />
-        <div className="pointer-events-none absolute inset-x-0 -bottom-12 h-1/3 bg-gradient-to-t from-background via-background to-transparent lg:h-1/4"></div>
+    <motion.div
+      initial={{ opacity: 0, y: 32 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 1, delay: 1.0, ease }}
+      className="relative mx-auto mt-20 w-full max-w-screen-lg"
+    >
+      {/* corner brackets */}
+      <span className="pointer-events-none absolute -top-2 -left-2 h-4 w-4 border-l-2 border-t-2 border-ink" />
+      <span className="pointer-events-none absolute -top-2 -right-2 h-4 w-4 border-r-2 border-t-2 border-ink" />
+      <span className="pointer-events-none absolute -bottom-2 -left-2 h-4 w-4 border-l-2 border-b-2 border-ink" />
+      <span className="pointer-events-none absolute -bottom-2 -right-2 h-4 w-4 border-r-2 border-b-2 border-ink" />
+
+      <div className="border border-ink bg-paper">
+        <div className="flex items-center justify-between border-b border-ink px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] text-char-600">
+          <span>● ● ●</span>
+          <span>S3Console — production</span>
+          <span>00:42:11</span>
+        </div>
+        <HeroVideoDialog
+          animationStyle="from-center"
+          videoSrc="https://www.youtube.com/embed/J5Dk-eize_0"
+          thumbnailSrc="/dashboard.png"
+          thumbnailAlt="S3Console — desktop S3 client"
+          className="block"
+        />
+      </div>
+    </motion.div>
+  );
+}
+
+export default function Hero() {
+  return (
+    <section id="hero" className="relative overflow-hidden border-b border-ink">
+      <div className="pointer-events-none absolute inset-0 grid-rule opacity-50" />
+      <div className="pointer-events-none absolute inset-0 paper-grain opacity-60" />
+
+      <div className="relative mx-auto flex max-w-6xl flex-col items-center px-6 pt-16 pb-24 sm:pt-20">
+        <StatusLine />
+        <Title />
+        <Subhead />
+        <PromptBox />
+        <ScreenShot />
+      </div>
+
+      {/* hairline base rule with serial number */}
+      <div className="relative border-t border-ink/20 bg-paper">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-2 text-[10px] uppercase tracking-[0.22em] text-char-600">
+          <span>● live</span>
+          <span>serial — s3c/2.3.5/{new Date().getFullYear()}</span>
+          <span>↓ scroll</span>
+        </div>
       </div>
     </section>
   );
