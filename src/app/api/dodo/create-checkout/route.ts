@@ -93,9 +93,13 @@ export async function POST(req: NextRequest) {
 
     if (useSubscriptionEndpoint) {
       // Monthly / yearly — Dodo subscription. Auto-renews until canceled.
+      // The /subscriptions endpoint requires top-level `quantity` (unlike
+      // /checkouts which nests quantity inside product_cart items). Omitting
+      // it returns: "missing field `quantity`".
       endpoint = `${baseUrl}/subscriptions`;
       payload = {
         product_id: productId,
+        quantity: Math.max(1, Number(quantity) || 1),
         return_url: `${origin}/payment-status`,
         ...(customer ? { customer } : {}),
         ...(Object.keys(checkoutMetadata).length > 0
