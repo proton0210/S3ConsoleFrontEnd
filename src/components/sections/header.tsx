@@ -97,6 +97,15 @@ export default function Header() {
               </NavigationMenu>
               <SignedOut>
                 <Link
+                  href="/pricing"
+                  className={cn(
+                    buttonVariants({ variant: "ghost" }),
+                    "hidden md:inline-flex"
+                  )}
+                >
+                  Pricing
+                </Link>
+                <Link
                   href="/sign-in"
                   className={buttonVariants({ variant: "outline" })}
                 >

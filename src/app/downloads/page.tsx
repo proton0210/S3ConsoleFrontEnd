@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import Header from "@/components/sections/header";
 import Section from "@/components/section";
+import Link from "next/link";
 import { useAuth } from "@clerk/nextjs";
 import { usePostHog } from "posthog-js/react";
 import {
@@ -706,11 +707,8 @@ export default function DownloadsPage() {
                   {/* License Usage Info */}
                   <div className="mb-4 p-3 bg-slate-50 rounded-lg">
                     <p className="text-xs text-slate-600">
-                      You have <strong className="text-slate-900">{userData.licenseCount || 1}</strong> seat{(userData.licenseCount || 1) > 1 ? 's' : ''} — each seat lets you register <strong className="text-slate-900">1 machine</strong>.
-                      {(userData.licenseCount || 1) > 1
-                        ? <span> Use your <strong className="text-slate-900">same license key</strong> to activate S3Console on each machine.</span>
-                        : <span> Need it on another machine? Purchase an extra seat for $49 and activate with your existing license key.</span>
-                      }
+                      Your license activates on up to <strong className="text-slate-900">{userData.licenseCount || 2}</strong> machines.{" "}
+                      Use your <strong className="text-slate-900">same license key</strong> on each — no separate keys.
                     </p>
                   </div>
 
@@ -800,14 +798,19 @@ export default function DownloadsPage() {
                   </p>
                 </div>
 
-                <div className="p-6">
-                  <p className="text-sm text-muted-foreground text-center mb-4">
-                    Please note: depending on your country's tax rules, additional VAT/GST may be added to the final amount.
+                <div className="p-6 space-y-3">
+                  <p className="text-sm text-muted-foreground text-center">
+                    Please note: depending on your country's tax rules, additional VAT/GST may be added at checkout.
                   </p>
-                  <CheckoutButton
-                    text="Purchase S3Console - $99"
-                    className="w-full bg-primary hover:bg-primary/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-md"
-                  />
+                  <Link
+                    href="/pricing"
+                    className="block w-full bg-primary hover:bg-primary/90 text-white text-center py-3 rounded-md font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                  >
+                    See plans &amp; pricing
+                  </Link>
+                  <p className="text-xs text-muted-foreground text-center">
+                    Monthly $9 · Yearly $49 · Lifetime $99
+                  </p>
                 </div>
               </div>
             </div>

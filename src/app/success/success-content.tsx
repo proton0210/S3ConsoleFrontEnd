@@ -186,7 +186,7 @@ export default function SuccessContent() {
               <li>Your machine will be automatically registered</li>
             </ol>
             <p className="text-xs text-amber-700 mt-3">
-              Each seat lets you register 1 machine. Need it on more machines? Purchase an extra seat for $49 — you'll use your <strong>same license key</strong> to activate it, no new key needed.
+              Your license activates on up to 2 machines — use the <strong>same license key</strong> on each.
             </p>
           </div>
 
