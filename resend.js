@@ -140,7 +140,10 @@ export const handler = async (event) => {
 
   const createdMs = Number(user.created_at);
   const createdIso = new Date(createdMs).toISOString();
-  const trialExpiryMs = createdMs + 7 * 24 * 60 * 60 * 1000;
+  // Phase 0: trial bumped from 7 → 14 days. Keep this in sync with
+  // s3Console/packages/main/src/enhancedLicenseService.ts:TRIAL_LENGTH_MS.
+  const TRIAL_DAYS = 14;
+  const trialExpiryMs = createdMs + TRIAL_DAYS * 24 * 60 * 60 * 1000;
 
   const licenceKey = generateLicence();
 
