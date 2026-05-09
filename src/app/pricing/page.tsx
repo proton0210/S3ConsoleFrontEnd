@@ -1,11 +1,9 @@
 "use client";
-
 import { useState } from "react";
-import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { usePostHog } from "posthog-js/react";
-import { FaSpinner } from "react-icons/fa";
-import { cn } from "@/lib/utils";
+import { FaCheck, FaSpinner, FaCrown } from "react-icons/fa";
 
 type Tier = "monthly" | "yearly" | "lifetime";
 
@@ -26,7 +24,7 @@ const TIERS: TierConfig[] = [
     name: "Monthly",
     price: "$9",
     period: "per month",
-    description: "Flexible. Cancel any time.",
+    description: "Flexible, cancel anytime.",
     features: [
       "All features included",
       "Use on 2 machines",
@@ -127,142 +125,114 @@ export default function PricingPage() {
   };
 
   return (
-    <main className="relative min-h-screen bg-paper text-ink">
-      {/* atmospheric paper grain + grid */}
-      <div className="pointer-events-none fixed inset-0 grid-rule opacity-50" />
-      <div className="pointer-events-none fixed inset-0 paper-grain opacity-60" />
-
-      <div className="relative mx-auto max-w-6xl px-6 py-20 sm:py-28">
-        {/* breadcrumb / serial */}
-        <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.22em] text-char-600 mb-12">
-          <Link href="/" className="group inline-flex items-center gap-2 hover:text-ink transition-colors">
-            <span className="arrow-tick rotate-180">→</span>
-            <span>back</span>
-          </Link>
-          <span>§ pricing — three tiers</span>
-        </div>
-
-        {/* header */}
-        <div className="border-b border-ink pb-10">
-          <p className="text-[11px] uppercase tracking-[0.24em] text-signal">
-            ● shipping now
-          </p>
-          <h1 className="mt-4 font-display text-[clamp(2.5rem,7vw,5.5rem)] font-light leading-[0.95]">
-            Pick a plan that <span className="italic text-char-800">fits.</span>
+    <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+        {/* Header */}
+        <div className="text-center mb-16">
+          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent mb-4">
+            Pick a plan that fits
           </h1>
-          <p className="mt-6 max-w-xl text-[14px] leading-relaxed text-char-600">
-            Same powerful S3Console — three ways to pay. Every plan
-            includes every feature on up to two machines.
-            All plans start with a 14-day free trial. No credit card
-            required.
+          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+            Same powerful S3Console — three ways to pay. Every plan includes
+            every feature on up to 2 machines.
+          </p>
+          <p className="text-sm text-slate-500 mt-4">
+            All plans start with a 14-day free trial. No credit card required.
           </p>
         </div>
 
-        {/* cards */}
-        <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
-          {TIERS.map((tier, idx) => {
+        {/* Tier Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          {TIERS.map((tier) => {
             const loading = loadingTier === tier.id;
             const disabled = loadingTier !== null && loadingTier !== tier.id;
-            const isHi = !!tier.highlighted;
 
             return (
               <div
                 key={tier.id}
-                className={cn(
-                  "group relative flex flex-col border bg-paper transition-all duration-200 lift-in",
-                  "hover:-translate-y-1 hover:shadow-[6px_6px_0_0_hsl(var(--ink))]",
-                  isHi ? "border-ink" : "border-ink/60",
-                  disabled && "opacity-50"
-                )}
-                style={{ animationDelay: `${idx * 80}ms` }}
+                className={`relative rounded-2xl border p-8 transition-all duration-300 ${
+                  tier.highlighted
+                    ? "border-primary shadow-xl shadow-primary/20 bg-white scale-105"
+                    : "border-slate-200 bg-white hover:shadow-lg hover:border-primary/30"
+                }`}
               >
-                {isHi && (
-                  <div className="absolute -top-px left-0 right-0 flex items-center justify-between border-b border-ink bg-ink px-4 py-1 text-[10px] uppercase tracking-[0.22em] text-paper">
-                    <span>● recommended</span>
-                    <span className="text-signal">save 54%</span>
+                {tier.badge && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <span className="bg-primary text-white text-xs font-semibold px-4 py-1 rounded-full">
+                      {tier.badge}
+                    </span>
                   </div>
                 )}
 
-                <div className={cn("p-7 pt-8", isHi && "pt-12")}>
-                  <div className="flex items-baseline justify-between border-b border-ink/15 pb-3">
-                    <span className="text-[11px] uppercase tracking-[0.24em] text-char-600">
-                      tier // {tier.id}
-                    </span>
-                    <span className="text-[10px] tracking-wider text-char-400">
-                      {String(idx + 1).padStart(2, "0")}/03
-                    </span>
-                  </div>
-
-                  <div className="mt-6 flex items-baseline gap-2">
-                    <span className="font-display text-7xl font-light leading-none text-ink">
+                <div className="text-center mb-6">
+                  <h3 className="text-2xl font-bold text-slate-900 mb-2">
+                    {tier.name}
+                  </h3>
+                  <div className="mb-2">
+                    <span className="text-5xl font-bold text-slate-900">
                       {tier.price}
                     </span>
-                    <span className="text-[11px] uppercase tracking-[0.18em] text-char-600">
+                    <span className="text-slate-500 text-base ml-2">
                       {tier.period}
                     </span>
                   </div>
-                  <p className="mt-3 text-[13px] leading-relaxed text-char-600">
-                    {tier.description}
-                  </p>
-
-                  <ul className="mt-7 space-y-2 text-[13px]">
-                    {tier.features.map((feature) => (
-                      <li key={feature} className="flex items-start gap-2.5">
-                        <span className="mt-[3px] text-signal">›</span>
-                        <span className="text-char-800">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  <p className="text-sm text-slate-600">{tier.description}</p>
                 </div>
 
-                <button
+                <ul className="space-y-3 mb-8">
+                  {tier.features.map((feature, idx) => (
+                    <li key={idx} className="flex items-start gap-3">
+                      <FaCheck className="h-4 w-4 text-green-500 flex-shrink-0 mt-1" />
+                      <span className="text-sm text-slate-700">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <Button
+                  size="lg"
                   onClick={() => handleCheckout(tier.id)}
                   disabled={loading || disabled}
-                  className={cn(
-                    "mt-auto flex items-center justify-between border-t px-6 py-4 text-[12px] uppercase tracking-[0.2em] transition-colors",
-                    isHi
-                      ? "border-ink bg-signal text-paper hover:bg-ink"
-                      : "border-ink/40 text-ink hover:bg-ink hover:text-paper hover:border-ink",
-                    (loading || disabled) && "cursor-not-allowed"
-                  )}
+                  className={`w-full ${
+                    tier.highlighted
+                      ? "bg-primary hover:bg-primary/90 text-white"
+                      : "bg-slate-900 hover:bg-slate-800 text-white"
+                  }`}
                 >
-                  <span className="inline-flex items-center gap-2">
-                    {loading && <FaSpinner className="h-3 w-3 animate-spin" />}
-                    {loading ? "processing..." : `$ choose --${tier.id}`}
-                  </span>
-                  {!loading && <span className="arrow-tick">→</span>}
-                </button>
+                  {loading ? (
+                    <FaSpinner className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <FaCrown className="mr-2 h-4 w-4" />
+                  )}
+                  {loading ? "Processing..." : `Choose ${tier.name}`}
+                </Button>
               </div>
             );
           })}
         </div>
 
-        {/* footnotes */}
-        <div className="mt-16 grid grid-cols-1 gap-3 border-t border-ink/15 pt-8 text-[12px] leading-relaxed text-char-600 sm:grid-cols-2">
+        {/* Footnotes */}
+        <div className="text-center text-sm text-slate-500 mt-12 max-w-2xl mx-auto space-y-2">
+          <p>Subscriptions auto-renew until canceled. You can cancel anytime from your account.</p>
           <p>
-            <span className="text-ink">› subscriptions</span> auto-renew until
-            canceled. You can cancel anytime from your account.
+            Lifetime is a one-time payment with no recurring billing. All
+            future updates included.
           </p>
-          <p>
-            <span className="text-ink">› lifetime</span> is a one-time payment
-            with no recurring billing. All future updates included.
+          <p className="text-xs mt-4">
+            By purchasing, you agree to our{" "}
+            <a href="/terms" className="underline hover:text-slate-700">
+              Terms of Service
+            </a>
+            ,{" "}
+            <a href="/privacy" className="underline hover:text-slate-700">
+              Privacy Policy
+            </a>
+            , and{" "}
+            <a href="/refund-policy" className="underline hover:text-slate-700">
+              Refund Policy
+            </a>
+            .
           </p>
         </div>
-
-        <p className="mt-8 text-[11px] uppercase tracking-[0.2em] text-char-600">
-          By purchasing, you agree to our{" "}
-          <Link href="/terms" className="underline decoration-signal underline-offset-4 hover:text-ink">
-            Terms of Service
-          </Link>
-          ,{" "}
-          <Link href="/privacy" className="underline decoration-signal underline-offset-4 hover:text-ink">
-            Privacy Policy
-          </Link>
-          , and{" "}
-          <Link href="/refund-policy" className="underline decoration-signal underline-offset-4 hover:text-ink">
-            Refund Policy
-          </Link>.
-        </p>
       </div>
     </main>
   );

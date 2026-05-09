@@ -2,176 +2,117 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ─────────────────────────────────────────────────────────
-   S3Console — Terminal/Brutalist design system
-   Paper #fafaf7  ·  Ink #0a0a0a  ·  Signal #ff5500
-   ───────────────────────────────────────────────────────── */
+@layer utilities {
+  @keyframes slide-in-from-bottom {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes slide-out-to-bottom {
+    from {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+  }
+  
+  @keyframes slide-in-from-top {
+    from {
+      transform: translateY(-100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  
+  .animate-in {
+    animation: slide-in-from-bottom 0.3s ease-out;
+  }
+  
+  .animate-out {
+    animation: slide-out-to-bottom 0.3s ease-in;
+  }
+  
+  .slide-in-from-bottom {
+    animation-fill-mode: both;
+  }
+  
+  .slide-out-to-bottom {
+    animation-fill-mode: both;
+  }
+  
+  .slide-in-from-top {
+    animation: slide-in-from-top 0.3s ease-out;
+    animation-fill-mode: both;
+  }
+}
+
 @layer base {
   :root {
-    /* shadcn token overrides — every existing component picks these up */
-    --background: 50 33% 98%;          /* paper */
-    --foreground: 0 0% 4%;             /* ink */
-    --card: 50 33% 98%;
-    --card-foreground: 0 0% 4%;
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 4%;
-    --primary: 16 100% 50%;            /* signal orange */
-    --primary-foreground: 50 33% 98%;
-    --secondary: 0 0% 4%;
-    --secondary-foreground: 50 33% 98%;
-    --muted: 50 20% 94%;
-    --muted-foreground: 0 0% 35%;
-    --accent: 16 100% 50%;
-    --accent-foreground: 50 33% 98%;
-    --destructive: 0 84% 50%;
-    --destructive-foreground: 50 33% 98%;
-    --border: 0 0% 4%;                 /* sharp ink borders */
-    --input: 0 0% 4%;
-    --ring: 16 100% 50%;
-    --radius: 0px;                     /* brutalist: no rounding */
-
-    /* extra named tokens */
-    --paper: 50 33% 98%;
-    --ink: 0 0% 4%;
-    --signal: 16 100% 50%;
-    --char-200: 0 0% 88%;
-    --char-400: 0 0% 64%;
-    --char-600: 0 0% 35%;
-    --char-800: 0 0% 14%;
-
-    --chart-1: 16 100% 50%;
-    --chart-2: 0 0% 14%;
-    --chart-3: 0 0% 35%;
-    --chart-4: 0 0% 64%;
-    --chart-5: 0 0% 88%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 349 100% 55.5%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 349 100% 55.5%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 349 100% 55.5%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
   }
+
+}
+
+@layer base {
+  :root {
+    --chart-1: 349 100% 55.5%;
+    --chart-2: 0 0 90;
+    --chart-3: 0 0 83;
+    --chart-4: 0 0 64;
+    --chart-5: 27 87% 67%;
+    font-family: Inter, sans-serif;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11", "salt";
+  }
+
 
   * {
     @apply border-border;
   }
 
-  html {
-    font-family: var(--font-mono), ui-monospace, "SFMono-Regular",
-      Menlo, Monaco, Consolas, monospace;
+  @supports (font-variation-settings: normal) {
+    :root {
+      font-family: InterVariable, sans-serif;
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11", "salt";
+    }
   }
 
   body {
     @apply bg-background text-foreground;
-    font-family: var(--font-mono), ui-monospace, monospace;
-    font-feature-settings: "ss01", "ss02", "calt", "liga";
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
   }
-
-  /* Display headings live in Fraunces — serif counterpoint to the mono UI */
-  h1, h2, h3, .font-display {
-    font-family: var(--font-display), "Times New Roman", serif;
-    font-feature-settings: "ss01", "ss02", "ss03";
-    letter-spacing: -0.02em;
-  }
-
-  ::selection {
-    background: hsl(var(--signal));
-    color: hsl(var(--paper));
-  }
-}
-
-/* ─────────────────────────────────────────────────────────
-   Motion — subtle, terminal-flavored
-   ───────────────────────────────────────────────────────── */
-@layer utilities {
-  /* Cursor blink for prompts & CTAs */
-  @keyframes caret-blink {
-    0%, 49%   { opacity: 1; }
-    50%, 100% { opacity: 0; }
-  }
-  .caret::after {
-    content: "▌";
-    display: inline-block;
-    margin-left: 2px;
-    color: hsl(var(--signal));
-    animation: caret-blink 1s steps(1) infinite;
-  }
-
-  /* One-shot typewriter reveal */
-  @keyframes type-reveal {
-    from { clip-path: inset(0 100% 0 0); }
-    to   { clip-path: inset(0 0     0 0); }
-  }
-  .type-in {
-    display: inline-block;
-    animation: type-reveal 0.9s steps(40, end) both;
-  }
-
-  /* Fade + 8px lift, used by scroll-reveal */
-  @keyframes lift-in {
-    from { opacity: 0; transform: translateY(8px); }
-    to   { opacity: 1; transform: translateY(0);   }
-  }
-  .lift-in {
-    animation: lift-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
-
-  /* Soft signal glow on hover */
-  @keyframes signal-pulse {
-    0%, 100% { box-shadow: 0 0 0 0 hsl(var(--signal) / 0); }
-    50%      { box-shadow: 0 0 0 6px hsl(var(--signal) / 0.18); }
-  }
-  .pulse-signal:hover {
-    animation: signal-pulse 1.6s ease-in-out infinite;
-  }
-
-  /* Marquee row used in status bars */
-  @keyframes scan {
-    from { transform: translateX(0); }
-    to   { transform: translateX(-50%); }
-  }
-  .scan-row {
-    animation: scan 28s linear infinite;
-  }
-
-  /* Subtle paper-grain background — used on hero and footer */
-  .paper-grain {
-    background-image:
-      radial-gradient(hsl(var(--ink) / 0.045) 1px, transparent 1px),
-      radial-gradient(hsl(var(--ink) / 0.03)  1px, transparent 1px);
-    background-size: 18px 18px, 31px 31px;
-    background-position: 0 0, 9px 9px;
-  }
-
-  /* Hairline grid overlay for the hero */
-  .grid-rule {
-    background-image:
-      linear-gradient(to right, hsl(var(--ink) / 0.04) 1px, transparent 1px),
-      linear-gradient(to bottom, hsl(var(--ink) / 0.04) 1px, transparent 1px);
-    background-size: 64px 64px;
-  }
-
-  /* "Pixel" arrow for CTAs */
-  .arrow-tick {
-    display: inline-block;
-    transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .group:hover .arrow-tick { transform: translateX(4px); }
-}
-
-/* Legacy slide animations preserved for the existing notification system ──── */
-@layer utilities {
-  @keyframes slide-in-from-bottom {
-    from { transform: translateY(100%); opacity: 0; }
-    to   { transform: translateY(0);    opacity: 1; }
-  }
-  @keyframes slide-out-to-bottom {
-    from { transform: translateY(0);    opacity: 1; }
-    to   { transform: translateY(100%); opacity: 0; }
-  }
-  @keyframes slide-in-from-top {
-    from { transform: translateY(-100%); opacity: 0; }
-    to   { transform: translateY(0);     opacity: 1; }
-  }
-  .animate-in           { animation: slide-in-from-bottom 0.3s ease-out; }
-  .animate-out          { animation: slide-out-to-bottom 0.3s ease-in; }
-  .slide-in-from-bottom { animation-fill-mode: both; }
-  .slide-out-to-bottom  { animation-fill-mode: both; }
-  .slide-in-from-top    { animation: slide-in-from-top 0.3s ease-out; animation-fill-mode: both; }
 }

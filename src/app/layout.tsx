@@ -11,21 +11,12 @@ import {
   SignedOut,
   UserButton,
 } from "@clerk/nextjs";
-import { JetBrains_Mono, Fraunces } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
-const jetbrainsMono = JetBrains_Mono({
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-mono",
-  display: "swap",
-  weight: ["300", "400", "500", "600", "700"],
-});
-
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  variable: "--font-display",
-  display: "swap",
-  axes: ["opsz", "SOFT"],
+  variable: "--font-inter",
 });
 
 export const metadata: Metadata = constructMetadata({});
@@ -51,6 +42,8 @@ export default function RootLayout({
       <CSPostHogProvider>
         <html lang="en" suppressHydrationWarning>
         <head>
+          <link rel="preconnect" href="https://rsms.me/" />
+          <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
           <StructuredData type="website" />
           <StructuredData type="software" />
           {/* Twitter conversion tracking base code */}
@@ -68,9 +61,8 @@ export default function RootLayout({
         </head>
         <body
           className={cn(
-            "min-h-screen bg-background text-foreground antialiased w-full mx-auto scroll-smooth font-mono",
-            jetbrainsMono.variable,
-            fraunces.variable
+            "min-h-screen bg-background antialiased w-full mx-auto scroll-smooth",
+            inter.variable
           )}
         >
             {children}
