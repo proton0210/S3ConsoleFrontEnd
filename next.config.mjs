@@ -45,6 +45,15 @@ const nextConfig = {
     // AWS_REGION intentionally NOT forwarded — Lambda's runtime sets it
     // automatically; baking the build-time value risks overriding it.
   },
+
+  // Convenience aliases for the download CTA. /download (singular) and
+  // /get are common shortcuts; map them to the canonical /downloads page.
+  async redirects() {
+    return [
+      { source: "/download", destination: "/downloads", permanent: true },
+      { source: "/get", destination: "/downloads", permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;

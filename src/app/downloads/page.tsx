@@ -46,6 +46,32 @@ declare global {
   }
 }
 
+type DetectedOS = "mac" | "windows" | "linux" | "unknown";
+
+/**
+ * OS detection from the browser. Runs only after mount so SSR + client agree
+ * on a "unknown" default before hydration. We pick the most likely match
+ * given userAgent + platform; users can always override via the
+ * "Other platforms" links below the main button.
+ */
+function detectOS(): DetectedOS {
+  if (typeof navigator === "undefined") return "unknown";
+  const ua = navigator.userAgent || "";
+  // Prefer Mac/Win/Linux exclusivity. ARM/Intel doesn't matter for the
+  // download URL — we ship a single artifact per platform.
+  if (/Mac|iPhone|iPad|iPod/i.test(ua)) return "mac";
+  if (/Windows/i.test(ua)) return "windows";
+  if (/Linux|X11/i.test(ua)) return "linux";
+  return "unknown";
+}
+
+const OS_LABELS: Record<DetectedOS, string> = {
+  mac: "macOS",
+  windows: "Windows",
+  linux: "Linux",
+  unknown: "your computer",
+};
+
 //checking
 export default function DownloadsPage() {
   const { userId, isLoaded } = useAuth();
@@ -61,6 +87,13 @@ export default function DownloadsPage() {
   const [requiresActivation, setRequiresActivation] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [showWindowsModal, setShowWindowsModal] = useState(false);
+  const [detectedOS, setDetectedOS] = useState<DetectedOS>("unknown");
+
+  // Run OS detection once on mount. Avoids SSR mismatch — server renders
+  // "unknown" and the button label updates as soon as the page hydrates.
+  useEffect(() => {
+    setDetectedOS(detectOS());
+  }, []);
 
   const userDataRef = useRef(userData);
 
@@ -399,89 +432,100 @@ export default function DownloadsPage() {
         )}
 
         <Section className="py-20">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
-              <HiSparkles className="h-4 w-4" />
-              S3Console Downloads
-            </div>
-            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent mb-4">
-              Get Started with S3Console
+          {/* HERO — centered single download CTA, OS auto-detected */}
+          <div className="max-w-3xl mx-auto text-center mb-16">
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-slate-900 mb-4">
+              Download S3Console
             </h1>
-            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-              Download the desktop application and manage your AWS S3 buckets
-              with ease
+            <p className="text-base md:text-lg text-slate-600 mb-2">
+              Your 14-day free trial starts the moment you launch the app. No
+              credit card. No signup.
             </p>
-          </div>
+            <p className="text-sm text-slate-500 mb-10">
+              Trial is locked to your machine — full access to every feature.
+            </p>
 
-          {/* Download Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 max-w-5xl mx-auto">
-            {/* Windows Card */}
-            <div className="group relative overflow-hidden border border-slate-200 rounded-2xl p-8 text-center transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20 bg-white hover:border-primary/30">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <div className="relative z-10">
-                <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/10 rounded-2xl mb-6 group-hover:scale-110 transition-transform duration-300">
-                  <FaWindows className="h-10 w-10 text-primary" />
-                </div>
-                <h3 className="text-2xl font-bold text-slate-900 mb-3">
-                  Windows
-                </h3>
-                <p className="text-slate-600 mb-6">
-                  Windows 10/11 (64-bit)
-                </p>
-                <Button
-                  onClick={handleWindowsDownload}
-                  className="w-full bg-primary hover:bg-primary/90 text-white group-hover:shadow-lg transition-all duration-300"
-                >
-                  <FaDownload className="mr-2 h-4 w-4" />
-                  Download for Windows
-                </Button>
-              </div>
+            {/* Primary download — big, centered */}
+            <div className="flex flex-col items-center gap-3">
+              <Button
+                size="lg"
+                onClick={() => {
+                  if (detectedOS === "windows") handleWindowsDownload();
+                  else if (detectedOS === "linux") handleLinuxDownload();
+                  else handleMacDownload(); // default to mac for "unknown"
+                }}
+                className="h-14 px-10 text-base font-semibold bg-primary hover:bg-primary/90 text-white shadow-lg hover:shadow-xl transition-all"
+              >
+                {detectedOS === "windows" ? (
+                  <FaWindows className="mr-3 h-5 w-5" />
+                ) : detectedOS === "linux" ? (
+                  <FaLinux className="mr-3 h-5 w-5" />
+                ) : (
+                  <FaApple className="mr-3 h-5 w-5" />
+                )}
+                Download for {OS_LABELS[detectedOS] === "your computer" ? "macOS" : OS_LABELS[detectedOS]}
+                <FaDownload className="ml-3 h-4 w-4" />
+              </Button>
+
+              <p className="text-xs text-slate-500 mt-1">
+                Free · 14-day trial · macOS, Windows, Linux
+              </p>
             </div>
 
-            {/* macOS Card */}
-            <div className="group relative overflow-hidden border border-slate-200 rounded-2xl p-8 text-center transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20 bg-white hover:border-primary/30">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <div className="relative z-10">
-                <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/10 rounded-2xl mb-6 group-hover:scale-110 transition-transform duration-300">
-                  <FaApple className="h-10 w-10 text-primary" />
-                </div>
-                <h3 className="text-2xl font-bold text-slate-900 mb-3">
-                  macOS
-                </h3>
-                <p className="text-slate-600 mb-6">
-                  macOS 10.15+ (Intel & Apple Silicon)
-                </p>
-                <Button
+            {/* Secondary OS picks — small links underneath */}
+            <div className="mt-10 pt-8 border-t border-slate-200/60 max-w-xl mx-auto">
+              <p className="text-xs text-slate-500 mb-3 uppercase tracking-wide font-medium">
+                Or pick your platform
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm">
+                <button
+                  type="button"
                   onClick={handleMacDownload}
-                  className="w-full bg-primary hover:bg-primary/90 text-white group-hover:shadow-lg transition-all duration-300"
+                  className="inline-flex items-center gap-2 text-slate-700 hover:text-primary transition-colors"
                 >
-                  <FaDownload className="mr-2 h-4 w-4" />
-                  Download for macOS
-                </Button>
+                  <FaApple className="h-4 w-4" />
+                  macOS
+                  <span className="text-xs text-slate-400">(.dmg, ARM64)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleWindowsDownload}
+                  className="inline-flex items-center gap-2 text-slate-700 hover:text-primary transition-colors"
+                >
+                  <FaWindows className="h-4 w-4" />
+                  Windows
+                  <span className="text-xs text-slate-400">(.exe, 10/11)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleLinuxDownload}
+                  className="inline-flex items-center gap-2 text-slate-700 hover:text-primary transition-colors"
+                >
+                  <FaLinux className="h-4 w-4" />
+                  Linux
+                  <span className="text-xs text-slate-400">(.deb, ARM64)</span>
+                </button>
               </div>
             </div>
 
-            {/* Linux Card */}
-            <div className="group relative overflow-hidden border border-slate-200 rounded-2xl p-8 text-center transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20 bg-white hover:border-primary/30">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <div className="relative z-10">
-                <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/10 rounded-2xl mb-6 group-hover:scale-110 transition-transform duration-300">
-                  <FaLinux className="h-10 w-10 text-primary" />
-                </div>
-                <h3 className="text-2xl font-bold text-slate-900 mb-3">
-                  Linux
-                </h3>
-                <p className="text-slate-600 mb-6">
-                  Debian/Ubuntu (ARM64 .deb)
-                </p>
-                <Button
-                  onClick={handleLinuxDownload}
-                  className="w-full bg-primary hover:bg-primary/90 text-white group-hover:shadow-lg transition-all duration-300"
+            {/* What happens next — three quick reassurances */}
+            <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto">
+              {[
+                { icon: FaDownload, title: "Download", body: "Installer for your OS" },
+                { icon: FaCheck, title: "Install & open", body: "Trial starts automatically" },
+                { icon: HiSparkles, title: "14 days free", body: "Pick a plan only if it fits" },
+              ].map(({ icon: Icon, title, body }) => (
+                <div
+                  key={title}
+                  className="rounded-xl border border-slate-200 bg-white px-4 py-4 text-left"
                 >
-                  <FaDownload className="mr-2 h-4 w-4" />
-                  Download for Linux
-                </Button>
-              </div>
+                  <Icon className="h-4 w-4 text-primary mb-2" />
+                  <p className="text-sm font-semibold text-slate-900">
+                    {title}
+                  </p>
+                  <p className="text-xs text-slate-600 mt-0.5">{body}</p>
+                </div>
+              ))}
             </div>
           </div>
 
