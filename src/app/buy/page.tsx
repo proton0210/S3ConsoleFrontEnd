@@ -9,6 +9,7 @@
 "use client";
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 
 type Tier = "monthly" | "yearly" | "lifetime";
 
@@ -19,12 +20,24 @@ function isValidTier(value: string | null): value is Tier {
 function BuyPageContent() {
   const sp = useSearchParams();
   const tier = sp.get("tier");
-  const email = sp.get("email") || undefined;
+  const queryEmail = sp.get("email") || undefined;
+  const { user, isLoaded } = useUser();
+
+  // Email priority: ?email=... query param (from magic-link emails) wins.
+  // Fallback to Clerk's authenticated email so signed-in homepage clicks
+  // pre-fill the Dodo checkout form. If neither is available, Dodo will
+  // ask for it on the checkout page.
+  const email =
+    queryEmail || user?.primaryEmailAddress?.emailAddress || undefined;
 
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<"loading" | "redirecting" | "error">("loading");
 
   useEffect(() => {
+    // Wait for Clerk to load so we don't accidentally start checkout
+    // without the email from a still-pending auth context.
+    if (!isLoaded) return;
+
     if (!isValidTier(tier)) {
       setError("Invalid plan. Please go back to the pricing page and pick again.");
       setStatus("error");
@@ -58,7 +71,7 @@ function BuyPageContent() {
     return () => {
       canceled = true;
     };
-  }, [tier, email]);
+  }, [tier, email, isLoaded]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">

@@ -10,7 +10,7 @@ export default function CtaSection() {
     <Section
       id="cta"
       title="Ready to get started?"
-      subtitle="Get lifetime access to professional S3 management."
+      subtitle="14-day free trial — full access, no credit card. Pick a plan only if it fits."
       className="bg-primary/10 rounded-xl py-16"
     >
       <div className="flex flex-col w-full sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4 pt-4">
@@ -22,7 +22,16 @@ export default function CtaSection() {
               "w-full sm:w-auto text-background"
             )}
           >
-            Get started for free
+            Start free trial
+          </Link>
+          <Link
+            href="/pricing"
+            className={cn(
+              buttonVariants({ variant: "outline" }),
+              "w-full sm:w-auto"
+            )}
+          >
+            See pricing
           </Link>
         </SignedOut>
         <SignedIn>
@@ -34,6 +43,15 @@ export default function CtaSection() {
             )}
           >
             Download S3Console
+          </Link>
+          <Link
+            href="/pricing"
+            className={cn(
+              buttonVariants({ variant: "outline" }),
+              "w-full sm:w-auto"
+            )}
+          >
+            See pricing
           </Link>
         </SignedIn>
       </div>

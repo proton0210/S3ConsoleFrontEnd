@@ -136,7 +136,7 @@ function HeroCTA() {
         transition={{ delay: 1.0, duration: 0.8 }}
       >
         <p className="text-sm text-muted-foreground">
-          One-time payment. Lifetime access. No subscriptions.
+          14-day free trial. Plans from $9/month. No credit card to start.
         </p>
         <p className="text-xs text-muted-foreground/80 mt-2 max-w-md mx-auto">
           * Security-first design: We never store your AWS credentials. All

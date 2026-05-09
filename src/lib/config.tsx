@@ -185,15 +185,62 @@ export const siteConfig = {
         </span>
       ),
     },
+    {
+      question: "Is there a free trial?",
+      answer: (
+        <span>
+          Yes — every plan starts with a 14-day free trial with full access to
+          every feature. No credit card required to start. The trial is locked
+          to one machine, so reinstalling the app won&apos;t reset it.
+        </span>
+      ),
+    },
+    {
+      question: "What does each plan include?",
+      answer: (
+        <span>
+          All three plans (Monthly $9, Yearly $49, Lifetime $99) include
+          identical features and let you use S3Console on up to 2 machines. The
+          only difference is how you pay: monthly auto-renews each month,
+          yearly saves 54% vs monthly, and lifetime is a one-time payment with
+          no recurring billing.
+        </span>
+      ),
+    },
+    {
+      question: "Can I cancel my subscription?",
+      answer: (
+        <span>
+          Anytime, from the in-app license menu or your{" "}
+          customer portal. Subscriptions stay active until the end of the
+          current billing period — no surprise charges. Lifetime is one-time
+          and has nothing to cancel.
+        </span>
+      ),
+    },
+    {
+      question: "Do you offer refunds?",
+      answer: (
+        <span>
+          14-day money-back guarantee on monthly and yearly plans. 7-day
+          guarantee on Lifetime. Email support@s3console.com with your order
+          details — see the{" "}
+          <a href="/refund-policy" className="underline hover:text-foreground">
+            full refund policy
+          </a>
+          .
+        </span>
+      ),
+    },
   ],
   footer: [
     {
       title: "Product",
       links: [
-        { href: "#", text: "Features", icon: null },
-        { href: "#", text: "Pricing", icon: null },
-        { href: "#", text: "Documentation", icon: null },
-        { href: "#", text: "API", icon: null },
+        { href: "/#features", text: "Features", icon: null },
+        { href: "/pricing", text: "Pricing", icon: null },
+        { href: "/downloads", text: "Download", icon: null },
+        { href: "/#faq", text: "FAQ", icon: null },
       ],
     },
     {
