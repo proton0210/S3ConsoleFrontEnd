@@ -69,71 +69,39 @@ export default function DownloadsPage() {
   }, [userData]);
 
   useEffect(() => {
-    // Wait for Clerk to load before checking auth
-    if (!isLoaded) {
-      return;
-    }
+    // Wait for Clerk to load before deciding what to render.
+    if (!isLoaded) return;
 
-    if (!userId && typeof window !== "undefined") {
-      window.location.href = "/sign-in";
+    // Anonymous visitors can download — the desktop app gives them a 14-day
+    // machine-locked trial automatically with no signup. We just don't
+    // populate userData (license info section stays hidden).
+    if (!userId) {
+      setLoading(false);
       return;
     }
 
     const fetchUserData = async () => {
       try {
-        console.log("Fetching user data for userId:", userId);
         setLoading(true);
-
-        const response = await fetch("/api/user-data", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        console.log("User data API response status:", response.status);
+        const response = await fetch("/api/user-data");
         const data = await response.json();
-        console.log("User data API response:", data);
-
         if (response.ok && data.success) {
-          console.log("User data fetched successfully:", data.userData);
           setUserData(data.userData);
-
-          if (data.warning) {
-            setWarningMessage(data.warning);
-          } else {
-            setWarningMessage(null);
-          }
-
-          if (data.requiresActivation) {
-            setRequiresActivation(true);
-          } else {
-            setRequiresActivation(false);
-          }
+          setWarningMessage(data.warning ?? null);
+          setRequiresActivation(!!data.requiresActivation);
         } else {
-          console.error(
-            "Failed to fetch user data:",
-            data.error || "Unknown error"
-          );
-
-          alert(
-            `Failed to load user data: ${data.error || "Unknown error"
-            }. Please refresh the page.`
-          );
+          // Logged-in but no row yet (just signed up, webhook still propagating).
+          // Don't alert — let them download, they'll see their license info on next refresh.
+          console.warn("[downloads] user-data not ready:", data.error);
         }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-        alert(
-          "Failed to load user data. Please refresh the page and try again."
-        );
+      } catch (err) {
+        console.warn("[downloads] user-data fetch failed:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    if (userId) {
-      fetchUserData();
-    }
+    fetchUserData();
   }, [userId, isLoaded]);
 
   useEffect(() => {

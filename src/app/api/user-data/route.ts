@@ -2,12 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { getDdbClientConfig } from "@/lib/dynamodb";
 
-// Phase 11: removed NEXT_PUBLIC_DYNAMO_* credentials. The Amplify SSR compute
-// role provides DDB access via the AWS SDK default credential chain.
-const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || "ap-south-1",
-});
+const client = new DynamoDBClient(getDdbClientConfig());
 
 const docClient = DynamoDBDocumentClient.from(client);
 

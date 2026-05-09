@@ -14,11 +14,24 @@ import {
   ScanCommand,
 } from "@aws-sdk/lib-dynamodb";
 
-const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || "ap-south-1",
-  // No explicit credentials — SDK picks up the Amplify SSR role automatically.
-  // Local dev: set AWS_PROFILE in your shell or use `aws sso login`.
-});
+/**
+ * Build the DDB client config. When DYNAMO_ACCESS_KEY_ID + DYNAMO_SECRET_ACCESS_KEY
+ * are present (Amplify Console env), pass them explicitly — the SDK's default
+ * chain only recognizes AWS_*-prefixed names, not DYNAMO_*. When unset, fall
+ * through to the default chain (Amplify SSR role / local AWS_PROFILE).
+ */
+export function getDdbClientConfig() {
+  const accessKeyId = process.env.DYNAMO_ACCESS_KEY_ID;
+  const secretAccessKey = process.env.DYNAMO_SECRET_ACCESS_KEY;
+  return {
+    region: process.env.AWS_REGION || "ap-south-1",
+    ...(accessKeyId && secretAccessKey
+      ? { credentials: { accessKeyId, secretAccessKey } }
+      : {}),
+  };
+}
+
+const client = new DynamoDBClient(getDdbClientConfig());
 
 const docClient = DynamoDBDocumentClient.from(client);
 

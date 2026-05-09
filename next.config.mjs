@@ -40,6 +40,10 @@ const nextConfig = {
     S3CONSOLE_DODO_PRODUCT_ID_MONTHLY: process.env.S3CONSOLE_DODO_PRODUCT_ID_MONTHLY,
     S3CONSOLE_DODO_PRODUCT_ID_YEARLY: process.env.S3CONSOLE_DODO_PRODUCT_ID_YEARLY,
     S3CONSOLE_DODO_PRODUCT_ID_LIFETIME: process.env.S3CONSOLE_DODO_PRODUCT_ID_LIFETIME,
+    DYNAMO_ACCESS_KEY_ID: process.env.DYNAMO_ACCESS_KEY_ID,
+    DYNAMO_SECRET_ACCESS_KEY: process.env.DYNAMO_SECRET_ACCESS_KEY,
+    // AWS_REGION intentionally NOT forwarded — Lambda's runtime sets it
+    // automatically; baking the build-time value risks overriding it.
   },
 };
 

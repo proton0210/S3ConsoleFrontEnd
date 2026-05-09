@@ -23,10 +23,11 @@ import {
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 import { auth } from "@clerk/nextjs/server";
 import { getDodoApiBaseUrl } from "@/lib/dodo";
+import { getDdbClientConfig } from "@/lib/dynamodb";
 
 const TABLE_NAME = "S3Console";
-const REGION = process.env.AWS_REGION || "ap-south-1";
-const ddb = new DynamoDBClient({ region: REGION });
+
+const ddb = new DynamoDBClient(getDdbClientConfig());
 
 export async function POST(req: NextRequest) {
   try {

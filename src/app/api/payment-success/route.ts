@@ -16,12 +16,11 @@ import {
   GetItemCommand,
 } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
+import { getDdbClientConfig } from "@/lib/dynamodb";
 
 const TABLE_NAME = "S3Console";
-const REGION = process.env.AWS_REGION || "ap-south-1";
 
-// Server-side IAM (Phase 11 wires the Amplify SSR role with DDB read perms).
-const client = new DynamoDBClient({ region: REGION });
+const client = new DynamoDBClient(getDdbClientConfig());
 
 export async function POST(req: NextRequest) {
   try {

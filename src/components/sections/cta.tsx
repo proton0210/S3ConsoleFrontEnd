@@ -16,13 +16,13 @@ export default function CtaSection() {
       <div className="flex flex-col w-full sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4 pt-4">
         <SignedOut>
           <Link
-            href="/sign-up"
+            href="/downloads"
             className={cn(
               buttonVariants({ variant: "default" }),
               "w-full sm:w-auto text-background"
             )}
           >
-            Start free trial
+            Download — 14-day trial
           </Link>
           <Link
             href="/pricing"

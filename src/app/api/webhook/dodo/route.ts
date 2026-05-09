@@ -23,14 +23,13 @@ import {
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 import { randomUUID } from "crypto";
 import { verifyWebhookSignature } from "@/lib/dodo";
+import { getDdbClientConfig } from "@/lib/dynamodb";
 
 const TABLE_NAME = "S3Console";
 const WEBHOOK_LEDGER_TTL_DAYS = 30;
 const GRACE_PERIOD_DAYS = 7;
 
-// AWS region must be set; rely on the same conventions as the existing user-data route.
-const REGION = process.env.AWS_REGION || "ap-south-1";
-const ddb = new DynamoDBClient({ region: REGION });
+const ddb = new DynamoDBClient(getDdbClientConfig());
 
 type DodoEventType =
   | "payment.succeeded"

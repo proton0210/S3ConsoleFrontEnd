@@ -106,14 +106,14 @@ function HeroCTA() {
       >
         <SignedOut>
           <Link
-            href="/sign-up"
-            onClick={() => posthog?.capture("hero_signup_clicked")}
+            href="/downloads"
+            onClick={() => posthog?.capture("hero_download_clicked")}
             className={cn(
               buttonVariants({ variant: "default" }),
               "w-full sm:w-auto text-background flex gap-2"
             )}
           >
-            Get started for free
+            Download — start 14-day trial
           </Link>
         </SignedOut>
         <SignedIn>
