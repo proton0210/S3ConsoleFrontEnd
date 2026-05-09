@@ -82,6 +82,10 @@ export default function PricingPage() {
       });
 
       const email = user?.primaryEmailAddress?.emailAddress;
+      const name =
+        user?.fullName ||
+        [user?.firstName, user?.lastName].filter(Boolean).join(" ") ||
+        undefined;
 
       const resp = await fetch("/api/dodo/create-checkout", {
         method: "POST",
@@ -89,6 +93,7 @@ export default function PricingPage() {
         body: JSON.stringify({
           tier,
           ...(email ? { email } : {}),
+          ...(name ? { name } : {}),
         }),
       });
 

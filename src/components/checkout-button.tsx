@@ -15,6 +15,10 @@ interface CheckoutButtonProps {
   tier?: Tier;
   /** Optional pre-fill for the customer's email at Dodo checkout. */
   email?: string;
+  /** Optional pre-fill for the customer's name. Required alongside `email`
+   * for monthly/yearly subscription checkout — Dodo's /subscriptions endpoint
+   * rejects a customer object without both fields. */
+  name?: string;
   /**
    * Legacy direct product ID. Kept for backward compatibility with the
    * seat-add buttons; will be removed in Phase 11 once the seat-add flow is
@@ -30,6 +34,7 @@ export default function CheckoutButton({
   quantity = 1,
   tier,
   email,
+  name,
   productId,
   variant = "default",
 }: CheckoutButtonProps) {
@@ -61,6 +66,7 @@ export default function CheckoutButton({
         throw new Error("CheckoutButton requires either `tier` or `productId`.");
       }
       if (email) requestBody.email = email;
+      if (name) requestBody.name = name;
 
       const resp = await fetch("/api/dodo/create-checkout", {
         method: "POST",

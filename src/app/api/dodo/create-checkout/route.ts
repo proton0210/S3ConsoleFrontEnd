@@ -12,6 +12,9 @@ type CreateCheckoutBody = {
   tier?: string;
   /** Pre-fill the customer email at Dodo checkout (used by trial-to-paid + magic links). */
   email?: string;
+  /** Pre-fill the customer name. Dodo's CustomerRequest needs both email AND name
+   * together — sending email alone fails deserialization. */
+  name?: string;
   /** Free-form metadata persisted on the Dodo subscription/payment. Webhook reads this. */
   metadata?: Record<string, string>;
   /**
@@ -26,7 +29,13 @@ type CreateCheckoutBody = {
 export async function POST(req: NextRequest) {
   try {
     const body: CreateCheckoutBody = await req.json();
-    const { tier, email, metadata, productId: legacyProductId, quantity } = body;
+    const { tier, email, name, metadata, productId: legacyProductId, quantity } = body;
+
+    // Dodo's CustomerRequest is an untagged enum requiring either { customer_id }
+    // or { email, name } — sending { email } alone returns a 422 deserialization
+    // error. Only attach customer when we have both; otherwise let Dodo's hosted
+    // checkout collect them.
+    const customer = email && name ? { email, name } : undefined;
 
     // Read API key from env. Phase 11 will swap this for getSecretJson() reading
     // from Secrets Manager via DODO_API_KEY_SECRET_ARN.
@@ -88,7 +97,7 @@ export async function POST(req: NextRequest) {
       payload = {
         product_id: productId,
         return_url: `${origin}/payment-status`,
-        ...(email ? { customer: { email } } : {}),
+        ...(customer ? { customer } : {}),
         ...(Object.keys(checkoutMetadata).length > 0
           ? { metadata: checkoutMetadata }
           : {}),
@@ -104,7 +113,7 @@ export async function POST(req: NextRequest) {
           },
         ],
         return_url: `${origin}/payment-status`,
-        ...(email ? { customer: { email } } : {}),
+        ...(customer ? { customer } : {}),
         ...(Object.keys(checkoutMetadata).length > 0
           ? { metadata: checkoutMetadata }
           : {}),

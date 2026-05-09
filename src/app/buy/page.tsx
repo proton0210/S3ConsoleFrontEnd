@@ -29,6 +29,14 @@ function BuyPageContent() {
   // ask for it on the checkout page.
   const email =
     queryEmail || user?.primaryEmailAddress?.emailAddress || undefined;
+  // Dodo's /subscriptions endpoint requires both email AND name on the
+  // customer object; passing email alone fails. Pull name from Clerk when
+  // available — otherwise the API drops the customer object and Dodo
+  // collects both on its hosted checkout.
+  const name =
+    user?.fullName ||
+    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ||
+    undefined;
 
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<"loading" | "redirecting" | "error">("loading");
@@ -53,6 +61,7 @@ function BuyPageContent() {
           body: JSON.stringify({
             tier,
             ...(email ? { email } : {}),
+            ...(name ? { name } : {}),
           }),
         });
         const data = await resp.json();
@@ -71,7 +80,7 @@ function BuyPageContent() {
     return () => {
       canceled = true;
     };
-  }, [tier, email, isLoaded]);
+  }, [tier, email, name, isLoaded]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
