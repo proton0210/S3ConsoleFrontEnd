@@ -81,6 +81,15 @@ export default function PricingPage() {
         signedIn: !!isSignedIn,
       });
 
+      // Anonymous users go through Clerk first so /buy has the email + name
+      // it needs to satisfy Dodo's CustomerRequest schema. Clerk redirects
+      // back to /buy?tier=... after sign-up, which auto-starts checkout.
+      if (!isSignedIn) {
+        const redirectUrl = `/buy?tier=${encodeURIComponent(tier)}`;
+        window.location.href = `/sign-up?redirect_url=${encodeURIComponent(redirectUrl)}`;
+        return;
+      }
+
       const email = user?.primaryEmailAddress?.emailAddress;
       const name =
         user?.fullName ||

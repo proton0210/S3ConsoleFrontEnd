@@ -31,11 +31,21 @@ export async function POST(req: NextRequest) {
     const body: CreateCheckoutBody = await req.json();
     const { tier, email, name, metadata, productId: legacyProductId, quantity } = body;
 
-    // Dodo's CustomerRequest is an untagged enum requiring either { customer_id }
-    // or { email, name } — sending { email } alone returns a 422 deserialization
-    // error. Only attach customer when we have both; otherwise let Dodo's hosted
-    // checkout collect them.
-    const customer = email && name ? { email, name } : undefined;
+    // Dodo's /subscriptions endpoint REQUIRES `customer`. The CustomerRequest
+    // schema is an untagged enum: either { customer_id } or { email, name }.
+    // Sending { email } alone, or omitting customer entirely, both 422.
+    //
+    // We derive a name from the email local-part when callers don't supply
+    // one (e.g. Clerk users who signed up without setting first/last name).
+    // The user can edit the name on Dodo's hosted checkout if it's wrong.
+    let customer: { email: string; name: string } | undefined;
+    if (email) {
+      const derivedName =
+        name?.trim() ||
+        email.split("@")[0].replace(/[._-]+/g, " ").trim() ||
+        "Customer";
+      customer = { email, name: derivedName };
+    }
 
     // Read API key from env. Phase 11 will swap this for getSecretJson() reading
     // from Secrets Manager via DODO_API_KEY_SECRET_ARN.
@@ -73,6 +83,19 @@ export async function POST(req: NextRequest) {
     } else {
       return NextResponse.json(
         { error: "Missing tier (monthly|yearly|lifetime). Provide a tier in the request body." },
+        { status: 400 }
+      );
+    }
+
+    // /subscriptions requires customer (email + name). For lifetime via
+    // /checkouts the customer object is optional. Fail fast with a clean
+    // message rather than letting Dodo return an opaque 422.
+    if (useSubscriptionEndpoint && !customer) {
+      return NextResponse.json(
+        {
+          error:
+            "Email is required for monthly and yearly plans. Please sign in or provide an email address.",
+        },
         { status: 400 }
       );
     }

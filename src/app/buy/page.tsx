@@ -52,6 +52,17 @@ function BuyPageContent() {
       return;
     }
 
+    // Subscription tiers require email (Dodo's CustomerRequest schema). If
+    // we have no queryEmail and no signed-in user, bounce through sign-up
+    // rather than letting the route 400. Lifetime is exempt — /checkouts
+    // accepts payments without a customer object.
+    const needsAuth = (tier === "monthly" || tier === "yearly") && !email;
+    if (needsAuth) {
+      const here = `/buy?tier=${encodeURIComponent(tier!)}`;
+      window.location.href = `/sign-up?redirect_url=${encodeURIComponent(here)}`;
+      return;
+    }
+
     let canceled = false;
     (async () => {
       try {
