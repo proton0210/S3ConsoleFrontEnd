@@ -1,3 +1,8 @@
+// Phase 11 — SERVER-ONLY module. Importing from a client component throws at
+// build time thanks to the `server-only` marker. The Amplify SSR compute role
+// provides DDB credentials via the AWS SDK's default credential chain — no
+// NEXT_PUBLIC_* leaks, no env-stuffed long-lived keys.
+import "server-only";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   DynamoDBDocumentClient,
@@ -10,11 +15,9 @@ import {
 } from "@aws-sdk/lib-dynamodb";
 
 const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || "us-east-1",
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
-  },
+  region: process.env.AWS_REGION || "ap-south-1",
+  // No explicit credentials — SDK picks up the Amplify SSR role automatically.
+  // Local dev: set AWS_PROFILE in your shell or use `aws sso login`.
 });
 
 const docClient = DynamoDBDocumentClient.from(client);

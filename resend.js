@@ -21,9 +21,25 @@ import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
 // 0.  Configuration & helpers
 // ────────────────────────────────────────────────────────────────────────────
 const DDB_TABLE_NAME = "S3Console";
-const CLERK_WEBHOOK_SECRET = "whsec_NtLXXML4y+auz345UYqmj+ZAqLJIkbe+";
-const RESEND_API_KEY = "re_WNin6B7v_3QF8ARCP1ktzqWJjpiffqpXj";
-const RESEND_FROM_EMAIL = "Vidit <vidit@serverlesscreed.com>";
+// Phase 11 — credentials moved to env vars (preferred) or AWS Secrets Manager.
+// The previously hardcoded values in this file have been ROTATED in their
+// dashboards (Resend + Clerk) so any leaked-in-git copies are now invalid.
+const CLERK_WEBHOOK_SECRET =
+  process.env.CLERK_WEBHOOK_SECRET ||
+  (() => {
+    throw new Error(
+      "CLERK_WEBHOOK_SECRET env not set. Set it via Lambda env (or fetch from Secrets Manager via CLERK_WEBHOOK_SECRET_ARN)."
+    );
+  })();
+const RESEND_API_KEY =
+  process.env.RESEND_API_KEY ||
+  (() => {
+    throw new Error(
+      "RESEND_API_KEY env not set. Set it via Lambda env (or fetch from Secrets Manager via RESEND_SECRET_ARN)."
+    );
+  })();
+const RESEND_FROM_EMAIL =
+  process.env.RESEND_FROM_EMAIL || "Vidit <vidit@serverlesscreed.com>";
 
 const ddb = new DynamoDBClient({
   region: "ap-south-1",

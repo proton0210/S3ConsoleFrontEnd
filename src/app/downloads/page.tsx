@@ -671,24 +671,14 @@ export default function DownloadsPage() {
                       </div>
                     </div>
                     {userData.paid && (
-                      <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="h-3 w-3 rounded-full bg-blue-500"></div>
-                          <div>
-                            <p className="text-sm text-slate-500">
-                              Seats
-                            </p>
-                            <p className="font-medium text-slate-900">
-                              {userData.licenseCount || 1} seat{(userData.licenseCount || 1) > 1 ? 's' : ''} — use your same license key on each
-                            </p>
-                          </div>
+                      <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+                        <div className="h-3 w-3 rounded-full bg-blue-500"></div>
+                        <div>
+                          <p className="text-sm text-slate-500">Devices</p>
+                          <p className="font-medium text-slate-900">
+                            Use your license on up to {userData.licenseCount || 2} machines — same license key on each.
+                          </p>
                         </div>
-                        <CheckoutButton
-                          text="Buy More ($49)"
-                          quantity={1}
-                          productId="pdt_0NZOqsYOeAAr3cIBLzt0V"
-                          className="h-8 text-xs"
-                        />
                       </div>
                     )}
                   </div>
@@ -764,19 +754,13 @@ export default function DownloadsPage() {
                         </div>
                       ))}
 
-                      {/* Show if at limit */}
-                      {(userData.machines.length >= (userData.licenseCount || 1)) && (
-                        <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center justify-between">
+                      {/* Show if at device limit */}
+                      {(userData.machines.length >= (userData.licenseCount || 2)) && (
+                        <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                           <p className="text-sm text-amber-800">
                             <FaExclamationTriangle className="inline h-4 w-4 mr-2" />
-                            All your seats are in use. Add a seat for $49 — activate it with your <strong>same license key</strong>, no new key needed.
+                            You've reached the {userData.licenseCount || 2}-machine limit. Deregister a device above to free a slot.
                           </p>
-                          <CheckoutButton
-                            text="Add License — $49"
-                            quantity={1}
-                            productId="pdt_0NZOqsYOeAAr3cIBLzt0V"
-                            className="ml-4 bg-amber-600 hover:bg-amber-700 text-white border-none"
-                          />
                         </div>
                       )}
                     </div>

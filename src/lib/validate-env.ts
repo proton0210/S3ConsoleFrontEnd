@@ -35,21 +35,13 @@ const environmentVariables: EnvVar[] = [
     sensitive: true,
     description: 'Resend API key for sending emails'
   },
-  
-  // AWS Services
-  {
-    name: 'NEXT_PUBLIC_DYNAMO_ACCESS_KEY_ID',
-    required: true,
-    sensitive: false,
-    description: 'AWS access key for DynamoDB'
-  },
-  {
-    name: 'NEXT_PUBLIC_DYNAMO_SECRET_ACCESS_KEY',
-    required: true,
-    sensitive: true,
-    description: 'AWS secret key for DynamoDB (consider using IAM roles)'
-  },
-  
+
+  // AWS DynamoDB credentials are NO LONGER read from env vars.
+  // Phase 11 migrated all DDB access to server-side routes that pick up
+  // credentials from the Amplify SSR IAM role via the SDK default chain.
+  // If NEXT_PUBLIC_DYNAMO_* is still set anywhere, that's a critical leak —
+  // see the deprecation check in scripts/validate-env.js.
+
   // Application
   {
     name: 'NEXT_PUBLIC_APP_URL',
@@ -60,6 +52,14 @@ const environmentVariables: EnvVar[] = [
   
 ];
 
+// Phase 11 — vars that MUST NOT be set; if present they leak AWS credentials
+// to every browser via the NEXT_PUBLIC_ bundle. Surface as an error, not a
+// warning, so CI catches them.
+const DEPRECATED_LEAK_VARS = [
+  'NEXT_PUBLIC_DYNAMO_ACCESS_KEY_ID',
+  'NEXT_PUBLIC_DYNAMO_SECRET_ACCESS_KEY',
+] as const;
+
 export function validateEnvironmentVariables(): {
   valid: boolean;
   missing: string[];
@@ -67,14 +67,14 @@ export function validateEnvironmentVariables(): {
 } {
   const missing: string[] = [];
   const warnings: string[] = [];
-  
+
   environmentVariables.forEach(envVar => {
     const value = process.env[envVar.name];
-    
+
     if (envVar.required && !value) {
       missing.push(`${envVar.name} - ${envVar.description}`);
     }
-    
+
     // Warn about sensitive variables that are public
     if (envVar.sensitive && envVar.name.startsWith('NEXT_PUBLIC_')) {
       warnings.push(
@@ -82,8 +82,16 @@ export function validateEnvironmentVariables(): {
       );
     }
   });
-  
-  
+
+  // Phase 11 — block the deprecated DynamoDB credential leak.
+  DEPRECATED_LEAK_VARS.forEach((name) => {
+    if (process.env[name]) {
+      missing.push(
+        `${name} is set — REMOVE IT. NEXT_PUBLIC_* values ship to every browser; AWS keys here = critical credential leak. DDB now goes through the Amplify SSR IAM role.`
+      );
+    }
+  });
+
   return {
     valid: missing.length === 0,
     missing,

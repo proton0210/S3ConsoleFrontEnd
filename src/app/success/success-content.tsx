@@ -1,29 +1,22 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth, useUser } from "@clerk/nextjs";
 import confetti from "canvas-confetti";
-import { DynamoDBClient, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { FaCheck, FaCrown } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import Section from "@/components/section";
 import { usePostHog } from "posthog-js/react";
 
-const client = new DynamoDBClient({
-  region: "ap-south-1",
-  credentials: {
-    accessKeyId: process.env.NEXT_PUBLIC_DYNAMO_ACCESS_KEY_ID || "",
-    secretAccessKey: process.env.NEXT_PUBLIC_DYNAMO_SECRET_ACCESS_KEY || "",
-  },
-});
-
-const docClient = DynamoDBDocumentClient.from(client);
+// Phase 11: this file used to instantiate a DynamoDB client directly with
+// NEXT_PUBLIC_DYNAMO_* env credentials — those keys shipped to every browser.
+// Now we hit the server-side /api/payment-success poller instead.
 
 export default function SuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { userId } = useAuth();
+  const { user: clerkUser } = useUser();
   const posthog = usePostHog();
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState<any>(null);
@@ -40,26 +33,30 @@ export default function SuccessContent() {
         let attempts = 0;
         const maxAttempts = 30; // Poll for 5 minutes
 
+        const userEmail = clerkUser?.primaryEmailAddress?.emailAddress;
+        if (!userEmail) {
+          console.warn("[success] No Clerk email — cannot poll without it.");
+          setProcessingPayment(false);
+          setLoading(false);
+          return;
+        }
+
         const poll = async () => {
           try {
             console.log(
               `Checking payment status (attempt ${attempts + 1}/${maxAttempts})`
             );
 
-            // Check user payment status
-            const queryCommand = new QueryCommand({
-              TableName: "S3Console",
-              IndexName: "clerkId-index",
-              KeyConditionExpression: "clerkId = :clerkId",
-              ExpressionAttributeValues: {
-                ":clerkId": userId,
-              },
+            // Server-side poller (Phase 7) — no client-side DDB.
+            const resp = await fetch("/api/payment-success", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email: userEmail }),
             });
+            const data = await resp.json();
+            const user = data?.userData;
 
-            const queryResponse = await docClient.send(queryCommand);
-            const user = queryResponse.Items?.[0];
-
-            if (user?.paid) {
+            if (resp.ok && data?.status === "paid" && user?.paid) {
               console.log("✅ Payment confirmed by webhook!");
 
               posthog.capture('purchase_success', {

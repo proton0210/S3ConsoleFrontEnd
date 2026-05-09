@@ -8,15 +8,23 @@ This guide provides best practices for configuring environment variables when de
 
 ### 1. Public Variables (Client-side accessible)
 
-These variables are prefixed with `NEXT_PUBLIC_` and will be exposed to the browser:
+These variables are prefixed with `NEXT_PUBLIC_` and will be exposed to the
+browser bundle. Only put values here that are safe to publish — public API
+keys (e.g., Clerk publishable key, PostHog public key), public URLs, etc.
 
 ```
 NEXT_PUBLIC_APP_URL=https://your-amplify-app-url.amplifyapp.com
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
-NEXT_PUBLIC_POLAR_PRODUCT_ID=your_polar_product_id
-NEXT_PUBLIC_DYNAMO_ACCESS_KEY_ID=your_dynamo_access_key
-NEXT_PUBLIC_DYNAMO_SECRET_ACCESS_KEY=your_dynamo_secret_key
+NEXT_PUBLIC_POSTHOG_KEY=your_posthog_public_key
 ```
+
+> **⚠️  Phase 11 — DynamoDB credentials must NEVER be set as `NEXT_PUBLIC_*`.**
+> Earlier docs included `NEXT_PUBLIC_DYNAMO_ACCESS_KEY_ID` and
+> `NEXT_PUBLIC_DYNAMO_SECRET_ACCESS_KEY` here — those values shipped AWS root
+> credentials to every browser. Remove them from Amplify Console if they
+> still exist. DDB access now goes through the Amplify SSR compute role
+> automatically (the AWS SDK picks up the role's temporary credentials via
+> the default credential chain).
 
 ### 2. Private Variables (Server-side only)
 
@@ -227,12 +235,25 @@ Create an API endpoint to verify configuration:
 
 ```typescript
 // app/api/health/route.ts
+import { DynamoDBClient, DescribeTableCommand } from "@aws-sdk/client-dynamodb";
+
 export async function GET() {
+  const ddb = new DynamoDBClient({ region: process.env.AWS_REGION });
+
+  // For DDB we don't check an env var — we probe the actual SSR role's access.
+  let dynamoOk = false;
+  try {
+    await ddb.send(new DescribeTableCommand({ TableName: "S3Console" }));
+    dynamoOk = true;
+  } catch {
+    dynamoOk = false;
+  }
+
   const checks = {
     clerk: !!process.env.CLERK_SECRET_KEY,
-    polar: !!process.env.POLAR_ACCESS_TOKEN,
-    dynamo: !!process.env.NEXT_PUBLIC_DYNAMO_ACCESS_KEY_ID,
-    resend: !!process.env.RESEND_API_KEY,
+    dodo: !!process.env.DODO_API_KEY || !!process.env.DODO_API_KEY_SECRET_ARN,
+    dynamo: dynamoOk,
+    resend: !!process.env.RESEND_API_KEY || !!process.env.RESEND_SECRET_ARN,
   };
 
   return Response.json({
