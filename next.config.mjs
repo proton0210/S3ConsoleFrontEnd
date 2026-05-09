@@ -15,11 +15,31 @@ const nextConfig = {
     // !! WARN !!
     ignoreBuildErrors: true,
   },
+  // Amplify SSR gotcha: env vars set in the Amplify Console are exposed at
+  // BUILD time only — they do NOT flow into the SSR Lambda runtime. Forwarding
+  // them here inlines the values at build time so route handlers can read them
+  // via process.env at request time.
   env: {
     CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
+    CLERK_WEBHOOK_SECRET: process.env.CLERK_WEBHOOK_SECRET,
     POLAR_ACCESS_TOKEN: process.env.POLAR_ACCESS_TOKEN,
     POLAR_WEBHOOK_SECRET: process.env.POLAR_WEBHOOK_SECRET,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
+    RESEND_FROM_EMAIL: process.env.RESEND_FROM_EMAIL,
+    FOUNDER_NOTIFICATION_EMAIL: process.env.FOUNDER_NOTIFICATION_EMAIL,
+    FOUNDER_DIGEST_MODE: process.env.FOUNDER_DIGEST_MODE,
+    DODO_API_KEY: process.env.DODO_API_KEY,
+    DODO_API_BASE_URL: process.env.DODO_API_BASE_URL,
+    DODO_WEBHOOK_SECRET: process.env.DODO_WEBHOOK_SECRET,
+    DODO_RETURN_URL: process.env.DODO_RETURN_URL,
+    DODO_API_KEY_SECRET_ARN: process.env.DODO_API_KEY_SECRET_ARN,
+    DODO_WEBHOOK_SECRET_ARN: process.env.DODO_WEBHOOK_SECRET_ARN,
+    RESEND_SECRET_ARN: process.env.RESEND_SECRET_ARN,
+    LICENSE_SIGNING_SECRET_ARN: process.env.LICENSE_SIGNING_SECRET_ARN,
+    CLERK_WEBHOOK_SECRET_ARN: process.env.CLERK_WEBHOOK_SECRET_ARN,
+    S3CONSOLE_DODO_PRODUCT_ID_MONTHLY: process.env.S3CONSOLE_DODO_PRODUCT_ID_MONTHLY,
+    S3CONSOLE_DODO_PRODUCT_ID_YEARLY: process.env.S3CONSOLE_DODO_PRODUCT_ID_YEARLY,
+    S3CONSOLE_DODO_PRODUCT_ID_LIFETIME: process.env.S3CONSOLE_DODO_PRODUCT_ID_LIFETIME,
   },
 };
 
