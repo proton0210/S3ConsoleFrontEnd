@@ -376,6 +376,18 @@ async function applyLicenseUpdate(
   // The `email` PK is set on the first write; subsequent writes don't need to
   // re-set it but we want to ensure the row exists. Use UpdateItem (which
   // upserts in DynamoDB by default).
+  //
+  // Default machine cap on new paid rows: when this update is creating a
+  // paid row for the first time (paid=true is in the patch), default
+  // licenseCount to 2 — but only if the row doesn't already have a value.
+  // Use if_not_exists() so a support-bumped 5-machine row is preserved
+  // through subsequent webhook updates.
+  if (patch.paid === true) {
+    setClauses.push(`#licenseCount = if_not_exists(#licenseCount, :__defaultLc)`);
+    exprNames["#licenseCount"] = "licenseCount";
+    exprValues[":__defaultLc"] = 2;
+  }
+
   const eventIdToWrite = patch.lastWebhookEventId;
   const conditionExpression = eventIdToWrite
     ? "attribute_not_exists(lastWebhookEventId) OR lastWebhookEventId <> :__eid"
