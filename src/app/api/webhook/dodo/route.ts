@@ -22,7 +22,11 @@ import {
 } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 import { randomUUID } from "crypto";
-import { verifyWebhookSignature } from "@/lib/dodo";
+import {
+  getDodoApiBaseUrl,
+  getTierFromProductId,
+  verifyWebhookSignature,
+} from "@/lib/dodo";
 import { getDdbClientConfig } from "@/lib/dynamodb";
 
 const TABLE_NAME = "S3Console";
@@ -31,15 +35,20 @@ const GRACE_PERIOD_DAYS = 7;
 
 const ddb = new DynamoDBClient(getDdbClientConfig());
 
+// Dodo emits cancellation events with the British spelling ("cancelled") in
+// some payloads and the US spelling ("canceled") in others depending on the
+// API version. Normalize on read so the dispatcher only needs to handle one.
 type DodoEventType =
   | "payment.succeeded"
   | "payment.refunded"
   | "subscription.active"
   | "subscription.created"
   | "subscription.renewed"
+  | "subscription.plan_changed"
   | "subscription.payment_failed"
   | "subscription.on_hold"
   | "subscription.canceled"
+  | "subscription.cancelled"
   | "subscription.expired"
   | "dispute.created"
   | "dispute.lost"
@@ -178,7 +187,36 @@ async function dispatch(event: DodoEvent) {
     typeof existing.lastWebhookTs === "number" &&
     eventTs < existing.lastWebhookTs;
 
-  switch (event.type) {
+  // Subscription-id mismatch guard: if the row already has a subscriptionId
+  // and this event references a *different* subscription, it's a late event
+  // for an old/replaced subscription (e.g., the user upgraded monthly→yearly
+  // and the old monthly is still emitting cancel/expired events). Applying
+  // those would corrupt the new subscription's state, so we skip.
+  //
+  // Lifetime tier is also a stale destination for *any* subscription event:
+  // when a recurring user upgrades to lifetime we clear subscriptionId from
+  // the row, then merchant-cancel the old sub at Dodo. The cancellation event
+  // that bounces back must NOT flip the lifetime row's subscriptionStatus.
+  const incomingSubId = obj.subscription_id;
+  const incomingIsSubscriptionEvent =
+    !!incomingSubId &&
+    typeof event.type === "string" &&
+    event.type.startsWith("subscription.");
+  const isStaleSubscription =
+    incomingIsSubscriptionEvent &&
+    ((existing?.subscriptionId &&
+      typeof existing.subscriptionId === "string" &&
+      existing.subscriptionId !== incomingSubId) ||
+      existing?.tier === "lifetime");
+
+  // Normalize event type so we don't have to maintain US/UK spelling parity
+  // through every case statement.
+  const normalizedType =
+    event.type === "subscription.cancelled"
+      ? "subscription.canceled"
+      : event.type;
+
+  switch (normalizedType) {
     case "payment.succeeded": {
       // Lifetime one-time purchase.
       if (isStale) return;
@@ -195,6 +233,30 @@ async function dispatch(event: DodoEvent) {
         );
         return;
       }
+
+      // If the user is upgrading from monthly/yearly to lifetime, the recurring
+      // subscription is still active in Dodo and would charge again on its
+      // next billing date. Cancel it immediately so they only pay the one-time
+      // lifetime fee. Best-effort — we still write the row even if the cancel
+      // call fails; ops can clean up via Dodo dashboard.
+      const previousSubscriptionId = existing?.subscriptionId;
+      if (
+        previousSubscriptionId &&
+        typeof previousSubscriptionId === "string" &&
+        existing?.tier !== "lifetime"
+      ) {
+        await cancelDodoSubscription(
+          previousSubscriptionId,
+          "cancelled_by_merchant",
+          "Auto-cancelled on upgrade to lifetime."
+        ).catch((err) => {
+          console.error(
+            "[dodo-webhook] Failed to auto-cancel prior subscription on lifetime upgrade",
+            { previousSubscriptionId, error: err?.message || err }
+          );
+        });
+      }
+
       const licenseKey = existing?.key || randomUUID();
       await applyLicenseUpdate(email, {
         paid: true,
@@ -203,6 +265,10 @@ async function dispatch(event: DodoEvent) {
         validUntil: null,
         gracePeriodUntil: null,
         subscriptionStatus: "active",
+        // Clear the recurring subscriptionId — lifetime is not a subscription,
+        // and leaving the old id in place would let stale webhook events for
+        // it fall through the mismatch guard incorrectly.
+        subscriptionId: null,
         onTrial: false,
         dodoCustomerId: obj.customer?.id,
         key: licenseKey,
@@ -220,12 +286,19 @@ async function dispatch(event: DodoEvent) {
     case "subscription.active":
     case "subscription.renewed": {
       if (isStale) return;
-      const tier = (obj.metadata?.tier === "monthly" || obj.metadata?.tier === "yearly")
-        ? obj.metadata.tier
-        : undefined;
+      // Prefer product_id (authoritative — set by Dodo on the subscription)
+      // over metadata.tier (only present if our checkout call set it, and not
+      // guaranteed to propagate through every event).
+      const tierFromProduct = getTierFromProductId(obj.product_id);
+      const tier =
+        tierFromProduct === "monthly" || tierFromProduct === "yearly"
+          ? tierFromProduct
+          : obj.metadata?.tier === "monthly" || obj.metadata?.tier === "yearly"
+            ? obj.metadata.tier
+            : undefined;
       if (!tier) {
         console.warn(
-          `[dodo-webhook] subscription event missing tier metadata; event=${event.id}`
+          `[dodo-webhook] subscription event missing tier (product_id=${obj.product_id}); event=${event.id}`
         );
       }
       const periodEnd = obj.current_period_end
@@ -258,9 +331,58 @@ async function dispatch(event: DodoEvent) {
       return;
     }
 
+    case "subscription.plan_changed": {
+      if (isStale) return;
+      if (isStaleSubscription) {
+        console.log(
+          `[dodo-webhook] subscription.plan_changed for old subscriptionId ${incomingSubId} (current=${existing?.subscriptionId}); ignoring.`
+        );
+        return;
+      }
+      // Plan change can come from our /api/dodo/change-plan call OR from the
+      // user changing plan inside Dodo's hosted portal. Either way, derive
+      // tier from product_id — metadata is unreliable across plan changes.
+      const tierFromProduct = getTierFromProductId(obj.product_id);
+      const tier =
+        tierFromProduct === "monthly" || tierFromProduct === "yearly"
+          ? tierFromProduct
+          : obj.metadata?.tier === "monthly" || obj.metadata?.tier === "yearly"
+            ? obj.metadata.tier
+            : undefined;
+      if (!tier) {
+        console.warn(
+          `[dodo-webhook] subscription.plan_changed: cannot resolve tier (product_id=${obj.product_id}); event=${event.id}`
+        );
+      }
+      const periodEnd = obj.current_period_end
+        ? Date.parse(obj.current_period_end)
+        : undefined;
+      const validUntil = periodEnd && !isNaN(periodEnd) ? periodEnd : undefined;
+      const gracePeriodUntil =
+        validUntil !== undefined
+          ? validUntil + GRACE_PERIOD_DAYS * 24 * 60 * 60 * 1000
+          : undefined;
+      await applyLicenseUpdate(email, {
+        tier,
+        productId: obj.product_id,
+        validUntil,
+        gracePeriodUntil,
+        subscriptionStatus: "active",
+        lastWebhookEventId: event.id,
+        lastWebhookTs: eventTs,
+      });
+      return;
+    }
+
     case "subscription.payment_failed":
     case "subscription.on_hold": {
       if (isStale) return;
+      if (isStaleSubscription) {
+        console.log(
+          `[dodo-webhook] ${event.type} for old subscriptionId ${incomingSubId} (current=${existing?.subscriptionId}); ignoring.`
+        );
+        return;
+      }
       // Mark past_due but DON'T clear paid — the grace window handles access.
       await applyLicenseUpdate(email, {
         subscriptionStatus: "past_due",
@@ -273,6 +395,12 @@ async function dispatch(event: DodoEvent) {
     case "subscription.canceled":
     case "subscription.expired": {
       if (isStale) return;
+      if (isStaleSubscription) {
+        console.log(
+          `[dodo-webhook] ${event.type} for old subscriptionId ${incomingSubId} (current=${existing?.subscriptionId}); ignoring.`
+        );
+        return;
+      }
       // User keeps access until validUntil — we leave that intact.
       // gracePeriodUntil also stays so the 7-day post-validUntil window applies
       // for users who failed payment.
@@ -329,6 +457,44 @@ async function dispatch(event: DodoEvent) {
       console.warn(`[dodo-webhook] Unhandled event type: ${event.type}`);
       return;
     }
+  }
+}
+
+/**
+ * Cancel a Dodo subscription via PATCH /subscriptions/{id}. Used when the
+ * user upgrades from a recurring tier to lifetime — the recurring sub would
+ * otherwise keep charging on its next renewal date.
+ *
+ * Idempotent on Dodo's side: a subscription that's already cancelled returns
+ * 200 with the same state, not an error.
+ */
+async function cancelDodoSubscription(
+  subscriptionId: string,
+  reason: "cancelled_by_customer" | "cancelled_by_merchant" = "cancelled_by_merchant",
+  comment?: string
+): Promise<void> {
+  const apiKey = process.env.DODO_API_KEY;
+  if (!apiKey) {
+    throw new Error("DODO_API_KEY not set");
+  }
+  const url = `${getDodoApiBaseUrl()}/subscriptions/${encodeURIComponent(subscriptionId)}`;
+  const resp = await fetch(url, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      status: "cancelled",
+      cancel_reason: reason,
+      ...(comment ? { cancellation_comment: comment } : {}),
+    }),
+  });
+  if (!resp.ok) {
+    const data = await resp.json().catch(() => ({}));
+    throw new Error(
+      `Dodo cancel returned ${resp.status}: ${data?.message || "unknown error"}`
+    );
   }
 }
 

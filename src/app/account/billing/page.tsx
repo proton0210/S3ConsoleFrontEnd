@@ -4,14 +4,19 @@
  * Read-only view of the license row's billing fields (tier, status,
  * validUntil, gracePeriod) plus action buttons that delegate to:
  *   - /api/dodo/portal-session  → Dodo hosted portal (cancel, update card, invoices)
- *   - /api/dodo/create-checkout → upgrade flow (monthly→yearly, *→lifetime)
+ *   - /api/dodo/change-plan     → in-place plan change (monthly ↔ yearly)
+ *   - /api/dodo/create-checkout → lifetime upgrade (one-time payment, separate product)
  *
  * Lifetime users see a "no recurring billing" state — no cancel/upgrade actions
  * (their tier is the top of the ladder and there's nothing to renew).
+ *
+ * After any state-changing action, the dashboard polls /api/user-data for up
+ * to 20s so the user sees the new state without having to refresh manually.
+ * The webhook is the authoritative writer; we just wait for it to land.
  */
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth, useUser } from "@clerk/nextjs";
@@ -127,6 +132,8 @@ export default function BillingDashboardPage() {
   const [portalLoading, setPortalLoading] = useState(false);
   const [upgradeLoading, setUpgradeLoading] = useState<Tier | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const pollAbort = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -134,9 +141,40 @@ export default function BillingDashboardPage() {
       router.replace("/sign-in?redirect_url=/account/billing");
       return;
     }
-    void loadUserData();
+    void initLoad();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoaded, userId]);
+
+  /**
+   * On first mount, do an initial load. If the user just returned from the
+   * Dodo portal (?from=portal), poll for ~15s so any webhook the portal action
+   * triggered (cancel / payment-method update / plan change) lands before the
+   * user starts looking. We then strip the marker from the URL so a refresh
+   * doesn't re-poll.
+   */
+  async function initLoad() {
+    const initial = await loadUserData();
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("from") !== "portal") return;
+    setSuccessMessage("Syncing your latest billing changes…");
+    const beforeStatus = initial?.subscriptionStatus;
+    const beforeTier = initial?.tier;
+    const landed = await pollUntil(
+      (u) =>
+        !!u &&
+        (u.subscriptionStatus !== beforeStatus || u.tier !== beforeTier),
+      { timeoutMs: 15000, intervalMs: 2000 }
+    );
+    setSuccessMessage(
+      landed
+        ? "Your account has been updated."
+        : "All set — if anything looks off, hit Refresh."
+    );
+    // Clean the marker out of the URL.
+    const cleaned = `${window.location.pathname}${window.location.hash || ""}`;
+    window.history.replaceState({}, "", cleaned);
+  }
 
   async function loadUserData(silent = false) {
     try {
@@ -149,18 +187,55 @@ export default function BillingDashboardPage() {
       const data = await resp.json();
       if (resp.ok && data.success) {
         setUserData(data.userData);
+        return data.userData as UserData;
       } else if (resp.status === 404) {
         // No license row — they haven't bought yet.
         setUserData(null);
+        return null;
       } else {
         throw new Error(data?.error || "Failed to load billing details");
       }
     } catch (e: any) {
       setError(e?.message || "Something went wrong loading your billing details.");
+      return null;
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
+  }
+
+  /**
+   * Poll /api/user-data until `predicate(userData) === true` or `timeoutMs`
+   * elapses. Used after state-changing actions (cancel/upgrade) so the
+   * dashboard reflects the webhook's write without the user having to hit
+   * Refresh manually.
+   */
+  async function pollUntil(
+    predicate: (u: UserData | null) => boolean,
+    { timeoutMs = 20000, intervalMs = 2000 } = {}
+  ): Promise<boolean> {
+    pollAbort.current?.abort();
+    const controller = new AbortController();
+    pollAbort.current = controller;
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      if (controller.signal.aborted) return false;
+      try {
+        const resp = await fetch("/api/user-data", {
+          headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
+        });
+        const data = await resp.json();
+        if (resp.ok && data.success) {
+          setUserData(data.userData);
+          if (predicate(data.userData)) return true;
+        }
+      } catch {
+        // Swallow polling errors — we'll retry on the next tick.
+      }
+      await new Promise((r) => setTimeout(r, intervalMs));
+    }
+    return false;
   }
 
   async function handleManageSubscription() {
@@ -187,36 +262,95 @@ export default function BillingDashboardPage() {
     }
   }
 
-  async function handleUpgrade(tier: Tier) {
+  async function handleUpgrade(targetTier: Tier) {
     if (!userData?.email) return;
+    const currentTier = (userData.tier as Tier) || "monthly";
+
+    // Lifetime is a one-time product type, not a subscription tier — it
+    // requires a fresh /checkouts session. The webhook auto-cancels the
+    // previous monthly/yearly subscription server-side once payment lands,
+    // so the user never gets double-charged.
+    if (targetTier === "lifetime") {
+      try {
+        setUpgradeLoading(targetTier);
+        setError(null);
+        setSuccessMessage(null);
+        const fullName =
+          user?.fullName ||
+          [user?.firstName, user?.lastName].filter(Boolean).join(" ") ||
+          userData.name ||
+          undefined;
+        const resp = await fetch("/api/dodo/create-checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            tier: targetTier,
+            email: userData.email,
+            ...(fullName ? { name: fullName } : {}),
+            metadata: { upgrade_from: currentTier },
+          }),
+        });
+        const data = await resp.json();
+        if (!resp.ok || !data?.checkout_url) {
+          throw new Error(data?.error || "Failed to start upgrade checkout.");
+        }
+        window.location.href = data.checkout_url;
+      } catch (e: any) {
+        setError(e?.message || "Failed to start upgrade checkout.");
+        setUpgradeLoading(null);
+      }
+      return;
+    }
+
+    // Monthly ↔ yearly: in-place plan change with proration (no second
+    // subscription). Confirm first because the customer is charged the
+    // difference immediately.
+    const tierInfo = TIER_LABELS[targetTier];
+    const confirmed = window.confirm(
+      `Switch to the ${tierInfo.name} plan (${tierInfo.price} ${tierInfo.cadence})?\n\n` +
+        `You'll be charged the prorated difference today, and your new plan takes effect immediately.`
+    );
+    if (!confirmed) return;
+
     try {
-      setUpgradeLoading(tier);
+      setUpgradeLoading(targetTier);
       setError(null);
-      const fullName =
-        user?.fullName ||
-        [user?.firstName, user?.lastName].filter(Boolean).join(" ") ||
-        userData.name ||
-        undefined;
-      const resp = await fetch("/api/dodo/create-checkout", {
+      setSuccessMessage(null);
+      const resp = await fetch("/api/dodo/change-plan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          tier,
-          email: userData.email,
-          ...(fullName ? { name: fullName } : {}),
-          metadata: { upgrade_from: userData.tier || "unknown" },
-        }),
+        body: JSON.stringify({ tier: targetTier, email: userData.email }),
       });
       const data = await resp.json();
-      if (!resp.ok || !data?.checkout_url) {
-        throw new Error(data?.error || "Failed to start upgrade checkout.");
+      if (!resp.ok || !data?.success) {
+        throw new Error(data?.error || "Failed to change plan.");
       }
-      window.location.href = data.checkout_url;
+      setSuccessMessage(
+        `Switching to ${tierInfo.name}… your dashboard will update in a few seconds.`
+      );
+      const landed = await pollUntil(
+        (u) => u?.tier === targetTier,
+        { timeoutMs: 25000, intervalMs: 2000 }
+      );
+      setSuccessMessage(
+        landed
+          ? `You're now on the ${tierInfo.name} plan.`
+          : `Plan change submitted. It may take a moment longer to appear here — try refreshing if you don't see it shortly.`
+      );
     } catch (e: any) {
-      setError(e?.message || "Failed to start upgrade checkout.");
+      setError(e?.message || "Failed to change plan.");
+    } finally {
       setUpgradeLoading(null);
     }
   }
+
+  // Cancel any in-flight poll on unmount so we don't setState on an
+  // unmounted component.
+  useEffect(() => {
+    return () => {
+      pollAbort.current?.abort();
+    };
+  }, []);
 
   if (loading) {
     return (
@@ -314,6 +448,15 @@ export default function BillingDashboardPage() {
             <div className="max-w-5xl mx-auto mb-6">
               <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {error}
+              </div>
+            </div>
+          )}
+
+          {successMessage && (
+            <div className="max-w-5xl mx-auto mb-6">
+              <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800 flex items-start gap-2">
+                <FaCheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                <span>{successMessage}</span>
               </div>
             </div>
           )}
@@ -552,8 +695,9 @@ export default function BillingDashboardPage() {
                     })}
                   </div>
                   <p className="mt-3 text-[11px] text-slate-500 leading-relaxed">
-                    Your current plan stays active until you cancel it from the
-                    billing portal — your new plan starts at checkout.
+                    Monthly ↔ yearly switches are applied in-place with
+                    prorated billing — no double-charge. Lifetime upgrades
+                    auto-cancel your recurring plan once payment is confirmed.
                   </p>
                 </div>
               )}

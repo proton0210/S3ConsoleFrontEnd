@@ -124,6 +124,14 @@ function BuyPageContent() {
             </p>
           </>
         )}
+        <div className="mt-8 flex items-center justify-center gap-4 text-xs text-slate-500">
+          <a href="/" className="hover:text-primary underline">
+            Home
+          </a>
+          <a href="/pricing" className="hover:text-primary underline">
+            Pricing
+          </a>
+        </div>
       </div>
     </div>
   );

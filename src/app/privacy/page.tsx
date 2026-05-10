@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
+import Header from "@/components/sections/header";
 
 export const metadata: Metadata = {
   title: "Privacy Policy - S3Console",
@@ -9,8 +10,10 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-3xl mx-auto px-5 py-16 sm:px-10">
+    <>
+      <Header />
+      <div className="min-h-screen bg-background">
+        <div className="max-w-3xl mx-auto px-5 py-16 sm:px-10">
         <header className="mb-12">
           <Link
             href="/"
@@ -390,8 +393,26 @@ export default function PrivacyPage() {
               </a>
             </p>
           </section>
+
+          <div className="flex flex-wrap items-center gap-4 pt-8 border-t border-border text-sm text-muted-foreground">
+            <Link href="/" className="hover:text-primary transition-colors">
+              &larr; Back to Home
+            </Link>
+            <span className="ml-auto flex flex-wrap gap-4">
+              <Link href="/terms" className="hover:text-primary transition-colors">
+                Terms
+              </Link>
+              <Link href="/refund-policy" className="hover:text-primary transition-colors">
+                Refunds
+              </Link>
+              <Link href="/eula" className="hover:text-primary transition-colors">
+                EULA
+              </Link>
+            </span>
+          </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

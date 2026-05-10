@@ -91,7 +91,11 @@ export async function POST(req: NextRequest) {
 
     const baseUrl = getDodoApiBaseUrl();
     const origin = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin || "";
-    const returnUrl = `${origin}/payment-status`;
+    // Send the user back to the billing dashboard so they immediately see the
+    // updated state. The `?from=portal` marker tells the dashboard to poll
+    // for the inbound webhook (cancel / payment-method update / etc.) for a
+    // few seconds before settling.
+    const returnUrl = `${origin}/account/billing?from=portal`;
 
     const portalUrl = new URL(
       `${baseUrl}/customers/${encodeURIComponent(dodoCustomerId)}/customer-portal/session`

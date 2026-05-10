@@ -44,6 +44,31 @@ export function isSubscriptionTier(tier: LicenseTier): boolean {
   return tier === "monthly" || tier === "yearly";
 }
 
+/**
+ * Reverse lookup: given a Dodo product ID, return the tier it corresponds to.
+ * Returns null when the product ID doesn't match any configured tier (e.g.,
+ * an addon product or stale env). Used by the webhook handler to derive tier
+ * authoritatively from the event payload rather than trusting metadata, which
+ * Dodo doesn't always propagate from /change-plan calls into subsequent
+ * subscription.plan_changed events.
+ */
+export function getTierFromProductId(
+  productId: string | undefined | null
+): LicenseTier | null {
+  if (!productId) return null;
+  const map: Record<LicenseTier, string | undefined> = {
+    monthly: process.env.S3CONSOLE_DODO_PRODUCT_ID_MONTHLY,
+    yearly: process.env.S3CONSOLE_DODO_PRODUCT_ID_YEARLY,
+    lifetime: process.env.S3CONSOLE_DODO_PRODUCT_ID_LIFETIME,
+  };
+  for (const [tier, configuredId] of Object.entries(map)) {
+    if (configuredId && configuredId === productId) {
+      return tier as LicenseTier;
+    }
+  }
+  return null;
+}
+
 export function getDodoApiBaseUrl(): string {
   return process.env.DODO_API_BASE_URL || "https://live.dodopayments.com";
 }

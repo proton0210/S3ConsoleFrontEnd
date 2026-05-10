@@ -35,7 +35,7 @@ export default function PricingSection() {
               delay: 0.1 * index,
             }}
             className={cn(
-              "relative rounded-2xl p-8 bg-background text-center overflow-hidden transition-all duration-300",
+              "relative rounded-2xl p-8 bg-background text-center transition-all duration-300",
               "border",
               plan.isPopular
                 ? "border-primary shadow-lg shadow-primary/10 scale-[1.02]"

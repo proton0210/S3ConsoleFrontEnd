@@ -1,25 +1,30 @@
 "use client";
 import { Suspense, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import Header from "@/components/sections/header";
 import confetti from "canvas-confetti";
 
 type UiStatus = "processing" | "succeeded" | "failed";
 
 export default function PaymentStatusPage() {
   return (
-    <Suspense
-      fallback={
-        <main className="w-full h-full p-10 pb-0">
-          <div className="bg-white rounded-[20px] flex flex-col p-10 max-w-3xl mx-auto text-center">
-            <h1 className="font-display text-3xl mb-6">Payment Status</h1>
-            <div className="text-yellow-600">Loading status…</div>
-          </div>
-        </main>
-      }
-    >
-      <PaymentStatusContent />
-    </Suspense>
+    <>
+      <Header />
+      <Suspense
+        fallback={
+          <main className="w-full h-full p-10 pb-0">
+            <div className="bg-white rounded-[20px] flex flex-col p-10 max-w-3xl mx-auto text-center">
+              <h1 className="font-display text-3xl mb-6">Payment Status</h1>
+              <div className="text-yellow-600">Loading status…</div>
+            </div>
+          </main>
+        }
+      >
+        <PaymentStatusContent />
+      </Suspense>
+    </>
   );
 }
 
@@ -83,8 +88,19 @@ function PaymentStatusContent() {
           <div className="text-yellow-600">Your payment is being processed…</div>
         )}
 
-        <div className="mt-8">
+        <div className="mt-8 flex items-center justify-center gap-3 flex-wrap">
           <Button onClick={() => (window.location.href = "/downloads")}>Return to Downloads</Button>
+          {uiStatus !== "succeeded" && (
+            <Link
+              href="/account/billing"
+              className="text-sm text-slate-600 hover:text-primary underline"
+            >
+              View billing
+            </Link>
+          )}
+          <Link href="/" className="text-sm text-slate-600 hover:text-primary underline">
+            Home
+          </Link>
         </div>
       </div>
     </main>

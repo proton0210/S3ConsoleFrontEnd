@@ -1,9 +1,11 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { usePostHog } from "posthog-js/react";
 import { FaCheck, FaSpinner, FaCrown } from "react-icons/fa";
+import Header from "@/components/sections/header";
 
 type Tier = "monthly" | "yearly" | "lifetime";
 
@@ -125,8 +127,18 @@ export default function PricingPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+    <>
+      <Header />
+      <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-primary transition-colors"
+        >
+          &larr; Back to Home
+        </Link>
+      </div>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
         {/* Header */}
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent mb-4">
@@ -234,6 +246,7 @@ export default function PricingPage() {
           </p>
         </div>
       </div>
-    </main>
+      </main>
+    </>
   );
 }

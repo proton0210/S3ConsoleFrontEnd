@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth, useUser } from "@clerk/nextjs";
 import confetti from "canvas-confetti";
@@ -197,6 +198,15 @@ export default function SuccessContent() {
           >
             Back to Downloads
           </Button>
+
+          <div className="mt-6 flex items-center justify-center gap-5 text-sm">
+            <Link href="/account/billing" className="text-slate-600 hover:text-primary underline">
+              Manage billing
+            </Link>
+            <Link href="/" className="text-slate-600 hover:text-primary underline">
+              Home
+            </Link>
+          </div>
         </div>
       </Section>
     </div>
