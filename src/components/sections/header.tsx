@@ -122,6 +122,15 @@ export default function Header() {
                 </Link>
               </SignedOut>
               <SignedIn>
+                <Link
+                  href="/account/billing"
+                  className={cn(
+                    buttonVariants({ variant: "ghost" }),
+                    "hidden md:inline-flex"
+                  )}
+                >
+                  Billing
+                </Link>
                 {!isDownloadsPage && (
                   <Link
                     href="/downloads"

@@ -694,6 +694,25 @@ export default function DownloadsPage() {
                         </div>
                       </div>
                     )}
+                    {userData.paid && (
+                      <Link
+                        href="/account/billing"
+                        className="flex items-center justify-between p-3 bg-primary/5 hover:bg-primary/10 border border-primary/20 rounded-lg transition-colors group"
+                      >
+                        <div className="flex items-center gap-3">
+                          <FaCrown className="h-4 w-4 text-primary" />
+                          <div>
+                            <p className="text-sm font-medium text-slate-900">
+                              Manage subscription
+                            </p>
+                            <p className="text-xs text-slate-500">
+                              Cancel, upgrade, or update payment method
+                            </p>
+                          </div>
+                        </div>
+                        <span className="text-primary group-hover:translate-x-0.5 transition-transform">→</span>
+                      </Link>
+                    )}
                   </div>
                 </div>
               </div>
