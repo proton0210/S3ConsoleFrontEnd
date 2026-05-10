@@ -3,7 +3,6 @@ import {
   getProductId,
   getDodoApiBaseUrl,
   isLicenseTier,
-  isSubscriptionTier,
   type LicenseTier,
 } from "@/lib/dodo";
 
@@ -31,9 +30,8 @@ export async function POST(req: NextRequest) {
     const body: CreateCheckoutBody = await req.json();
     const { tier, email, name, metadata, productId: legacyProductId, quantity } = body;
 
-    // Dodo's /subscriptions endpoint REQUIRES `customer`. The CustomerRequest
-    // schema is an untagged enum: either { customer_id } or { email, name }.
-    // Sending { email } alone, or omitting customer entirely, both 422.
+    // Dodo's CustomerRequest schema is an untagged enum: either { customer_id }
+    // or { email, name }. Sending { email } alone fails deserialization.
     //
     // We derive a name from the email local-part when callers don't supply
     // one (e.g. Clerk users who signed up without setting first/last name).
@@ -57,9 +55,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Resolve product ID + endpoint from either tier (new) or productId (legacy).
+    // Resolve product ID from either tier (new) or productId (legacy).
     let productId: string;
-    let useSubscriptionEndpoint = false;
     let resolvedTier: LicenseTier | null = null;
 
     if (tier !== undefined) {
@@ -75,27 +72,12 @@ export async function POST(req: NextRequest) {
       } catch (err: any) {
         return NextResponse.json({ error: err.message }, { status: 500 });
       }
-      useSubscriptionEndpoint = isSubscriptionTier(tier);
     } else if (legacyProductId) {
       // Legacy seat-add flow (will be removed in Phase 11).
       productId = legacyProductId;
-      useSubscriptionEndpoint = false;
     } else {
       return NextResponse.json(
         { error: "Missing tier (monthly|yearly|lifetime). Provide a tier in the request body." },
-        { status: 400 }
-      );
-    }
-
-    // /subscriptions requires customer (email + name). For lifetime via
-    // /checkouts the customer object is optional. Fail fast with a clean
-    // message rather than letting Dodo return an opaque 422.
-    if (useSubscriptionEndpoint && !customer) {
-      return NextResponse.json(
-        {
-          error:
-            "Email is required for monthly and yearly plans. Please sign in or provide an email address.",
-        },
         { status: 400 }
       );
     }
@@ -111,41 +93,25 @@ export async function POST(req: NextRequest) {
       ...(resolvedTier ? { tier: resolvedTier } : {}),
     };
 
-    let endpoint: string;
-    let payload: Record<string, unknown>;
-
-    if (useSubscriptionEndpoint) {
-      // Monthly / yearly — Dodo subscription. Auto-renews until canceled.
-      // The /subscriptions endpoint requires top-level `quantity` (unlike
-      // /checkouts which nests quantity inside product_cart items). Omitting
-      // it returns: "missing field `quantity`".
-      endpoint = `${baseUrl}/subscriptions`;
-      payload = {
-        product_id: productId,
-        quantity: Math.max(1, Number(quantity) || 1),
-        return_url: `${origin}/payment-status`,
-        ...(customer ? { customer } : {}),
-        ...(Object.keys(checkoutMetadata).length > 0
-          ? { metadata: checkoutMetadata }
-          : {}),
-      };
-    } else {
-      // Lifetime — one-time payment via /checkouts.
-      endpoint = `${baseUrl}/checkouts`;
-      payload = {
-        product_cart: [
-          {
-            product_id: productId,
-            quantity: Math.max(1, Number(quantity) || 1),
-          },
-        ],
-        return_url: `${origin}/payment-status`,
-        ...(customer ? { customer } : {}),
-        ...(Object.keys(checkoutMetadata).length > 0
-          ? { metadata: checkoutMetadata }
-          : {}),
-      };
-    }
+    // Both subscription (monthly/yearly) and one-time (lifetime) flows go through
+    // /checkouts. The product type (subscription vs one-time) is set on the product
+    // in Dodo's dashboard, so the same endpoint handles both. /checkouts collects
+    // billing address on the hosted checkout page; the direct /subscriptions REST
+    // endpoint instead requires billing to be supplied up-front in the request body.
+    const endpoint = `${baseUrl}/checkouts`;
+    const payload: Record<string, unknown> = {
+      product_cart: [
+        {
+          product_id: productId,
+          quantity: Math.max(1, Number(quantity) || 1),
+        },
+      ],
+      return_url: `${origin}/payment-status`,
+      ...(customer ? { customer } : {}),
+      ...(Object.keys(checkoutMetadata).length > 0
+        ? { metadata: checkoutMetadata }
+        : {}),
+    };
 
     const resp = await fetch(endpoint, {
       method: "POST",
@@ -178,8 +144,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      // Subscriptions API returns checkout_url; one-time /checkouts also returns checkout_url.
-      // Both also return their primary identifier (subscription_id vs session_id).
       checkout_url: data?.checkout_url,
       session_id: data?.session_id,
       subscription_id: data?.subscription_id,
