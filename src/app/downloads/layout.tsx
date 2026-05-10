@@ -4,9 +4,9 @@ import { Metadata } from "next";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = constructMetadata({
-  title: "Download S3Console - AWS S3 Desktop App",
+  title: "Download S3Console — AWS S3 Client for Mac, Windows & Linux",
   description:
-    "Download S3Console for Mac, Windows & Linux. Professional AWS S3 bucket manager with AI Code Generation, Presigned URLs, and Multi-Profile Support. One-time payment, lifetime access.",
+    "Download S3Console for free. Native AWS S3 desktop client for macOS, Windows, and Linux with a 14-day full-feature trial. No credit card required. Pricing from $9/month or $99 lifetime.",
   canonical: "/downloads",
 });
 

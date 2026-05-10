@@ -31,11 +31,21 @@ export function constructMetadata({
   const url = canonical || siteConfig.url;
   const ogImage = image || absoluteUrl("/og");
   
+  // Per-page titles use { absolute } so they replace (not append to) the
+  // root layout's template. Without this, the root sets a "%s | S3Console"
+  // template and every per-page title would double up to "X | S3Console |
+  // S3Console". When no explicit title is passed, fall through to the
+  // template so the root layout's brand still applies on shared shells.
+  const titleField =
+    title && title !== siteConfig.name
+      ? { absolute: title }
+      : {
+          template: "%s | " + siteConfig.name,
+          default: siteConfig.name,
+        };
+
   return {
-    title: {
-      template: "%s | " + siteConfig.name,
-      default: siteConfig.name,
-    },
+    title: titleField,
     description: description || siteConfig.description,
     keywords: siteConfig.keywords,
     authors: [

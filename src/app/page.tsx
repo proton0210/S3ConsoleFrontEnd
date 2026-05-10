@@ -15,9 +15,12 @@ import { constructMetadata } from "@/lib/utils";
 import { Metadata } from "next";
 
 export const metadata: Metadata = constructMetadata({
-  title: "S3Console - AWS S3 Desktop App for Mac, Windows & Linux",
+  // Title-tag rule of thumb: lead with the primary keyword, brand last, ~60 chars.
+  // Description ~150-160 chars, includes secondary keywords + CTA hook.
+  title: "AWS S3 Client for Mac, Windows & Linux | S3Console",
   description:
-    "Professional AWS S3 bucket manager with intuitive GUI. Features AI Code Generation, Presigned URLs, Multi-Profile Support, and Advanced Access Control. Download for Mac, Windows & Linux.",
+    "The fastest AWS S3 client for Mac, Windows, and Linux. A native S3 desktop GUI with AI code generation, presigned URLs, multi-profile SSO, and a visual bucket policy editor. Free 14-day trial.",
+  canonical: "/",
 });
 
 export default function Home() {
