@@ -726,11 +726,11 @@ export default function DownloadsPage() {
                       Registered Machines
                     </h3>
                     <div className="flex items-center gap-2">
-                      <span className={`text-sm font-medium px-3 py-1 rounded-full ${(userData.machines?.length || 0) >= (userData.licenseCount || 1)
+                      <span className={`text-sm font-medium px-3 py-1 rounded-full ${(userData.machines?.length || 0) >= (userData.licenseCount || 2)
                         ? 'bg-red-100 text-red-700'
                         : 'bg-green-100 text-green-700'
                         }`}>
-                        {userData.machines?.length || 0} / {userData.licenseCount || 1}
+                        {userData.machines?.length || 0} / {userData.licenseCount || 2}
                       </span>
                     </div>
                   </div>

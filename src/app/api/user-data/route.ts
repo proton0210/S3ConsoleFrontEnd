@@ -54,12 +54,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Initialize licenseCount for existing paid users who don't have it yet
+    // Initialize licenseCount for existing paid users who don't have it yet.
+    // Default is 2 — matches the tiered license model (every paid plan covers 2 machines).
     if (userData.paid && userData.licenseCount === undefined) {
-      userData.licenseCount = 1;
+      userData.licenseCount = 2;
     }
     if (!userData.licenseCount || userData.licenseCount === null) {
-      userData.licenseCount = 1;
+      userData.licenseCount = 2;
     }
 
     // Initialize machines array if it doesn't exist (handle null, undefined, or missing)
