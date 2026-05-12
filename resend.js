@@ -160,13 +160,32 @@ export const handler = async (event) => {
   };
 
   try {
+    // Conditional write: only create the row if one doesn't already exist for
+    // this email. Defends against the race where the Dodo webhook (paid=true,
+    // tier=…, validUntil=…) lands BEFORE this Clerk user.created webhook —
+    // without the condition the seed item would clobber the paid state with
+    // trial defaults, silently downgrading the user.
     await ddb.send(
-      new PutItemCommand({ TableName: DDB_TABLE_NAME, Item: item })
+      new PutItemCommand({
+        TableName: DDB_TABLE_NAME,
+        Item: item,
+        ConditionExpression: "attribute_not_exists(email)",
+      })
     );
     console.log(`User ${email} stored in ${DDB_TABLE_NAME}`);
   } catch (err) {
-    console.error("DynamoDB error", err);
-    return { statusCode: 500, body: "DB write failed" };
+    // ConditionalCheckFailedException means a row already exists (most likely
+    // because Dodo got there first). Treat as success — the existing row is
+    // already correctly populated, and Clerk re-fires user.created on retry
+    // until it sees 2xx.
+    if (err?.name === "ConditionalCheckFailedException") {
+      console.log(
+        `User ${email} already has a row in ${DDB_TABLE_NAME} (likely created by Dodo webhook first); skipping seed.`
+      );
+    } else {
+      console.error("DynamoDB error", err);
+      return { statusCode: 500, body: "DB write failed" };
+    }
   }
 
   // 6️⃣ Fire-and-forget email via Resend

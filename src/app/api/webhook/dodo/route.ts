@@ -2,11 +2,11 @@
  * Dodo Payments webhook handler — single source of truth for license state.
  *
  * Responsibilities:
- *   1. Verify HMAC signature on the raw request body.
- *   2. Idempotency: short-circuit if we've already processed this event.id
- *      (DynamoDB conditional PutItem on a WEBHOOK#<eventId> ledger row).
+ *   1. Verify HMAC signature on the raw request body (Standard Webhooks).
+ *   2. Idempotency: short-circuit if we've already processed the `webhook-id`
+ *      header (DynamoDB conditional PutItem on a WEBHOOK#<id> ledger row).
  *   3. Out-of-order ordering: skip status-affecting updates if an older event
- *      arrives after a newer one (compare event.created_at to lastWebhookTs).
+ *      arrives after a newer one (compare `webhook-timestamp` to lastWebhookTs).
  *   4. Dispatch by event.type. All license state transitions go through here.
  *
  * The browser-redirect /payment-status route is being demoted in Phase 7 to a
@@ -35,46 +35,58 @@ const GRACE_PERIOD_DAYS = 7;
 
 const ddb = new DynamoDBClient(getDdbClientConfig());
 
-// Dodo emits cancellation events with the British spelling ("cancelled") in
-// some payloads and the US spelling ("canceled") in others depending on the
-// API version. Normalize on read so the dispatcher only needs to handle one.
+// Event names verified against Dodo's webhooks documentation (see the
+// webhook-integration skill). Dodo uses British spelling "cancelled" — older
+// payloads occasionally used "canceled", so the dispatcher normalizes both.
 type DodoEventType =
   | "payment.succeeded"
-  | "payment.refunded"
+  | "payment.failed"
+  | "payment.processing"
+  | "payment.cancelled"
+  | "refund.succeeded"
   | "subscription.active"
-  | "subscription.created"
   | "subscription.renewed"
+  | "subscription.updated"
   | "subscription.plan_changed"
-  | "subscription.payment_failed"
   | "subscription.on_hold"
-  | "subscription.canceled"
   | "subscription.cancelled"
+  | "subscription.canceled" // legacy US spelling — normalize on read
   | "subscription.expired"
-  | "dispute.created"
-  | "dispute.lost"
-  | "dispute.won";
+  | "subscription.failed"
+  | "dispute.opened"
+  | "license_key.created";
 
 interface DodoEvent {
-  id: string;
   type: DodoEventType;
-  created_at: string; // ISO 8601
-  data: {
-    object: DodoPayloadObject;
-  };
+  // Dodo's webhook envelope is `{ business_id, type, timestamp, data }` per
+  // their docs — there is NO top-level `id` and NO `created_at`. The per-event
+  // identifier and event-time both come from the headers (Standard Webhooks
+  // spec: `webhook-id` and `webhook-timestamp`).
+  timestamp?: string; // top-level ISO 8601, only sometimes present
+  business_id?: string;
+  data: DodoPayloadObject;
 }
 
 interface DodoPayloadObject {
   // Common fields across event types
-  customer?: { id?: string; email?: string };
+  customer?: { customer_id?: string; id?: string; email?: string; name?: string };
   metadata?: Record<string, string>;
   product_id?: string;
-  // Subscription-specific
+  payload_type?: "Payment" | "Subscription" | "Refund" | "Dispute" | "LicenseKey";
+  // Subscription-specific (per Dodo docs)
   subscription_id?: string;
-  status?: string; // active | canceled | past_due | etc.
-  current_period_end?: string; // ISO 8601
+  status?: string;
+  next_billing_date?: string; // ISO 8601 — Dodo's field for when this subscription bills next
+  cancelled_at?: string;
+  cancel_at_next_billing_date?: boolean;
   // Payment-specific
   payment_id?: string;
-  amount?: number;
+  total_amount?: number;
+  // Refund-specific
+  refund_id?: string;
+  // Dispute-specific
+  dispute_id?: string;
+  dispute_status?: string;
 }
 
 export async function POST(req: NextRequest) {
@@ -92,18 +104,23 @@ export async function POST(req: NextRequest) {
   }
 
   // 2. Standard Webhooks signature verification (id + timestamp + body)
-  if (
-    !verifyWebhookSignature(
-      rawBody,
-      { id: webhookId, signature: webhookSignature, timestamp: webhookTimestamp },
-      webhookSecret
-    )
-  ) {
+  const verification = verifyWebhookSignature(
+    rawBody,
+    { id: webhookId, signature: webhookSignature, timestamp: webhookTimestamp },
+    webhookSecret
+  );
+  if (!verification.ok) {
     console.warn("[dodo-webhook] Signature verification failed", {
+      reason: verification.reason,
       hasId: !!webhookId,
       hasSignature: !!webhookSignature,
       hasTimestamp: !!webhookTimestamp,
+      timestamp: webhookTimestamp,
       bodyLen: rawBody.length,
+      // Diagnostic: confirm the secret has the standard whsec_ prefix without
+      // leaking any of the key material itself.
+      secretHasWhsecPrefix: webhookSecret.startsWith("whsec_"),
+      secretLen: webhookSecret.length,
     });
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
   }
@@ -116,16 +133,58 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  if (!event.id || !event.type) {
+  if (!event.type) {
     return NextResponse.json(
-      { error: "Missing required event fields (id, type)" },
+      { error: "Missing event type" },
       { status: 400 }
     );
   }
 
-  // 4. Idempotency gate — conditional PutItem with attribute_not_exists.
-  //    If the put fails, we've already processed this event; return 200 to stop retries.
-  const ledgerKey = `WEBHOOK#${event.id}`;
+  // The event identifier and timestamp come from the Standard Webhooks headers
+  // (Dodo's envelope doesn't ship them in the body).
+  const eventId = webhookId!; // verified non-null by signature check above
+  const eventTsSec = Number(webhookTimestamp);
+  const eventTs = Number.isFinite(eventTsSec) ? eventTsSec * 1000 : Date.now();
+  const ledgerKey = `WEBHOOK#${eventId}`;
+
+  // 4. Idempotency pre-check — if we've ALREADY successfully processed this
+  //    event, short-circuit. We only check (GetItem), we don't write yet.
+  //    The ledger row is written AFTER successful dispatch so that a failed
+  //    dispatch can be retried by Dodo (writing the ledger first would cause
+  //    every retry to short-circuit before re-running dispatch).
+  try {
+    const existingLedger = await ddb.send(
+      new GetItemCommand({
+        TableName: TABLE_NAME,
+        Key: marshall({ email: ledgerKey }),
+      })
+    );
+    if (existingLedger.Item) {
+      console.log(`[dodo-webhook] Duplicate event ${eventId}, ignoring.`);
+      return NextResponse.json({ status: "duplicate" });
+    }
+  } catch (err) {
+    console.error("[dodo-webhook] Failed to read idempotency ledger", err);
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+  }
+
+  // 5. Dispatch — does the actual license-row update. The row-level conditional
+  //    in applyLicenseUpdate (lastWebhookEventId <> :__eid) prevents the same
+  //    event from being applied twice if Dodo retries before the ledger write.
+  try {
+    await dispatch(event, eventId, eventTs);
+  } catch (err: any) {
+    console.error("[dodo-webhook] Dispatch error", {
+      eventId,
+      type: event.type,
+      message: err?.message,
+      stack: err?.stack,
+    });
+    return NextResponse.json({ error: "Dispatch failed" }, { status: 500 });
+  }
+
+  // 6. Record successful processing in the ledger (best-effort — a retry that
+  //    duplicates this row is harmless because dispatch is idempotent).
   const expiresAt =
     Math.floor(Date.now() / 1000) + WEBHOOK_LEDGER_TTL_DAYS * 24 * 60 * 60;
   try {
@@ -134,55 +193,92 @@ export async function POST(req: NextRequest) {
         TableName: TABLE_NAME,
         Item: marshall(
           {
-            email: ledgerKey, // overload PK as ledger key
+            email: ledgerKey,
             eventType: event.type,
             receivedAt: new Date().toISOString(),
             expiresAt,
           },
           { removeUndefinedValues: true }
         ),
-        ConditionExpression: "attribute_not_exists(email)",
       })
     );
   } catch (err) {
-    if (err instanceof ConditionalCheckFailedException) {
-      // Already processed — quietly accept so Dodo stops retrying.
-      console.log(`[dodo-webhook] Duplicate event ${event.id}, ignoring.`);
-      return NextResponse.json({ status: "duplicate" });
-    }
-    console.error("[dodo-webhook] Failed to write idempotency ledger", err);
-    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+    console.warn("[dodo-webhook] Failed to write post-dispatch ledger row", err);
+    // Not fatal — dispatch already succeeded.
   }
-
-  // 5. Dispatch
-  try {
-    await dispatch(event);
-    return NextResponse.json({ status: "ok" });
-  } catch (err: any) {
-    console.error("[dodo-webhook] Dispatch error", { eventId: event.id, type: event.type, err });
-    // Return 500 so Dodo retries the delivery; the idempotency ledger row above
-    // means the retry will short-circuit if we already partially applied it,
-    // but the underlying license update is itself idempotent (conditional updates).
-    return NextResponse.json({ error: "Dispatch failed" }, { status: 500 });
-  }
+  console.log(`[dodo-webhook] OK ${event.type} eventId=${eventId}`);
+  return NextResponse.json({ status: "ok" });
 }
 
-async function dispatch(event: DodoEvent) {
-  const obj = event.data?.object;
+/**
+ * Resolve subscription tier from a webhook payload. Tries product_id mapping
+ * (authoritative — set on the Dodo product) before falling back to checkout
+ * metadata. Returns `null` only if both routes fail, in which case callers
+ * should log loudly and still proceed (paid=true without tier is better than
+ * 500'ing the webhook).
+ */
+function resolveSubscriptionTier(
+  obj: DodoPayloadObject
+): "monthly" | "yearly" | null {
+  const fromProduct = getTierFromProductId(obj.product_id);
+  if (fromProduct === "monthly" || fromProduct === "yearly") return fromProduct;
+  const m = obj.metadata?.tier;
+  if (m === "monthly" || m === "yearly") return m;
+  return null;
+}
+
+/**
+ * Compute `validUntil` (ms epoch) for a subscription event. Prefers Dodo's
+ * `next_billing_date`, falling back to a tier-based interval anchored at
+ * `eventTs` so a monthly/yearly user never ends up with `validUntil=undefined`
+ * (which would silently mean "no expiry").
+ */
+function computeValidUntil(
+  obj: DodoPayloadObject,
+  tier: "monthly" | "yearly" | null,
+  eventTs: number
+): number | undefined {
+  if (obj.next_billing_date) {
+    const t = Date.parse(obj.next_billing_date);
+    if (!isNaN(t)) return t;
+  }
+  const DAY_MS = 24 * 60 * 60 * 1000;
+  if (tier === "monthly") return eventTs + 31 * DAY_MS;
+  if (tier === "yearly") return eventTs + 366 * DAY_MS;
+  return undefined;
+}
+
+async function dispatch(event: DodoEvent, eventId: string, eventTs: number) {
+  const obj = event.data;
   if (!obj) {
-    throw new Error("Missing event.data.object");
+    throw new Error("Missing event.data");
   }
 
-  // Resolve customer email — the license row's primary key.
-  const email = obj.customer?.email || obj.metadata?.email;
+  // Resolve customer email — the license row's primary key. Trim only; we do
+  // NOT lowercase here because other routes (change-plan, portal-session,
+  // payment-success) key by the email Clerk stored, which may be mixed-case.
+  // Lowercasing would orphan existing rows. Case normalization is a separate
+  // refactor to apply consistently at row-creation time.
+  const email = (obj.customer?.email || obj.metadata?.email)?.trim();
   if (!email) {
-    throw new Error(`Cannot resolve customer email for event ${event.id}`);
+    const softFailTypes: ReadonlyArray<string> = [
+      "subscription.updated",
+      "dispute.opened",
+      "license_key.created",
+    ];
+    if (softFailTypes.includes(event.type)) {
+      console.warn(
+        `[dodo-webhook] No customer email on ${event.type} (event=${eventId}); skipping.`
+      );
+      return;
+    }
+    throw new Error(
+      `Cannot resolve customer email for event ${eventId} (type=${event.type})`
+    );
   }
-
-  const eventTs = Date.parse(event.created_at);
-  if (isNaN(eventTs)) {
-    throw new Error(`Invalid event.created_at: ${event.created_at}`);
-  }
+  console.log(
+    `[dodo-webhook] dispatch type=${event.type} email=${email} eventId=${eventId} product_id=${obj.product_id ?? "—"} subscription_id=${obj.subscription_id ?? "—"} metadata.tier=${obj.metadata?.tier ?? "—"}`
+  );
 
   // Fetch existing license row (may not exist yet — webhook may create it).
   const existing = await getLicenseRow(email);
@@ -225,18 +321,27 @@ async function dispatch(event: DodoEvent) {
 
   switch (normalizedType) {
     case "payment.succeeded": {
-      // Lifetime one-time purchase.
       if (isStale) return;
-      const tier =
-        obj.metadata?.tier === "lifetime" ? "lifetime" : obj.metadata?.tier;
-      // We trust metadata.tier set at checkout creation time (Phase 1).
-      // If this is genuinely a lifetime payment (not a subscription invoice),
-      // the metadata will say so.
-      if (tier !== "lifetime") {
-        // Subscription-driven payment.succeeded — we've already handled the
-        // subscription lifecycle via subscription.active/renewed.
+      // Discriminate lifetime vs subscription by the AUTHORITATIVE signal:
+      // a Payment with a populated `subscription_id` is a subscription invoice
+      // (already handled by `subscription.active`/`.renewed`); without one
+      // it's a one-time purchase, i.e. lifetime. This is more reliable than
+      // metadata (Dodo doesn't always propagate checkout metadata, especially
+      // through the UPI flow) and more reliable than product_id mapping
+      // (depends on env-var configuration that can drift).
+      if (obj.subscription_id) {
         console.log(
-          `[dodo-webhook] payment.succeeded with non-lifetime tier=${tier}; skipping (handled by subscription event).`
+          `[dodo-webhook] payment.succeeded skipped — subscription invoice (sub_id=${obj.subscription_id}, product_id=${obj.product_id}); handled by subscription event.`
+        );
+        return;
+      }
+      // Safety check: if product_id mapping resolves to monthly/yearly, this
+      // is *almost certainly* a misrouted subscription payment that lost its
+      // subscription_id somehow. Skip rather than corrupt the row to lifetime.
+      const tierFromProduct = getTierFromProductId(obj.product_id);
+      if (tierFromProduct === "monthly" || tierFromProduct === "yearly") {
+        console.warn(
+          `[dodo-webhook] payment.succeeded with monthly/yearly product but no subscription_id (product_id=${obj.product_id}); skipping to avoid corrupting tier.`
         );
         return;
       }
@@ -277,9 +382,9 @@ async function dispatch(event: DodoEvent) {
         // it fall through the mismatch guard incorrectly.
         subscriptionId: null,
         onTrial: false,
-        dodoCustomerId: obj.customer?.id,
+        dodoCustomerId: obj.customer?.customer_id ?? obj.customer?.id,
         key: licenseKey,
-        lastWebhookEventId: event.id,
+        lastWebhookEventId: eventId,
         lastWebhookTs: eventTs,
         acceptedTermsVersion: obj.metadata?.acceptedTermsVersion,
         acceptedTermsAt: obj.metadata?.acceptedTermsAt
@@ -289,29 +394,17 @@ async function dispatch(event: DodoEvent) {
       return;
     }
 
-    case "subscription.created":
     case "subscription.active":
-    case "subscription.renewed": {
+    case "subscription.renewed":
+    case "subscription.updated": {
       if (isStale) return;
-      // Prefer product_id (authoritative — set by Dodo on the subscription)
-      // over metadata.tier (only present if our checkout call set it, and not
-      // guaranteed to propagate through every event).
-      const tierFromProduct = getTierFromProductId(obj.product_id);
-      const tier =
-        tierFromProduct === "monthly" || tierFromProduct === "yearly"
-          ? tierFromProduct
-          : obj.metadata?.tier === "monthly" || obj.metadata?.tier === "yearly"
-            ? obj.metadata.tier
-            : undefined;
+      const tier = resolveSubscriptionTier(obj);
       if (!tier) {
         console.warn(
-          `[dodo-webhook] subscription event missing tier (product_id=${obj.product_id}); event=${event.id}`
+          `[dodo-webhook] subscription event missing tier (product_id=${obj.product_id}, metadata.tier=${obj.metadata?.tier}); event=${eventId}. Writing paid=true without tier — fix product-ID env vars.`
         );
       }
-      const periodEnd = obj.current_period_end
-        ? Date.parse(obj.current_period_end)
-        : undefined;
-      const validUntil = periodEnd && !isNaN(periodEnd) ? periodEnd : undefined;
+      const validUntil = computeValidUntil(obj, tier, eventTs);
       const gracePeriodUntil =
         validUntil !== undefined
           ? validUntil + GRACE_PERIOD_DAYS * 24 * 60 * 60 * 1000
@@ -319,16 +412,16 @@ async function dispatch(event: DodoEvent) {
       const licenseKey = existing?.key || randomUUID();
       await applyLicenseUpdate(email, {
         paid: true,
-        tier,
+        tier: tier ?? undefined,
         subscriptionId: obj.subscription_id,
         subscriptionStatus: "active",
         productId: obj.product_id,
         validUntil,
         gracePeriodUntil,
         onTrial: false,
-        dodoCustomerId: obj.customer?.id,
+        dodoCustomerId: obj.customer?.customer_id ?? obj.customer?.id,
         key: licenseKey,
-        lastWebhookEventId: event.id,
+        lastWebhookEventId: eventId,
         lastWebhookTs: eventTs,
         acceptedTermsVersion: obj.metadata?.acceptedTermsVersion,
         acceptedTermsAt: obj.metadata?.acceptedTermsAt
@@ -346,42 +439,29 @@ async function dispatch(event: DodoEvent) {
         );
         return;
       }
-      // Plan change can come from our /api/dodo/change-plan call OR from the
-      // user changing plan inside Dodo's hosted portal. Either way, derive
-      // tier from product_id — metadata is unreliable across plan changes.
-      const tierFromProduct = getTierFromProductId(obj.product_id);
-      const tier =
-        tierFromProduct === "monthly" || tierFromProduct === "yearly"
-          ? tierFromProduct
-          : obj.metadata?.tier === "monthly" || obj.metadata?.tier === "yearly"
-            ? obj.metadata.tier
-            : undefined;
+      const tier = resolveSubscriptionTier(obj);
       if (!tier) {
         console.warn(
-          `[dodo-webhook] subscription.plan_changed: cannot resolve tier (product_id=${obj.product_id}); event=${event.id}`
+          `[dodo-webhook] subscription.plan_changed: cannot resolve tier (product_id=${obj.product_id}); event=${eventId}`
         );
       }
-      const periodEnd = obj.current_period_end
-        ? Date.parse(obj.current_period_end)
-        : undefined;
-      const validUntil = periodEnd && !isNaN(periodEnd) ? periodEnd : undefined;
+      const validUntil = computeValidUntil(obj, tier, eventTs);
       const gracePeriodUntil =
         validUntil !== undefined
           ? validUntil + GRACE_PERIOD_DAYS * 24 * 60 * 60 * 1000
           : undefined;
       await applyLicenseUpdate(email, {
-        tier,
+        tier: tier ?? undefined,
         productId: obj.product_id,
         validUntil,
         gracePeriodUntil,
         subscriptionStatus: "active",
-        lastWebhookEventId: event.id,
+        lastWebhookEventId: eventId,
         lastWebhookTs: eventTs,
       });
       return;
     }
 
-    case "subscription.payment_failed":
     case "subscription.on_hold": {
       if (isStale) return;
       if (isStaleSubscription) {
@@ -393,14 +473,15 @@ async function dispatch(event: DodoEvent) {
       // Mark past_due but DON'T clear paid — the grace window handles access.
       await applyLicenseUpdate(email, {
         subscriptionStatus: "past_due",
-        lastWebhookEventId: event.id,
+        lastWebhookEventId: eventId,
         lastWebhookTs: eventTs,
       });
       return;
     }
 
     case "subscription.canceled":
-    case "subscription.expired": {
+    case "subscription.expired":
+    case "subscription.failed": {
       if (isStale) return;
       if (isStaleSubscription) {
         console.log(
@@ -413,47 +494,28 @@ async function dispatch(event: DodoEvent) {
       // for users who failed payment.
       await applyLicenseUpdate(email, {
         subscriptionStatus: "canceled",
-        lastWebhookEventId: event.id,
+        lastWebhookEventId: eventId,
         lastWebhookTs: eventTs,
       });
       return;
     }
 
-    case "payment.refunded": {
-      // Hard revoke.
+    case "refund.succeeded": {
+      // Hard revoke. Refund payloads include the original customer per Dodo's
+      // Refund schema, so the email resolution above still works.
       await applyLicenseUpdate(email, {
         revoked: true,
         subscriptionStatus: "canceled",
-        lastWebhookEventId: event.id,
+        lastWebhookEventId: eventId,
         lastWebhookTs: eventTs,
       });
-      // Phase 10 wires the refund-confirmation user email + founder ping here.
       return;
     }
 
-    case "dispute.created": {
+    case "dispute.opened": {
       await applyLicenseUpdate(email, {
         disputed: true,
-        lastWebhookEventId: event.id,
-        lastWebhookTs: eventTs,
-      });
-      return;
-    }
-
-    case "dispute.lost": {
-      await applyLicenseUpdate(email, {
-        revoked: true,
-        disputed: true,
-        lastWebhookEventId: event.id,
-        lastWebhookTs: eventTs,
-      });
-      return;
-    }
-
-    case "dispute.won": {
-      await applyLicenseUpdate(email, {
-        disputed: false,
-        lastWebhookEventId: event.id,
+        lastWebhookEventId: eventId,
         lastWebhookTs: eventTs,
       });
       return;
@@ -582,11 +644,14 @@ async function applyLicenseUpdate(
         ConditionExpression: conditionExpression,
       })
     );
+    console.log(
+      `[dodo-webhook] DDB write OK email=${email} paid=${patch.paid} tier=${patch.tier} subscriptionId=${patch.subscriptionId}`
+    );
   } catch (err) {
     if (err instanceof ConditionalCheckFailedException) {
       // Same event re-applied — safe to ignore.
       console.log(
-        `[dodo-webhook] applyLicenseUpdate: condition failed (likely duplicate eventId).`
+        `[dodo-webhook] applyLicenseUpdate: condition failed for email=${email} (duplicate eventId).`
       );
       return;
     }

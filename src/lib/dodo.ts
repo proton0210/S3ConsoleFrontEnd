@@ -6,7 +6,7 @@
  * mapping logic to the browser bundle.
  */
 import "server-only";
-import { createHmac, timingSafeEqual } from "crypto";
+import { Webhook } from "standardwebhooks";
 
 export type LicenseTier = "monthly" | "yearly" | "lifetime";
 
@@ -74,22 +74,16 @@ export function getDodoApiBaseUrl(): string {
 }
 
 /**
- * Verify a Dodo webhook signature (Standard Webhooks spec — standardwebhooks.com).
+ * Verify a Dodo webhook signature using the `standardwebhooks` library —
+ * the same package Dodo's own checkout demo uses, so we match their server's
+ * signing implementation exactly (Standard Webhooks v1, base64 HMAC-SHA256
+ * over `${id}.${timestamp}.${body}`).
  *
- * Dodo follows the Standard Webhooks signing format used by Svix:
- *   signed_content = `${webhook-id}.${webhook-timestamp}.${rawBody}`
- *   signature      = base64( HMAC_SHA256(signed_content, key) )
- * The `webhook-signature` header is a space-separated list of `v1,<sig>` entries
- * (the prefix is the version, the part after the comma is the base64 signature).
- * Verification passes if any one of the provided signatures matches.
+ * The secret is the value Dodo shows in the dashboard (typically `whsec_<base64>`).
+ * The library strips the prefix and base64-decodes the suffix to derive the key.
  *
- * The shared secret is usually distributed as `whsec_<base64>` — the actual
- * HMAC key is the base64-decoded portion after the prefix. We also accept raw
- * secrets without the prefix for flexibility.
- *
- * @param rawBody  — exact request body bytes Dodo signed (do NOT re-serialize JSON)
- * @param headers  — values of webhook-id, webhook-signature, webhook-timestamp
- * @param secret   — shared secret (with or without `whsec_` prefix)
+ * Returns true on success, false on any verification failure (the library
+ * throws — we convert to a boolean so callers can stay tidy).
  */
 export function verifyWebhookSignature(
   rawBody: string,
@@ -99,47 +93,22 @@ export function verifyWebhookSignature(
     timestamp: string | null | undefined;
   },
   secret: string
-): boolean {
+): { ok: true } | { ok: false; reason: string } {
   const { id, signature, timestamp } = headers;
-  if (!id || !signature || !timestamp || !secret) return false;
-  // Defend against trailing whitespace/newlines on env-pasted secrets — those
-  // would silently corrupt the base64 key without changing string equality.
-  secret = secret.trim();
-
-  // Replay protection: reject timestamps more than 5 minutes from now.
-  const ts = Number(timestamp);
-  if (!Number.isFinite(ts)) return false;
-  const nowSec = Math.floor(Date.now() / 1000);
-  const TOLERANCE_SEC = 5 * 60;
-  if (Math.abs(nowSec - ts) > TOLERANCE_SEC) return false;
-
-  // Resolve the HMAC key. `whsec_<base64>` is the Standard Webhooks distribution
-  // format; the key is the base64-decoded suffix.
-  const key = secret.startsWith("whsec_")
-    ? Buffer.from(secret.slice("whsec_".length), "base64")
-    : Buffer.from(secret, "utf8");
-  if (key.length === 0) return false;
-
-  const signedContent = `${id}.${timestamp}.${rawBody}`;
-  const expected = createHmac("sha256", key).update(signedContent).digest(); // raw bytes
-
-  // The header is a space-separated list like `v1,<sigA> v1,<sigB>`. Accept
-  // any v1 entry that matches. Unknown versions are skipped, not rejected.
-  for (const part of signature.split(" ")) {
-    const [version, sig] = part.split(",", 2);
-    if (version !== "v1" || !sig) continue;
-    let provided: Buffer;
-    try {
-      provided = Buffer.from(sig, "base64");
-    } catch {
-      continue;
-    }
-    if (provided.length !== expected.length) continue;
-    try {
-      if (timingSafeEqual(provided, expected)) return true;
-    } catch {
-      // length mismatch already filtered; ignore other timingSafeEqual errors
-    }
+  if (!id || !signature || !timestamp) {
+    return { ok: false, reason: "Missing webhook-id/signature/timestamp header" };
   }
-  return false;
+  if (!secret) {
+    return { ok: false, reason: "Webhook secret not configured" };
+  }
+  try {
+    new Webhook(secret.trim()).verify(rawBody, {
+      "webhook-id": id,
+      "webhook-signature": signature,
+      "webhook-timestamp": timestamp,
+    });
+    return { ok: true };
+  } catch (err: any) {
+    return { ok: false, reason: err?.message || "Verification failed" };
+  }
 }

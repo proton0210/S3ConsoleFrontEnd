@@ -41,6 +41,7 @@
     "remark-parse": "^11.0.0",
     "remark-rehype": "^11.1.0",
     "shiki": "^3.6.0",
+    "standardwebhooks": "^1.0.0",
     "tailwind-merge": "^2.4.0",
     "tailwindcss-animate": "^1.0.7",
     "unified": "^11.0.5",
