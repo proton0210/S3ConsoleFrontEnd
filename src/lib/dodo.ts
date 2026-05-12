@@ -74,34 +74,72 @@ export function getDodoApiBaseUrl(): string {
 }
 
 /**
- * Verify Dodo webhook HMAC signature using the shared secret.
+ * Verify a Dodo webhook signature (Standard Webhooks spec — standardwebhooks.com).
  *
- * Dodo signs webhook payloads with a shared HMAC-SHA256 secret. We compute
- * the same HMAC over the raw request body and compare in constant time.
+ * Dodo follows the Standard Webhooks signing format used by Svix:
+ *   signed_content = `${webhook-id}.${webhook-timestamp}.${rawBody}`
+ *   signature      = base64( HMAC_SHA256(signed_content, key) )
+ * The `webhook-signature` header is a space-separated list of `v1,<sig>` entries
+ * (the prefix is the version, the part after the comma is the base64 signature).
+ * Verification passes if any one of the provided signatures matches.
  *
- * @param rawBody — the raw request body bytes (NOT JSON.parsed; signature is
- *   computed over the exact bytes Dodo signed, including whitespace)
- * @param signatureHeader — the header value Dodo sent (typically `webhook-signature` or `x-dodo-signature`)
- * @param secret — shared secret from Secrets Manager (Phase 11 wires this via getSecretJson)
+ * The shared secret is usually distributed as `whsec_<base64>` — the actual
+ * HMAC key is the base64-decoded portion after the prefix. We also accept raw
+ * secrets without the prefix for flexibility.
+ *
+ * @param rawBody  — exact request body bytes Dodo signed (do NOT re-serialize JSON)
+ * @param headers  — values of webhook-id, webhook-signature, webhook-timestamp
+ * @param secret   — shared secret (with or without `whsec_` prefix)
  */
 export function verifyWebhookSignature(
   rawBody: string,
-  signatureHeader: string | null | undefined,
+  headers: {
+    id: string | null | undefined;
+    signature: string | null | undefined;
+    timestamp: string | null | undefined;
+  },
   secret: string
 ): boolean {
-  if (!signatureHeader || !secret) return false;
+  const { id, signature, timestamp } = headers;
+  if (!id || !signature || !timestamp || !secret) return false;
+  // Defend against trailing whitespace/newlines on env-pasted secrets — those
+  // would silently corrupt the base64 key without changing string equality.
+  secret = secret.trim();
 
-  const expected = createHmac("sha256", secret).update(rawBody).digest("hex");
-  // Strip optional `sha256=` prefix Dodo may send
-  const provided = signatureHeader.replace(/^sha256=/i, "").trim();
+  // Replay protection: reject timestamps more than 5 minutes from now.
+  const ts = Number(timestamp);
+  if (!Number.isFinite(ts)) return false;
+  const nowSec = Math.floor(Date.now() / 1000);
+  const TOLERANCE_SEC = 5 * 60;
+  if (Math.abs(nowSec - ts) > TOLERANCE_SEC) return false;
 
-  // Both buffers must be the same length for timingSafeEqual; otherwise it throws.
-  // Pad/reject mismatched lengths up front (constant-time short-circuit).
-  if (expected.length !== provided.length) return false;
+  // Resolve the HMAC key. `whsec_<base64>` is the Standard Webhooks distribution
+  // format; the key is the base64-decoded suffix.
+  const key = secret.startsWith("whsec_")
+    ? Buffer.from(secret.slice("whsec_".length), "base64")
+    : Buffer.from(secret, "utf8");
+  if (key.length === 0) return false;
 
-  try {
-    return timingSafeEqual(Buffer.from(expected, "hex"), Buffer.from(provided, "hex"));
-  } catch {
-    return false;
+  const signedContent = `${id}.${timestamp}.${rawBody}`;
+  const expected = createHmac("sha256", key).update(signedContent).digest(); // raw bytes
+
+  // The header is a space-separated list like `v1,<sigA> v1,<sigB>`. Accept
+  // any v1 entry that matches. Unknown versions are skipped, not rejected.
+  for (const part of signature.split(" ")) {
+    const [version, sig] = part.split(",", 2);
+    if (version !== "v1" || !sig) continue;
+    let provided: Buffer;
+    try {
+      provided = Buffer.from(sig, "base64");
+    } catch {
+      continue;
+    }
+    if (provided.length !== expected.length) continue;
+    try {
+      if (timingSafeEqual(provided, expected)) return true;
+    } catch {
+      // length mismatch already filtered; ignore other timingSafeEqual errors
+    }
   }
+  return false;
 }

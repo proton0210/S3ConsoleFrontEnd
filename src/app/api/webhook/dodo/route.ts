@@ -79,10 +79,9 @@ interface DodoPayloadObject {
 
 export async function POST(req: NextRequest) {
   const rawBody = await req.text();
-  const signatureHeader =
-    req.headers.get("webhook-signature") ||
-    req.headers.get("x-dodo-signature") ||
-    req.headers.get("x-webhook-signature");
+  const webhookId = req.headers.get("webhook-id");
+  const webhookSignature = req.headers.get("webhook-signature");
+  const webhookTimestamp = req.headers.get("webhook-timestamp");
 
   // 1. Resolve webhook secret. Phase 11 will swap this for getSecretJson() reading
   //    from Secrets Manager via DODO_WEBHOOK_SECRET_ARN.
@@ -92,10 +91,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Server misconfigured" }, { status: 500 });
   }
 
-  // 2. HMAC verification
-  if (!verifyWebhookSignature(rawBody, signatureHeader, webhookSecret)) {
+  // 2. Standard Webhooks signature verification (id + timestamp + body)
+  if (
+    !verifyWebhookSignature(
+      rawBody,
+      { id: webhookId, signature: webhookSignature, timestamp: webhookTimestamp },
+      webhookSecret
+    )
+  ) {
     console.warn("[dodo-webhook] Signature verification failed", {
-      hasHeader: !!signatureHeader,
+      hasId: !!webhookId,
+      hasSignature: !!webhookSignature,
+      hasTimestamp: !!webhookTimestamp,
       bodyLen: rawBody.length,
     });
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
