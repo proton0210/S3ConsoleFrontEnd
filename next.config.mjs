@@ -30,10 +30,10 @@ const nextConfig = {
     FOUNDER_DIGEST_MODE: process.env.FOUNDER_DIGEST_MODE,
     DODO_API_KEY: process.env.DODO_API_KEY,
     DODO_API_BASE_URL: process.env.DODO_API_BASE_URL,
-    DODO_WEBHOOK_SECRET: process.env.DODO_WEBHOOK_SECRET,
-    DODO_RETURN_URL: process.env.DODO_RETURN_URL,
-    DODO_API_KEY_SECRET_ARN: process.env.DODO_API_KEY_SECRET_ARN,
-    DODO_WEBHOOK_SECRET_ARN: process.env.DODO_WEBHOOK_SECRET_ARN,
+    // DODO_WEBHOOK_SECRET / DODO_WEBHOOK_SECRET_ARN are NOT forwarded:
+    // the webhook now runs on a dedicated Lambda Function URL (see
+    // backend-s3Console/src/handlers/dodo-webhook.ts). The Next.js app no
+    // longer receives Dodo webhook traffic.
     RESEND_SECRET_ARN: process.env.RESEND_SECRET_ARN,
     LICENSE_SIGNING_SECRET_ARN: process.env.LICENSE_SIGNING_SECRET_ARN,
     CLERK_WEBHOOK_SECRET_ARN: process.env.CLERK_WEBHOOK_SECRET_ARN,

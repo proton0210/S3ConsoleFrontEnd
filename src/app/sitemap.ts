@@ -3,8 +3,8 @@ import { MetadataRoute } from "next";
 /**
  * Sitemap drives Google's crawl prioritization. Rules:
  *   - Only PUBLIC, indexable pages go here. Private pages (/account/billing) and
- *     transactional ones (/buy, /payment-status, /success) are noindex'd via
- *     their own layout metadata and intentionally excluded.
+ *     transactional ones (/buy, /payment-status) are noindex'd via their own
+ *     layout metadata and intentionally excluded.
  *   - Priority is relative — homepage 1.0, money pages 0.9, content 0.8,
  *     legal/policy 0.4. Auth pages excluded; they have no SEO value.
  *   - changeFrequency is a hint, not a guarantee. Daily for the homepage

@@ -8,7 +8,7 @@ export default function robots(): MetadataRoute.Robots {
   //   /api/, /_next/   — internal
   //   /sign-in, /sign-up — auth, no SEO value
   //   /account/        — private user pages
-  //   /buy, /payment-status, /success, /downloads/cancel — transactional, noindex'd
+  //   /buy, /payment-status, /downloads/cancel — transactional, noindex'd
   // Aggressive scrapers (Ahrefs/Semrush/etc) blocked at the bot level —
   // they're useful only to competitors and burn crawl budget.
   const sharedDisallow = [
@@ -19,7 +19,6 @@ export default function robots(): MetadataRoute.Robots {
     "/account/",
     "/buy",
     "/payment-status",
-    "/success",
     "/downloads/cancel",
   ];
 
