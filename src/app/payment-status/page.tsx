@@ -43,11 +43,18 @@ interface VerifiedLicense {
 }
 
 // Polling cadence — fast at first to feel responsive, then back off to limit
-// API load. 30s of 2-second polling + 2.5min of 5-second polling = 3 min total.
+// API load. UPI Autopay first-cycle settlement can take up to ~15 min, so we
+// poll for 10 min on this page; if the user closes the tab earlier, the
+// webhook still writes the row and we email the key.
 const FAST_INTERVAL_MS = 2_000;
 const SLOW_INTERVAL_MS = 5_000;
 const FAST_WINDOW_MS = 30_000;
-const TOTAL_TIMEOUT_MS = 3 * 60_000;
+const TOTAL_TIMEOUT_MS = 10 * 60_000;
+// Copy-stage thresholds inside the processing phase. As time passes, we
+// gradually shift from "this is fast" → "some methods take a few minutes" →
+// "you can safely close this — we'll email you".
+const COPY_STAGE_PATIENT_MS = 30_000;
+const COPY_STAGE_RELAXED_MS = 90_000;
 // Safety net: if Clerk's auth hooks haven't resolved within this window, stop
 // showing a bare spinner and flip to the recovery UI so the user has actions
 // (refresh, billing dashboard, email support).
@@ -84,14 +91,62 @@ function PaymentStatusContent() {
 
   const statusParam = (searchParams.get("status") || "").toLowerCase();
   const paymentIdParam = searchParams.get("payment_id");
+  const subscriptionIdParam = searchParams.get("subscription_id");
+  // Dodo's return URL only contains payment_id / subscription_id / status /
+  // license_key / email — no payment_method hint. We fetch the method
+  // separately (see effect below) and refine the copy when it lands.
   // Derive email outside the effect so the effect dep is a stable primitive,
   // not the whole `user` object (which Clerk re-emits on token refreshes).
   const email = user?.primaryEmailAddress?.emailAddress;
 
   const [phase, setPhase] = useState<UiPhase>("loading");
   const [license, setLicense] = useState<VerifiedLicense | null>(null);
+  const [elapsedMs, setElapsedMs] = useState(0);
+  // Method-type as reported by Dodo (e.g. "upi", "card", "netbanking", ...).
+  // Loaded asynchronously after mount via /api/dodo/payment-method; null
+  // until we know. The processing copy uses this when present.
+  const [paymentMethodType, setPaymentMethodType] = useState<string | null>(
+    null
+  );
   const confettiFired = useRef(false);
   const abortRef = useRef<AbortController | null>(null);
+
+  // While polling, tick a 1-Hz elapsed counter so the processing copy can
+  // shift stages without forcing the polling effect to re-run.
+  useEffect(() => {
+    if (phase !== "processing") return;
+    const startedAt = Date.now();
+    setElapsedMs(0);
+    const id = setInterval(() => setElapsedMs(Date.now() - startedAt), 1000);
+    return () => clearInterval(id);
+  }, [phase]);
+
+  // Look up the payment method server-side so we can show method-specific
+  // copy from t=0 (Dodo doesn't include payment_method_type in the return
+  // URL — only payment_id, subscription_id, status, license_key, email).
+  // Best-effort: 404s and network errors are silently ignored — the UI just
+  // falls back to the subscription_id heuristic.
+  useEffect(() => {
+    if (!paymentIdParam && !subscriptionIdParam) return;
+    const controller = new AbortController();
+    const params = new URLSearchParams();
+    if (paymentIdParam) params.set("payment_id", paymentIdParam);
+    else if (subscriptionIdParam)
+      params.set("subscription_id", subscriptionIdParam);
+    fetch(`/api/dodo/payment-method?${params.toString()}`, {
+      signal: controller.signal,
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!data) return;
+        const t = data.paymentMethodType;
+        if (typeof t === "string" && t) setPaymentMethodType(t.toLowerCase());
+      })
+      .catch(() => {
+        /* best-effort */
+      });
+    return () => controller.abort();
+  }, [paymentIdParam, subscriptionIdParam]);
 
   // Safety net: if Clerk never loads in a reasonable time, leave the spinner
   // and surface the recovery UI so the user has actions.
@@ -241,18 +296,24 @@ function PaymentStatusContent() {
     return (
       <Wrapper accent="amber">
         <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-100 rounded-full mb-6">
-          <FaExclamationTriangle className="h-7 w-7 text-amber-600" />
+          <FaEnvelope className="h-7 w-7 text-amber-600" />
         </div>
         <h1 className="text-3xl font-bold text-slate-900 mb-3">
-          Still confirming your payment
+          We'll email you when it's ready
         </h1>
         <p className="text-slate-600 mb-2">
-          Dodo took longer than expected to confirm. Your card may have been
-          charged successfully — we just haven't received confirmation yet.
+          Your payment is still settling with your bank — this is normal for
+          UPI Autopay and NACH on the first cycle, and can take up to a few
+          hours in rare cases.
         </p>
         <p className="text-slate-600 mb-8">
-          We've sent your license key to your email. If you don't see it within
-          a few minutes, reach out and we'll get it to you immediately.
+          The moment it lands, your license key goes to{" "}
+          {email ? (
+            <span className="font-medium text-slate-800">{email}</span>
+          ) : (
+            "your email"
+          )}{" "}
+          and appears on your billing dashboard.
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3">
           <Button
@@ -260,7 +321,7 @@ function PaymentStatusContent() {
             className="bg-primary hover:bg-primary/90 text-white"
           >
             <FaSyncAlt className="mr-2 h-4 w-4" />
-            Refresh status
+            Check again
           </Button>
           <Link
             href="/account/billing"
@@ -276,7 +337,7 @@ function PaymentStatusContent() {
             )}`}
             className="inline-flex items-center gap-2 text-sm text-slate-700 hover:text-primary underline"
           >
-            <FaEnvelope className="h-3.5 w-3.5" /> Email support
+            Email support
           </a>
         </div>
       </Wrapper>
@@ -348,27 +409,172 @@ function PaymentStatusContent() {
     );
   }
 
-  // phase === "processing" — show spinner + reassuring optimistic copy.
-  // If Dodo told us status=succeeded we tone the language up; otherwise more
-  // neutral.
-  const looksGood = statusParam === "succeeded";
+  // phase === "processing" — visual progress + adaptive copy.
+  const isSubscription = !!subscriptionIdParam;
+  const methodProfile = classifyPaymentMethod(paymentMethodType);
+  // If the method is known-slow, skip the "few seconds" promise entirely; if
+  // it's known-fast, keep the snappy default. Subscription with unknown
+  // method falls between the two — skip the optimistic stage but don't claim
+  // the wait will be long.
+  const stageOffsetMs =
+    methodProfile === "slow"
+      ? COPY_STAGE_RELAXED_MS
+      : methodProfile === "fast"
+        ? 0
+        : isSubscription
+          ? COPY_STAGE_PATIENT_MS
+          : 0;
+  const effectiveElapsed = elapsedMs + stageOffsetMs;
+  const stage =
+    effectiveElapsed < COPY_STAGE_PATIENT_MS
+      ? "fast"
+      : effectiveElapsed < COPY_STAGE_RELAXED_MS
+        ? "patient"
+        : "relaxed";
+
+  const methodLabel = methodDisplayName(paymentMethodType);
+
+  const heading =
+    stage === "fast"
+      ? "Confirming your payment…"
+      : stage === "patient"
+        ? methodProfile === "slow"
+          ? `Settling your ${methodLabel} payment`
+          : "Confirming — almost there"
+        : methodProfile === "slow"
+          ? `${methodLabel} mandate settling with your bank`
+          : isSubscription
+            ? "Payment received — settling with your bank"
+            : "Hang tight — your payment is being processed";
+
+  const subhead =
+    stage === "fast"
+      ? "We're checking with your bank. This usually takes a few seconds."
+      : stage === "patient"
+        ? methodProfile === "slow"
+          ? `${methodLabel} mandates clear through your bank in 5–15 minutes on the first cycle — nothing to do on your end.`
+          : isSubscription
+            ? "First-cycle subscription payments settle through your bank in a couple of minutes — this is normal."
+            : "Some payment methods settle through your bank in 1–5 minutes — this is normal."
+        : methodProfile === "slow"
+          ? `${methodLabel} first-cycle settlement can take up to 15 minutes. Your bank is finishing up — we'll email your license the moment it lands.`
+          : isSubscription
+            ? "UPI Autopay and NACH mandates settle in 5–15 minutes on the first cycle. Nothing to do on your end — your bank takes it from here."
+            : "Card 3DS or bank confirmation is taking longer than usual. We're still working on it.";
+
   return (
     <Wrapper accent="slate">
-      <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-6">
-        <FaSpinner className="h-7 w-7 animate-spin text-primary" />
+      <div className="relative inline-flex items-center justify-center w-20 h-20 mb-6">
+        <span className="absolute inset-0 rounded-full bg-primary/10 animate-ping" />
+        <span className="absolute inset-2 rounded-full bg-primary/15" />
+        <FaSpinner className="relative h-8 w-8 animate-spin text-primary" />
       </div>
-      <h1 className="text-3xl font-bold text-slate-900 mb-3">
-        {looksGood ? "Payment received — finalizing…" : "Confirming your payment…"}
-      </h1>
-      <p className="text-slate-600 mb-2">
-        {looksGood
-          ? "Dodo confirmed the charge. We're waiting for the activation webhook."
-          : "We're checking with Dodo. This usually takes a few seconds."}
-      </p>
-      <p className="text-sm text-slate-500">
-        You can leave this page open — we'll update it the moment we hear back.
-      </p>
+      <h1 className="text-3xl font-bold text-slate-900 mb-3">{heading}</h1>
+      <p className="text-slate-600 mb-8 max-w-md mx-auto">{subhead}</p>
+
+      <ProgressStepper />
+
+      {stage === "relaxed" && (
+        <div className="mt-8 bg-primary/5 border border-primary/15 rounded-lg p-4 text-left max-w-md mx-auto">
+          <p className="text-sm font-semibold text-slate-900 mb-1 flex items-center gap-2">
+            <FaEnvelope className="h-3.5 w-3.5 text-primary" />
+            Feel free to close this tab
+          </p>
+          <p className="text-sm text-slate-600">
+            We'll email your license key to{" "}
+            <span className="font-medium text-slate-800">{email}</span> the
+            moment your payment settles. Your license will also appear on the{" "}
+            <Link
+              href="/account/billing"
+              className="text-primary hover:underline"
+            >
+              billing dashboard
+            </Link>
+            .
+          </p>
+        </div>
+      )}
+
+      {stage !== "relaxed" && (
+        <p className="mt-6 text-sm text-slate-500">
+          You can leave this page open — we'll update it the moment we hear back.
+        </p>
+      )}
     </Wrapper>
+  );
+}
+
+function ProgressStepper() {
+  // Three logical steps for the user's mental model: charge → settlement →
+  // activation. Step 1 is "done" (Dodo redirected here, so the charge was at
+  // least submitted). Step 2 is the live state during processing. Step 3
+  // lights up only once we transition out of this phase on success — while
+  // processing is showing, step 3 is always the "next" step.
+  const steps = [
+    { label: "Payment submitted", state: "done" as const },
+    { label: "Confirming with bank", state: "active" as const },
+    { label: "Activating license", state: "pending" as const },
+  ];
+  return (
+    <ol className="flex items-start justify-between gap-2 max-w-md mx-auto">
+      {steps.map((s, i) => {
+        const prev = steps[i - 1];
+        const next = steps[i + 1];
+        const leftFilled = prev && (prev.state === "done" || prev.state === "active");
+        const rightFilled = s.state === "done" || (s.state === "active" && next);
+        return (
+        <li
+          key={s.label}
+          className="flex-1 flex flex-col items-center text-center"
+        >
+          <div className="relative w-full flex items-center">
+            {prev && (
+              <span
+                className={`absolute right-1/2 left-0 top-1/2 -translate-y-1/2 h-0.5 ${
+                  leftFilled ? "bg-primary/70" : "bg-slate-200"
+                }`}
+                aria-hidden
+              />
+            )}
+            <div
+              className={`relative mx-auto z-10 inline-flex items-center justify-center w-9 h-9 rounded-full border-2 transition-colors ${
+                s.state === "done"
+                  ? "bg-primary border-primary text-white"
+                  : s.state === "active"
+                    ? "border-primary text-primary bg-white"
+                    : "border-slate-300 text-slate-400 bg-white"
+              }`}
+            >
+              {s.state === "done" ? (
+                <FaCheck className="h-3.5 w-3.5" />
+              ) : s.state === "active" ? (
+                <FaSpinner className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <span className="text-xs font-semibold">{i + 1}</span>
+              )}
+            </div>
+            {next && (
+              <span
+                className={`absolute left-1/2 right-0 top-1/2 -translate-y-1/2 h-0.5 ${
+                  rightFilled ? "bg-primary/70" : "bg-slate-200"
+                }`}
+                aria-hidden
+              />
+            )}
+          </div>
+          <span
+            className={`mt-2 text-xs font-medium ${
+              s.state === "done" || s.state === "active"
+                ? "text-slate-900"
+                : "text-slate-400"
+            }`}
+          >
+            {s.label}
+          </span>
+        </li>
+        );
+      })}
+    </ol>
   );
 }
 
@@ -398,4 +604,41 @@ function Wrapper({
 
 function capitalize(s: string): string {
   return s.length === 0 ? s : s[0].toUpperCase() + s.slice(1);
+}
+
+/**
+ * Group Dodo's payment_method_type values into latency profiles. Known-slow
+ * methods are those whose first-cycle settlement involves an async mandate
+ * (UPI Autopay, NACH); known-fast are direct charges that confirm in seconds.
+ * Anything we don't recognize stays "unknown" — the UI then falls back to
+ * the subscription_id heuristic for tone.
+ */
+function classifyPaymentMethod(
+  m: string | null
+): "fast" | "slow" | "unknown" {
+  if (!m) return "unknown";
+  const v = m.toLowerCase();
+  if (/(upi|nach|autopay|mandate|bank_transfer|netbanking|ach|sepa)/.test(v))
+    return "slow";
+  if (/(card|credit|debit|paypal|apple_pay|google_pay|wallet)/.test(v))
+    return "fast";
+  return "unknown";
+}
+
+/**
+ * Human label for a payment method. Used inline in copy ("Settling your UPI
+ * payment"). Defaults to a neutral "payment" so the sentence still scans
+ * when the method is unrecognized.
+ */
+function methodDisplayName(m: string | null): string {
+  if (!m) return "payment";
+  const v = m.toLowerCase();
+  if (v.includes("upi")) return "UPI Autopay";
+  if (v.includes("nach")) return "NACH eMandate";
+  if (v.includes("netbanking")) return "Net Banking";
+  if (v.includes("bank_transfer")) return "Bank Transfer";
+  if (v.includes("sepa")) return "SEPA Direct Debit";
+  if (v.includes("ach")) return "ACH";
+  if (v.includes("card")) return "Card";
+  return "payment";
 }
