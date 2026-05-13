@@ -24,7 +24,7 @@ function HeroPill() {
         New
       </div>
       <p className="text-xs font-medium text-primary sm:text-sm">
-        S3Console 2.5
+        S3Console 2.6
       </p>
       <svg
         width="12"
