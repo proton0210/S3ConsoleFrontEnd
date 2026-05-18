@@ -140,6 +140,22 @@ export default async function BlogPostPage({ params }: RouteProps) {
           </div>
         </header>
 
+        {videoId && (
+          <div className="mb-10 overflow-hidden rounded-xl border bg-black shadow-sm">
+            <div className="relative aspect-video">
+              <iframe
+                src={`https://www.youtube.com/embed/${videoId}`}
+                title={metadata.title}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="strict-origin-when-cross-origin"
+                className="absolute inset-0 h-full w-full"
+              />
+            </div>
+          </div>
+        )}
+
         <div
           className="prose prose-neutral dark:prose-invert max-w-none prose-headings:scroll-mt-24 prose-headings:font-semibold prose-h2:mt-12 prose-h2:text-2xl sm:prose-h2:text-3xl prose-h3:mt-8 prose-h3:text-xl prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-img:rounded-lg prose-pre:rounded-lg prose-pre:border prose-pre:bg-muted/40 prose-code:before:hidden prose-code:after:hidden prose-code:rounded prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:text-[0.9em] prose-code:font-medium"
           dangerouslySetInnerHTML={{ __html: source }}
