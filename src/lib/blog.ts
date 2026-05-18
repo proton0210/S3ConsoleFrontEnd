@@ -6,6 +6,7 @@ import rehypeStringify from "rehype-stringify";
 import remarkGfm from "remark-gfm";
 import remarkParse from "remark-parse";
 import remarkRehype from "remark-rehype";
+import { createHighlighter } from "shiki";
 import { unified } from "unified";
 
 export type Post = {
@@ -48,6 +49,9 @@ export async function markdownToHTML(markdown: string) {
       // https://rehype-pretty.pages.dev/#usage
       theme: "min-light",
       keepBackground: false,
+      // Shiki v3 renamed `getHighlighter` to `createHighlighter`; rehype-pretty-code
+      // 0.13 still calls the old name internally. Override with our own factory.
+      getHighlighter: createHighlighter as never,
     })
     .use(rehypeStringify)
     .process(markdown);

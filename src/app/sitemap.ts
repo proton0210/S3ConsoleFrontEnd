@@ -1,3 +1,4 @@
+import { getBlogPosts } from "@/lib/blog";
 import { MetadataRoute } from "next";
 
 /**
@@ -10,9 +11,17 @@ import { MetadataRoute } from "next";
  *   - changeFrequency is a hint, not a guarantee. Daily for the homepage
  *     because hero copy + testimonials shift; monthly for stable content.
  */
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://s3console.com";
   const now = new Date();
+
+  const posts = await getBlogPosts();
+  const blogEntries: MetadataRoute.Sitemap = posts.map((p) => ({
+    url: `${baseUrl}/blog/${p.slug}`,
+    lastModified: p.publishedAt ? new Date(p.publishedAt) : now,
+    changeFrequency: "monthly",
+    priority: 0.7,
+  }));
 
   return [
     // Money pages (highest priority)
@@ -54,6 +63,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.85,
     },
+
+    // Blog
+    {
+      url: `${baseUrl}/blog`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    ...blogEntries,
 
     // Legal / policy
     {

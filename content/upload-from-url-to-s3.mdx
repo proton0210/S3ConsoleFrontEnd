@@ -1,0 +1,205 @@
+---
+title: "Upload a File from URL Directly to S3 — Without Downloading It First"
+publishedAt: "2026-05-18"
+summary: "The AWS Console has no 'Upload from URL' button. Here's how S3Console streams a remote URL straight into S3 — no disk staging, no 5 GB browser cap, no Lambda required — with code from the production implementation."
+author: "S3Console Team"
+image: "/dashboard.png"
+videoId: "Gn4CkRjwOi8"
+---
+
+If you've ever wanted to copy a file from a public URL — a CDN asset, a sibling S3 bucket, a Dropbox share — into one of your own S3 buckets, you've probably hit this wall: **the AWS S3 web console doesn't let you upload from a URL**. Your options collapse to two unappealing choices: download the file locally and re-upload it, or write a Lambda. Both are bad.
+
+This post walks through the third option — streaming the remote bytes directly into S3 from your desktop — what it actually means under the hood, and how we built **Upload from URL** in [S3Console](/downloads). If you'd rather watch than read, the [demo is on YouTube](https://youtu.be/Gn4CkRjwOi8).
+
+## The Problem: The AWS Web Console Has No "Upload from URL"
+
+Open the S3 console, pick a bucket, click *Upload*. You get a file picker. That's it. There is no field where you can paste an HTTPS URL. If your source file lives anywhere other than your local disk, you have to bring it to your local disk first.
+
+The friction this creates is real:
+
+- **The browser has a 5 GB upload cap.** Any single object the AWS Console uploads from the web has to fit through a single PUT — and the browser flow caps at 5 GB. Multipart uploads with the web console exist, but only for files already on your machine.
+- **You pay for bandwidth twice.** Download from the source (incoming bytes) and upload to S3 (outgoing bytes). If you're on a metered connection — or roaming, or on hotel Wi-Fi — that's two trips for no good reason.
+- **No native S3-to-S3 copy in the UI** for arbitrary cross-region or cross-account moves. The web console's "copy" only works for objects already in a bucket you have console access to.
+- **No way to pull from an arbitrary HTTPS endpoint.** Public CDN URL, signed Dropbox link, GitHub release tarball — the web console can't fetch any of it.
+
+The escape hatch most teams reach for is a Lambda: write a function that does `fetch(url)` and `s3:PutObject`, wire it to an API Gateway or an EventBridge schedule, deploy it, manage the IAM. That works, but it's a chunk of infrastructure to write and own for what should be a single button click.
+
+The real solution is simpler: **don't move the bytes through your disk at all.** Open an HTTPS connection to the source, and pipe the response body straight into an S3 multipart upload, in the same process. The file never lands on disk. Your network sees the bytes exactly once on each leg. And because S3's multipart upload protocol doesn't care about total size up-front, you're not bound by any 5 GB single-PUT ceiling.
+
+## What "Upload from URL" Actually Does
+
+In S3Console you paste a URL, choose a destination key, and click *Upload from URL*. Under the hood, the app:
+
+1. Opens an HTTPS request to the source URL (following redirects up to 5 hops).
+2. Reads the response body as a Node.js stream — never writing it to disk.
+3. Pipes that stream straight into an AWS SDK [`@aws-sdk/lib-storage`](https://github.com/aws/aws-sdk-js-v3/tree/main/lib/lib-storage) `Upload`, which transparently handles S3 multipart for you.
+4. Reports progress to the same UI that drag-and-drop file uploads use, with the same cancel button.
+
+The whole pipeline is native: it runs in the Electron main process on your machine, talks directly to S3 with your local AWS credentials, and never proxies your data through any S3Console server. There is no S3Console-hosted backend in the data path.
+
+## The Architecture, With Real Code
+
+Below are sanitized excerpts from S3Console's production `urlUploadService.ts` — the same module that ships in the desktop app.
+
+### 1. Streaming, Never Staging
+
+The heart of the implementation is wiring a Node HTTP response into a `lib-storage` `Upload`. The response stream pipes through a small byte-counting transform (for progress events) and then into S3:
+
+```ts
+const fetched = await fetchUrlStream(url, headers, abortController.signal);
+const totalBytes = fetched.contentLength;
+const contentType =
+  fetched.contentType ||
+  (mimeLookup(s3Key) as string | false) ||
+  "application/octet-stream";
+
+const counter = makeCounterStream(uploadKey, s3Key, totalBytes, baseCtx, mainWindow, (n) => {
+  transferredBytes = n;
+});
+
+fetched.body.pipe(counter);
+
+const upload = new Upload({
+  client: currentS3Client,
+  params: {
+    Bucket: bucketName,
+    Key: s3Key,
+    Body: counter,
+    ContentType: contentType,
+    ContentDisposition: "inline",
+  },
+  queueSize,
+  partSize,
+  leavePartsOnError: false,
+});
+```
+
+A few things worth calling out:
+
+- **`Body: counter`** — the upload's body is a stream, not a buffer or a file path. `lib-storage` consumes it chunk by chunk, dispatches multipart parts in parallel, and assembles them at the end. Memory usage is bounded to roughly `partSize × queueSize`, regardless of total file size.
+- **`ContentDisposition: "inline"`** — so when you later open the object via a presigned URL, images and PDFs render in the browser instead of force-downloading.
+- **`Content-Type` inference** — we trust the upstream server's `Content-Type` header if present, fall back to the [`mime-types`](https://www.npmjs.com/package/mime-types) library based on the destination key extension, and last-ditch to `application/octet-stream`. This matters: an object with a generic content type breaks preview and breaks browser-side rendering for legitimately renderable formats.
+
+### 2. Adaptive Multipart Sizing
+
+S3's multipart upload has two hard limits: parts must be at least 5 MB (except the last), and an object can have at most 10,000 parts. That gives a theoretical max of ~50 GB per object at the minimum part size — but in practice, large files want larger parts so you're not making 10,000 small HTTP requests. S3Console picks a part size adaptively:
+
+```ts
+function determinePartSize(totalBytes: number | undefined): number {
+  if (!totalBytes || totalBytes <= 0) return MIN_PART_SIZE;
+  const calculated = Math.ceil(totalBytes / MAX_PARTS);
+  return Math.max(MIN_PART_SIZE, calculated);
+}
+
+function determineQueueSize(totalBytes: number | undefined): number {
+  return totalBytes && totalBytes > FIVE_GIB ? 8 : 4;
+}
+```
+
+For most files, `MIN_PART_SIZE` (5 MB) is fine. For files over ~50 GB, we scale `partSize` up so we stay under 10,000 parts. For files over 5 GB, we bump the upload concurrency from 4 to 8 parts in flight — that buys throughput on fast connections without overwhelming AWS API rate limits. If `Content-Length` is missing (chunked encoding, certain CDNs), we default to the conservative 5 MB / 4-queue setting.
+
+### 3. Redirect Handling — Browser-Style, On Purpose
+
+Real-world URLs redirect. Short links resolve to canonical hosts; "latest release" links bounce to versioned URLs; S3 itself returns 301 PermanentRedirect when you hit the wrong region. The HTTPS fetch handles redirects manually so we can apply the right security rules:
+
+```ts
+// Strip Authorization on cross-origin redirects (browser-standard behavior).
+if (originUrl && !isSameOrigin(originUrl, url)) {
+  for (const k of Object.keys(effectiveHeaders)) {
+    if (k.toLowerCase() === "authorization") {
+      delete effectiveHeaders[k];
+    }
+  }
+}
+
+// ...
+
+// Redirect handling
+if (status >= 300 && status < 400 && res.headers.location) {
+  res.resume(); // drain
+  if (redirectsRemaining <= 0) {
+    reject(new Error(`Too many redirects (>${MAX_REDIRECTS})`));
+    return;
+  }
+  const nextUrl = new NodeURL(res.headers.location, url).toString();
+  fetchUrlStream(nextUrl, effectiveHeaders, abortSignal, redirectsRemaining - 1, url)
+    .then(resolve, reject);
+  return;
+}
+```
+
+This is the same rule modern browsers enforce: if you hand us an `Authorization` header for `api.example.com`, we will not silently forward that bearer token to `cdn.attacker.example` after a redirect. The redirect is followed; the credential is dropped.
+
+If the actual destination is S3 in the wrong region, S3 returns a 301 with a `PermanentRedirect` error code and the correct region in the response. S3Console's upper layer catches that, swaps the underlying `S3Client` to the right region, and retries once — so cross-region uploads "just work" without you fishing for the right AWS endpoint.
+
+## Common Pitfalls We Solved For You
+
+Building this right took longer than the streaming wiring would suggest. A few things that bit us during development:
+
+- **Cancelling mid-transfer needed to kill three things at once.** The HTTP socket (so we stop reading bytes we'd throw away), the `lib-storage` `Upload` (so it abandons its in-flight parts), and the source body stream. The cancellation path tears down all three in order so we never leak a socket or a half-written multipart upload:
+
+  ```ts
+  export function cancelUrlUpload(uploadKey: string): boolean {
+    const active = activeUrlUploads.get(uploadKey);
+    if (!active) return false;
+    active.abortController.abort();
+    if (active.upload) active.upload.abort().catch(() => {});
+    if (active.sourceBody) {
+      (active.sourceBody as { destroy?: (err?: Error) => void }).destroy?.(
+        new Error("Upload canceled by user"),
+      );
+    }
+    return true;
+  }
+  ```
+
+- **Progress events flood IPC if you let them.** Node streams emit data chunks every few milliseconds on a fast link. Sending an IPC message for each one freezes the UI thread. We throttle progress emits to a small fixed interval and pass them through the same `upload-progress` channel that file uploads use — so URL uploads appear in the same progress list users already know.
+- **The byte counter has to be a Transform, not a `data` listener.** Attaching a `data` listener to the source stream flips it into flowing mode and starves the downstream `Upload` consumer (you'll see the upload hang at 0%). Counting inside `transform()` keeps the stream in paused mode, where `Upload` can pull at its own pace.
+- **Leaving parts on error is a real cost.** `lib-storage` defaults to keeping incomplete multipart parts around if an upload fails — and S3 charges storage for them until you abort. We pass `leavePartsOnError: false` so cancellations clean up after themselves.
+
+## Console vs. S3Console vs. Custom Lambda
+
+| | AWS Web Console | Custom Lambda | **S3Console** |
+|---|---|---|---|
+| Paste a URL, hit upload | ❌ No URL field | ⚠️ You write the API | ✅ Native UI |
+| Pull arbitrary HTTPS source | ❌ | ✅ | ✅ |
+| Files >5 GB | ⚠️ Multipart only with local files | ✅ | ✅ |
+| Cross-region S3-to-S3 | ⚠️ Manual region juggling | ✅ | ✅ Auto-retry |
+| Cancellation mid-stream | ❌ | ⚠️ You build it | ✅ |
+| Progress reporting | ❌ | ⚠️ You build it | ✅ |
+| Bytes never touch your disk | n/a | ✅ | ✅ |
+| Bytes never leave your network | ❌ Through the browser | ✅ | ✅ Direct from your machine |
+| Time to first upload | Minutes (download + re-upload) | Days (write, deploy, debug) | Seconds |
+
+## Frequently Asked Questions
+
+### Can I upload a file from URL in the AWS S3 Console?
+
+Not directly. The AWS web console's *Upload* dialog only accepts files from your local filesystem — there is no field to paste an HTTPS URL. You either need to download the file locally first and re-upload it, or build a small piece of infrastructure (a Lambda function, a Step Functions workflow, or a third-party desktop client like [S3Console](/downloads)) that does the URL-to-S3 transfer for you.
+
+### What's the maximum file size for an S3 upload from URL?
+
+S3's hard ceiling is 5 TB per object, achieved via multipart upload with up to 10,000 parts. S3Console's Upload from URL uses multipart end-to-end, so you get the full 5 TB ceiling. The browser-based AWS Console caps at 5 GB for single-PUT uploads, which is why streaming directly from a desktop client matters once your files are big.
+
+### Do I need a Lambda to copy files between S3 buckets?
+
+No. If both buckets are in your AWS profile, S3Console can do a cross-bucket, cross-region, and even cross-account copy by treating one bucket's object as a URL source (via presigned URL) and streaming it into the destination. You skip the deploy step entirely.
+
+### Does S3Console store my files or credentials on its servers?
+
+No. Uploads go directly from your machine to S3 using your local AWS credentials. There is no S3Console-hosted backend in the data path, and credentials are kept in your OS keychain — the same way the AWS CLI handles them. See the [security details on the AWS S3 client page](/aws-s3-client).
+
+### Does Upload from URL work with private URLs?
+
+Yes — you can supply custom headers (including `Authorization`) when you start the upload, and S3Console attaches them to the outgoing request. The redirect handler strips `Authorization` only on cross-origin hops, matching browser security defaults so you don't accidentally leak a token.
+
+## Try It Yourself
+
+The fastest way to see this end-to-end is to install S3Console, paste any HTTPS URL into the Upload from URL dialog, and watch it stream into your bucket without ever touching your disk. The 14-day trial is unrestricted and doesn't ask for a credit card.
+
+- [Download S3Console](/downloads) for Mac, Windows, or Linux
+- [See pricing](/pricing) — $9/month, $49/year, or $99 one-time lifetime
+- [How S3Console compares to other AWS S3 clients](/aws-s3-client)
+- [Read the launch post](/blog/introducing-s3console) for the broader feature tour
+
+If you build something fun with it, we'd love to hear about it.

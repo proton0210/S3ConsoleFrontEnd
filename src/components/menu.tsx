@@ -70,12 +70,7 @@ export default function NavigationMenuDemo() {
                 </NavigationMenuContent>
               </>
             ) : (
-              <Link
-                href={item.href || ""}
-                target="_arya"
-                legacyBehavior
-                passHref
-              >
+              <Link href={item.href || ""} legacyBehavior passHref>
                 <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                   {item.label}
                 </NavigationMenuLink>
