@@ -125,10 +125,9 @@ export default function DownloadsPage() {
         } else {
           // Logged-in but no row yet (just signed up, webhook still propagating).
           // Don't alert — let them download, they'll see their license info on next refresh.
-          console.warn("[downloads] user-data not ready:", data.error);
         }
-      } catch (err) {
-        console.warn("[downloads] user-data fetch failed:", err);
+      } catch {
+        // Swallow fetch errors — user can refresh to retry.
       } finally {
         setLoading(false);
       }
@@ -283,8 +282,8 @@ export default function DownloadsPage() {
         setCopiedKey(true);
         setTimeout(() => setCopiedKey(false), 2000);
       }
-    } catch (err) {
-      console.error('Failed to copy text: ', err);
+    } catch {
+      // Clipboard write failed — silently ignore.
     }
   };
 
@@ -311,7 +310,6 @@ export default function DownloadsPage() {
 
       await refreshUserData();
     } catch (error) {
-      console.error("Failed to deregister machine:", error);
       alert((error as Error).message || "Failed to deregister machine. Please try again.");
     } finally {
       setDeletingMachine(null);
@@ -342,8 +340,8 @@ export default function DownloadsPage() {
           setRequiresActivation(false);
         }
       }
-    } catch (error) {
-      console.error("Failed to refresh user data:", error);
+    } catch {
+      // Refresh failed — user can retry by clicking refresh again.
     } finally {
       setRefreshing(false);
     }

@@ -1,0 +1,264 @@
+---
+title: "S3 Drop Zones: Create a Public Upload Link for an S3 Bucket in 30 Seconds (No Lambda, No API Gateway)"
+publishedAt: "2026-05-19"
+lastModified: "2026-05-19"
+summary: "How to create a public upload link for an AWS S3 bucket without writing a Lambda, an API Gateway endpoint, or a custom upload portal. S3Console Drop Zones generate a signed POST policy and a self-contained HTML upload page in one click — vendors, customers, and contractors can drag-and-drop files straight into your bucket, with size, type, and expiry limits enforced server-side by S3."
+author: "S3Console Team"
+image: "/dashboard.png"
+videoId: "jP3jpbjgXac"
+keywords:
+  - "S3 upload link"
+  - "S3 public upload link"
+  - "S3 presigned POST"
+  - "S3 presigned POST policy"
+  - "upload to S3 without AWS account"
+  - "S3 file upload portal"
+  - "S3 drag and drop upload"
+  - "vendor file upload S3"
+  - "S3 upload form HTML"
+  - "AWS S3 desktop app"
+  - "S3 bucket upload page"
+  - "presigned POST URL generator"
+seo:
+  title: "S3 Drop Zones — Public Upload Links for S3 Buckets | S3Console"
+  description: "Create a public upload link for any S3 bucket in 30 seconds. No Lambda, no API Gateway, no custom portal. S3Console Drop Zones generate a signed POST policy and HTML upload page with size, type, and expiry limits enforced by S3."
+  canonical: "https://s3console.com/blog/dropzones-public-upload-links-for-s3"
+---
+
+Need a quick way for vendors, customers, or contractors to **upload files into your S3 bucket** — without giving them AWS credentials, an IAM user, or access to your console?
+
+The AWS web console doesn't have a "share an upload link" button. The DIY alternative is a small infrastructure project: a Lambda, an API Gateway endpoint, CORS, monitoring, a deploy pipeline — sometimes a whole custom portal. **S3Console Drop Zones** replace all of that with a one-click flow. Pick a bucket and a prefix, set a size and expiry limit, and S3Console generates a public **S3 upload link** backed by a signed [S3 presigned POST policy](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-post-example.html). Share it as a URL, email the standalone HTML file, or host it on S3 itself. Your recipient drags files onto the page; the bytes go directly into your bucket, and S3 enforces every rule.
+
+If you'd rather watch than read, the [Drop Zones demo is on YouTube](https://youtu.be/jP3jpbjgXac).
+
+**In this guide:** what a drop zone is, how the [presigned POST](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-post-example.html) is signed, how to host the upload page publicly without opening up your bucket, the CORS and Public Access Block details, what happens when you delete a zone, and an FAQ covering security, file-size limits, and revocation.
+
+## The Problem: There's No Built-in "Upload Link" in the AWS S3 Console
+
+The AWS S3 console has presigned URLs for **downloads**. It does not have an equivalent "presigned upload link" you can hand to a non-AWS user. The official ways to let an outsider upload to your bucket all involve infrastructure you have to build, deploy, and maintain:
+
+- **Give them an IAM user.** They now need an AWS CLI, credentials in their shell, and the willingness to use it. Most vendors will not do this.
+- **Build a Lambda + API Gateway upload endpoint.** You write the function, set up CORS, manage auth, monitor it, pay for it.
+- **Spin up a small upload portal.** Same as above, plus a frontend, hosting, a domain.
+- **Cognito identity pool + temporary credentials.** Even more setup; massive overkill for "send me your invoice".
+
+What you actually want is to type a vendor's name, click a button, and email them a link. That's what Drop Zones do.
+
+## What Is an S3 Drop Zone?
+
+An **S3 drop zone** is a public, time-limited upload link tied to a specific bucket and key prefix. Recipients open the link in any browser, drag a file onto the page, and the file is uploaded directly into your S3 bucket via a signed POST policy. They never see your AWS credentials, never sign in, and can only upload to the bucket, prefix, file size, content type, and expiry window you defined.
+
+## How S3 Drop Zones Work Under the Hood
+
+A drop zone is a saved `(bucket, prefix, expiry, size limit, allowed types)` tuple. From that tuple, S3Console generates an **S3 [presigned POST policy](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-post-example.html)** — a base64-encoded JSON document, signed with your AWS credentials, that S3 will accept as authorization for a multipart/form-data POST. The policy is embedded in a self-contained HTML page, which becomes your upload link.
+
+The policy pins the upload to:
+
+- A specific bucket
+- A specific key prefix (the recipient cannot upload to anywhere else in your bucket)
+- A maximum file size (1 MB to 5 GB)
+- An expiry timestamp (1 hour to 7 days — capped at S3's SigV4 ceiling)
+- An allow-list of content types
+
+S3 itself enforces all of those rules. The recipient never sees your credentials, never gets an IAM permission, and physically cannot bypass the policy — S3 checks every field on every POST.
+
+Each zone gives you four ways to use it:
+
+- **A drag-and-drop upload page** — fully self-contained HTML, works offline (file POSTs still need to reach S3, of course)
+- **A one-click "Host on S3" button** — uploads the HTML to your own bucket and returns a public URL you can copy
+- **A "Save HTML" button** — writes the same page to disk so you can email it as an attachment or host it anywhere
+- **A `curl` one-liner** — for technical recipients who'd rather pipe a file in from a terminal
+
+## The Generated S3 Upload Page: Three Templates, Fully Self-Contained
+
+The hosted upload page is a single HTML file with everything inlined — no CDN, no fonts, no third-party JS. Three visual templates ship by default:
+
+- **Minimal** — compact card, mono accents, utility tone. Good for engineer-to-engineer file drops.
+- **Branded** — wider card with a hero header, three info tiles, professional slate-blue palette, "Secure file transfer" framing. Designed for B2B vendor flows.
+- **Friendly** — soft gradient, generous spacing, warm copy, single big CTA. For customer-facing submissions.
+
+The upload logic is identical across all three — only HTML structure, copy, and CSS vary. The recipient sees a heading (you can override what they see vs. what you see internally), the limits and expiry (each toggle-able if you'd rather not disclose them), a drop area, and per-file progress bars with friendly error messages.
+
+A few details that came out of testing:
+
+- **Pre-flight validation mirrors the policy.** The page checks file size and content type in JavaScript *before* POSTing — so a 200 MB file against a 100 MB limit fails instantly with a clear message instead of after a slow upload.
+- **Per-file random tokens prevent overwrites.** The final S3 key is `prefix + random-token + sanitized-filename`, so two recipients sending `invoice.pdf` don't clobber each other.
+- **`beforeunload` guard.** If the user closes the tab mid-upload, the page prompts before tearing down in-flight transfers.
+- **Hard-expired and <1h warnings.** Once the policy is past its expiration, the page surfaces a fatal banner (every POST would 403 anyway). Under one hour to go, it shows a soft warning — but only if the creator left expiry visible.
+
+## How the S3 Presigned POST Policy Is Signed
+
+The signing is plain SigV4 against the `s3` service. The policy document looks like this:
+
+```ts
+const conditions: any[] = [
+  { bucket: bucketName },
+  ["starts-with", "$key", keyPrefix],
+  ["content-length-range", 0, maxSizeBytes],
+  { "x-amz-algorithm": "AWS4-HMAC-SHA256" },
+  { "x-amz-credential": credential },
+  { "x-amz-date": amzFullDate },
+];
+
+if (allowedContentTypes.length === 1) {
+  conditions.push(["starts-with", "$Content-Type", allowedContentTypes[0]]);
+} else {
+  // S3 only allows one starts-with per field in a single policy — so for
+  // multi-type lists we fall back to a permissive server condition and
+  // rely on the in-page validator for type enforcement.
+  conditions.push(["starts-with", "$Content-Type", ""]);
+}
+
+const policy = { expiration: expiresAt.toISOString(), conditions };
+const policyB64 = Buffer.from(JSON.stringify(policy), "utf8").toString("base64");
+const signingKey = deriveSigningKey(creds.secretAccessKey, dateStamp, region, "s3");
+const signature = crypto
+  .createHmac("sha256", signingKey)
+  .update(policyB64, "utf8")
+  .digest("hex");
+```
+
+Two design notes worth pulling out:
+
+- **The policy is regenerated on demand, not stored.** Only the inputs (bucket, prefix, expiry, etc.) are persisted in `electron-store`. Every time you open the modal, the policy is re-signed from those inputs against the *remaining* lifetime of the zone — never a fresh 7-day window. So pausing a zone, deleting it, or letting it expire really does revoke access.
+- **The bucket region is re-resolved before every sign.** If the bucket was recreated in a different region, signing against the stored region would produce a `SignatureDoesNotMatch` on the recipient's POST. `GetBucketLocation` is cheap and we make it a precondition of signing.
+
+## Hosting the S3 Upload Page Publicly Without Opening Up Your Bucket
+
+When you click *Host on S3*, S3Console uploads the generated HTML to the same bucket under a fixed prefix: `dropzones/<zone-id>.html`. The hard part isn't the `PutObject` — it's making the page publicly readable without making your *uploads* publicly readable.
+
+Two pieces solve that:
+
+1. **A scoped bucket-policy statement.** S3Console writes (or merges into) a statement with a fixed `Sid` — `DropZonesPublicRead` — that grants `s3:GetObject` to `*` only on `arn:aws:s3:::your-bucket/dropzones/*`. Vendor uploads under each zone's user-defined prefix stay private. Matching by `Sid` lets us detect, replace, and revoke our own statement without touching user-authored statements that may sit alongside it.
+
+2. **Forced SSE-S3 on the hosted page.** On buckets whose default encryption is SSE-KMS, anonymous GETs of KMS-encrypted objects fail with *"Requests specifying Server Side Encryption with AWS KMS managed keys require AWS Signature Version 4."* The hosted page is intentionally public HTML with no secrets in it, so S3Console overrides the encryption to AES256. If a bucket policy forces KMS-only encryption, the host attempt fails with a clear error rather than a broken public URL.
+
+The bucket's [Public Access Block](https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html) settings also have to allow the policy. If they don't, S3Console opens a confirmation dialog that explains exactly which bits need to flip (`BlockPublicPolicy` and/or `RestrictPublicBuckets`) before the host can proceed — and *only* those bits, leaving the `BlockPublicAcls` / `IgnorePublicAcls` settings untouched. Your bucket is not "opened up" globally; only the `dropzones/*` prefix becomes anonymously readable.
+
+## S3 Bucket CORS: Merged, Not Overwritten
+
+The recipient's browser POSTs from `file://`, the bucket's own S3 domain, or a random emailed link's domain — there's no single origin we can pin a rule to. The only CORS config that works universally is `AllowedOrigins: ["*"]` on `POST`.
+
+S3Console adds exactly one CORS rule, identified by `ID: "s3console-dropzones"`, and **merges it with whatever rules you already have**:
+
+```ts
+const filtered = existing.filter((r) => r.ID !== "s3console-dropzones");
+const merged = [...filtered, newRule];
+await client.send(
+  new PutBucketCorsCommand({
+    Bucket: params.bucketName,
+    CORSConfiguration: { CORSRules: merged },
+  })
+);
+```
+
+Removing a drop zone strips only its own CORS rule by ID. If that was the only rule on the bucket, S3Console runs `DeleteBucketCors` (S3 doesn't allow an empty `CORSRules` array on `PutBucketCors`). Other zones on the same bucket will stop accepting browser POSTs — that's the intended effect.
+
+## How to Revoke an S3 Upload Link (and What "Delete" Really Does)
+
+This is the question that took longest to get right.
+
+Deleting a zone has to do two things in order:
+
+1. Remove the zone from local storage so it stops showing up in the modal.
+2. Best-effort delete any **hosted HTML pages** the zone created on S3.
+
+Step 2 matters because the policy is embedded in the page. If a vendor saved their copy of the URL, the still-valid signed policy inside the HTML would let them keep uploading — for up to 7 days — even after you deleted the zone. So S3Console tracks every hosted key under `zone.hostedKeys` and runs `DeleteObjects` on the entire set during a delete:
+
+```ts
+if (zone.hostedKeys && zone.hostedKeys.length > 0) {
+  try {
+    const client = createClientForRegion(zone.region);
+    const out = await client.send(
+      new DeleteObjectsCommand({
+        Bucket: zone.bucketName,
+        Delete: {
+          Objects: zone.hostedKeys.map((Key) => ({ Key })),
+          Quiet: false,
+        },
+      })
+    );
+    // ...
+  }
+}
+```
+
+Two honest caveats baked into the comment for `disabled` in the source:
+
+> Saved-locally HTML still works until natural expiry — the signing key isn't something we can revoke remotely.
+
+If you handed someone a downloaded `.html` file or they saved the page source from their browser, the policy in that page remains valid until its `expiration` timestamp. There is no way for S3Console — or AWS itself, short of rotating the IAM key that signed the policy — to invalidate an already-issued POST policy mid-flight. This is the same constraint that applies to every presigned URL or POST policy AWS produces. The right mental model: a drop zone is **time-limited**, not revocable in real time.
+
+Pausing a zone (the *Disable* toggle) is the same operation as delete for the hosted pages: it deletes any S3-hosted copies so the public URL stops serving the form, while keeping the zone metadata so you can re-enable later without losing config.
+
+## Implementation Details Worth Calling Out
+
+The first version of this feature shipped in an afternoon. Getting it to a place where I'd trust it with vendor invoices took weeks. A few details:
+
+- **Account-scoped storage.** Drop zones are stored locally in `electron-store`, keyed by AWS account identifier. Switching to another profile in S3Console can't surface another seat's zones — even if both seats share the same Mac user.
+- **Per-account cap of 50 zones.** Prevents the local store from growing unbounded. Delete an old zone before creating a 51st.
+- **Authorization stripped on cross-origin redirects.** When the upload page POSTs into S3, if S3 returns a 30x redirect to a different host (the wrong-region 301 case), any `Authorization` header gets dropped — same rule modern browsers enforce on `fetch`. We will not silently forward a bearer token across origins.
+- **Hosted pages are SSE-S3, no-cache, and use `robots: noindex,nofollow`.** A vendor upload page should not be cached by intermediaries and should not show up in Google.
+- **The `key` and `Content-Type` form fields are deliberately omitted from the presigned bundle.** They're appended per-upload by the page (key is built from `prefix + token + filename`; Content-Type is the file's actual MIME). If we baked them into the signed bundle and the page re-appended them, AWS reads the first occurrence — an empty placeholder would silently fail policies like `starts-with $Content-Type "image/"`.
+
+## S3 Drop Zones vs. Lambda + API Gateway vs. Cognito: Which Should You Pick?
+
+| | **S3Console Drop Zones** | Custom Lambda + API Gateway | Cognito Identity Pool |
+|---|---|---|---|
+| Time to first link | ~30 seconds | Days to weeks | Days |
+| Infrastructure to maintain | None | Function, API, IAM, monitoring | Identity pool, federation, roles |
+| Recipient needs AWS | ❌ | ❌ | ❌ |
+| Server-side size limit | ✅ Enforced by S3 | You build it | You build it |
+| Server-side type allow-list | ✅ Enforced by S3 | You build it | You build it |
+| Hard expiry | ✅ Up to 7 days | You build it | Session-based |
+| Drag-and-drop UI | ✅ 3 themes | You build it | You build it |
+| Cost | Included in S3Console | API Gateway + Lambda invocations | Cognito MAUs |
+| Bytes flow recipient → S3 directly | ✅ | ⚠️ Often through Lambda | ✅ |
+
+## Frequently Asked Questions About S3 Drop Zones
+
+### How do I let someone upload a file to my S3 bucket without an AWS account?
+
+The standard AWS-native answer is a [presigned POST policy](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-post-example.html): you sign a JSON document with your credentials, and S3 will accept a multipart/form-data POST from anyone who presents the signature, as long as the upload matches every rule in the policy (bucket, key prefix, file size, content type, expiry). Building the form, the validation UI, and the hosting yourself is a small project. S3Console **Drop Zones** automate all of it — pick a bucket and prefix in the desktop app, click *New zone*, and you get a working public upload link with drag-and-drop, progress bars, and either a hosted S3 URL or a downloadable HTML file.
+
+### Can I create a presigned upload link from the AWS S3 web console?
+
+Not directly. The AWS web console can generate presigned URLs for **downloads** (object → reader) but does not have a UI for presigned **POST policies** (anonymous uploader → bucket). If you want a public upload link without building Lambda + API Gateway yourself, you either need a desktop client like S3Console or you script it against the AWS SDK.
+
+### Are drop zones secure?
+
+The bucket and prefix are pinned, the file size is capped, the content type is allow-listed, and the policy expires automatically — all server-side, enforced by S3. The hosted upload page itself contains the signed policy but no AWS credentials, no secrets, and no access to anything outside its declared prefix. The strongest caveat: once a copy of the page exists in someone's email or downloads folder, the embedded policy stays valid until its expiry timestamp. There is no remote revocation for an already-issued AWS POST policy — that's an AWS-wide property, not a Drop Zones limitation. Pick the shortest expiry that fits your workflow.
+
+### What's the maximum file size a drop zone can accept?
+
+5 GB. That's the S3 single-PUT ceiling — browser-based form POSTs cannot multipart, so the practical max per upload is 5 GB regardless of any policy. If you need bigger, use [Upload from URL](/blog/upload-from-url-to-s3) or the regular S3Console upload flow from the sender's machine.
+
+### Can recipients upload multiple files?
+
+Yes. The hosted page accepts multi-file drag-and-drop and parallel uploads. You can optionally cap the count with *Max number of files* — that limit is enforced client-side, since S3's POST policy doesn't have a per-zone counter.
+
+### What happens to a drop zone link if I delete the zone?
+
+S3Console best-effort deletes any S3-hosted copies of the upload page so the public URL stops working immediately. Locally saved `.html` files or browser-cached copies will continue to work until the zone's natural expiry — there's no way to remotely revoke an issued POST policy. To force-revoke a zone before its expiry, delete it AND rotate the IAM credentials used to sign it.
+
+### Does S3Console store the signed policy anywhere?
+
+No. Only the *inputs* (bucket, prefix, expiry, size limit, allowed types) are stored in your local `electron-store`. The policy and its signature are re-derived on demand every time you open the zone, view the HTML, or click *Host on S3*. The signing key never leaves your machine.
+
+### What's the difference between an S3 presigned URL and a presigned POST policy?
+
+A **presigned URL** signs a single HTTP verb on a single S3 key — typically GET (for downloads) or PUT (for uploads), but the key, content-type, and metadata are all fixed at signing time. A **presigned POST policy** is more flexible: it signs a *set of rules* (key prefix, content-length range, content-type allow-list, expiry) and lets the uploader pick the actual filename, size, and type within those bounds. POST policies are the right primitive for "anyone can upload anything that matches these rules to this prefix" — which is exactly what a Drop Zone exposes.
+
+### Can I customize what the recipient sees?
+
+Yes. Pick one of three templates (Minimal, Branded, Friendly). Override the heading the recipient sees (the internal name stays as your label — e.g., "Q4 Vendor Invoices" — and the page heading becomes "Send us your Q4 invoices"). Add a 500-char note. Toggle individual disclosures: file-size limit, allowed types, expiry date. Hiding the size limit also softens the error message — recipients see "File is too large" instead of "exceeds 100 MB".
+
+## Try It Yourself
+
+The fastest way to see this end-to-end is to install S3Console, pick a bucket, click *Drop Zones → New zone*, and have a working public upload page in under a minute. The 14-day trial is unrestricted and doesn't ask for a credit card.
+
+- [Download S3Console](/downloads) for Mac, Windows, or Linux
+- [See pricing](/pricing) — $9/month, $49/year, or $99 one-time lifetime
+- [How S3Console compares to other AWS S3 clients](/aws-s3-client)
+- [Read the launch post](/blog/introducing-s3console) for the broader feature tour
+- [Upload from URL](/blog/upload-from-url-to-s3) — the companion feature for pulling files INTO your bucket

@@ -116,7 +116,6 @@ export default function PricingPage() {
 
       window.location.href = data.checkout_url;
     } catch (err) {
-      console.error("Pricing checkout error:", err);
       alert(
         err instanceof Error
           ? err.message

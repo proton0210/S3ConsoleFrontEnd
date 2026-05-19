@@ -81,8 +81,7 @@ export default function CheckoutButton({
       }
 
       window.location.href = data.checkout_url;
-    } catch (error) {
-      console.error("Checkout error:", error);
+    } catch {
       alert("Failed to start checkout. Please try again.");
       setLoading(false);
     }
