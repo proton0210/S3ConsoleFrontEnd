@@ -1,5 +1,25 @@
 import { siteConfig } from "@/lib/config";
 import Link from "next/link";
+import { FaLinkedinIn, FaXTwitter } from "react-icons/fa6";
+import { RiInstagramFill } from "react-icons/ri";
+
+const SOCIALS = [
+  {
+    label: "X (Twitter)",
+    href: "https://x.com/ServerlessCreed",
+    Icon: FaXTwitter,
+  },
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/serverlesscreed/",
+    Icon: RiInstagramFill,
+  },
+  {
+    label: "LinkedIn",
+    href: "https://www.linkedin.com/company/serverless-creed",
+    Icon: FaLinkedinIn,
+  },
+];
 
 /**
  * Footer doubles as an internal-linking surface for SEO. Every page that
@@ -48,6 +68,20 @@ export default function Footer() {
             <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
               The fastest AWS S3 client for Mac, Windows, and Linux.
             </p>
+            <div className="flex items-center gap-3 mt-4">
+              {SOCIALS.map(({ label, href, Icon }) => (
+                <a
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`ServerlessCreed on ${label}`}
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
+                  <Icon className="h-4 w-4" />
+                </a>
+              ))}
+            </div>
           </div>
           {NAV.map((col) => (
             <div key={col.title}>

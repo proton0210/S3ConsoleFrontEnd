@@ -1,6 +1,5 @@
 import { Icons } from "@/components/icons";
-import { FaTwitter } from "react-icons/fa";
-import { FaYoutube } from "react-icons/fa6";
+import { FaLinkedinIn, FaXTwitter } from "react-icons/fa6";
 import { RiInstagramFill } from "react-icons/ri";
 
 export const BLUR_FADE_DELAY = 0.15;
@@ -44,10 +43,11 @@ export const siteConfig = {
   category: "Software",
   links: {
     email: "vidit@serverlesscreed.com",
-    twitter: "https://twitter.com/s3console",
+    twitter: "https://x.com/ServerlessCreed",
     discord: "https://discord.gg/s3console",
     github: "https://github.com/s3console",
-    instagram: "https://instagram.com/s3console/",
+    instagram: "https://www.instagram.com/serverlesscreed/",
+    linkedin: "https://www.linkedin.com/company/serverless-creed",
   },
   header: [
     {
@@ -274,19 +274,19 @@ export const siteConfig = {
       title: "Social",
       links: [
         {
-          href: "#",
-          text: "Twitter",
-          icon: <FaTwitter />,
+          href: "https://x.com/ServerlessCreed",
+          text: "X (Twitter)",
+          icon: <FaXTwitter />,
         },
         {
-          href: "#",
+          href: "https://www.instagram.com/serverlesscreed/",
           text: "Instagram",
           icon: <RiInstagramFill />,
         },
         {
-          href: "#",
-          text: "Youtube",
-          icon: <FaYoutube />,
+          href: "https://www.linkedin.com/company/serverless-creed",
+          text: "LinkedIn",
+          icon: <FaLinkedinIn />,
         },
       ],
     },
