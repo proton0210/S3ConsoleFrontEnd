@@ -11,10 +11,10 @@
  */
 
 export const LEGAL_VERSIONS = {
-  terms: "2026-05-09",
-  privacy: "2026-05-09",
-  eula: "2026-05-09",
-  refund: "2026-05-09",
+  terms: "2026-05-22",
+  privacy: "2026-05-22",
+  eula: "2026-05-22",
+  refund: "2026-05-22",
 } as const;
 
 export type LegalDocumentKey = keyof typeof LEGAL_VERSIONS;
