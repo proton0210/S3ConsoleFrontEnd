@@ -2,7 +2,7 @@ import { TailwindIndicator } from "@/components/tailwind-indicator";
 import { StructuredData } from "@/components/structured-data";
 import { cn, constructMetadata } from "@/lib/utils";
 import { type Metadata, Viewport } from "next";
-import { CSPostHogProvider } from "@/components/posthog-provider";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import {
   ClerkProvider,
   SignInButton,
@@ -39,7 +39,6 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <CSPostHogProvider>
         <html lang="en" suppressHydrationWarning>
         <head>
           <link rel="preconnect" href="https://rsms.me/" />
@@ -66,9 +65,9 @@ export default function RootLayout({
           )}
         >
             {children}
+            <GoogleAnalytics gaId="G-W5G449QF3Y" />
         </body>
       </html>
-      </CSPostHogProvider>
     </ClerkProvider>
   );
 }

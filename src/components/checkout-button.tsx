@@ -1,9 +1,9 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@clerk/nextjs";
-import { usePostHog } from "posthog-js/react";
 import { useState } from "react";
 import { FaCrown, FaSpinner } from "react-icons/fa";
+import { sendGAEvent } from "@next/third-parties/google";
 
 type Tier = "monthly" | "yearly" | "lifetime";
 
@@ -39,19 +39,16 @@ export default function CheckoutButton({
   variant = "default",
 }: CheckoutButtonProps) {
   const { userId } = useAuth();
-  const posthog = usePostHog();
   const [loading, setLoading] = useState(false);
 
   const handleCheckout = async () => {
     try {
       setLoading(true);
 
-      posthog.capture("checkout_initiated", {
-        tier,
-        productId,
+      sendGAEvent("event", "checkout_initiated", {
+        tier: tier || "none",
+        productId: productId || "none",
         quantity,
-        userId,
-        location: "checkout_button",
       });
 
       // Build request body — prefer tier when available, fall back to productId

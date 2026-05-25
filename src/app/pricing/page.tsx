@@ -3,7 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useAuth, useUser } from "@clerk/nextjs";
-import { usePostHog } from "posthog-js/react";
+import { sendGAEvent } from "@next/third-parties/google";
 import { FaCheck, FaSpinner, FaCrown } from "react-icons/fa";
 import Header from "@/components/sections/header";
 
@@ -70,14 +70,14 @@ const TIERS: TierConfig[] = [
 export default function PricingPage() {
   const { isSignedIn } = useAuth();
   const { user } = useUser();
-  const posthog = usePostHog();
+
   const [loadingTier, setLoadingTier] = useState<Tier | null>(null);
 
   const handleCheckout = async (tier: Tier) => {
     try {
       setLoadingTier(tier);
 
-      posthog?.capture("pricing_tier_clicked", {
+      sendGAEvent("event", "pricing_tier_clicked", {
         tier,
         location: "pricing_page",
         signedIn: !!isSignedIn,

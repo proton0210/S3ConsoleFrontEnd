@@ -6,7 +6,7 @@ import Header from "@/components/sections/header";
 import Section from "@/components/section";
 import Link from "next/link";
 import { useAuth } from "@clerk/nextjs";
-import { usePostHog } from "posthog-js/react";
+import { sendGAEvent } from "@next/third-parties/google";
 import {
   FaWindows,
   FaApple,
@@ -75,7 +75,6 @@ const OS_LABELS: Record<DetectedOS, string> = {
 //checking
 export default function DownloadsPage() {
   const { userId, isLoaded } = useAuth();
-  const posthog = usePostHog();
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [processingPayment, setProcessingPayment] = useState(false); // Kept for compatibility if needed, but CheckoutButton handles its own state
@@ -138,19 +137,12 @@ export default function DownloadsPage() {
 
   useEffect(() => {
     // Track page view with user metadata
-    if (userId && userData && posthog) {
-      posthog.identify(userId, {
-        email: userData.email,
-        name: userData.name,
-        is_paid: userData.paid,
-        license_count: userData.licenseCount
-      });
-
-      posthog?.capture('downloads_page_viewed', {
+    if (userId && userData) {
+      sendGAEvent("event", "downloads_page_viewed", {
         has_license: userData.paid
       });
     }
-  }, [userId, userData, posthog]);
+  }, [userId, userData]);
 
   if (loading) {
     return (
@@ -178,7 +170,7 @@ export default function DownloadsPage() {
       });
     }
 
-    posthog?.capture('download_clicked', {
+    sendGAEvent("event", "download_clicked", {
       os: 'macOS',
       version: '2.1.0-arm64'
     });
@@ -204,7 +196,7 @@ export default function DownloadsPage() {
       });
     }
 
-    posthog?.capture("download_clicked", {
+    sendGAEvent("event", "download_clicked", {
       os: "Linux",
       version: "2.3.2-arm64",
     });
@@ -235,7 +227,7 @@ export default function DownloadsPage() {
       });
     }
 
-    posthog?.capture('download_clicked', {
+    sendGAEvent("event", "download_clicked", {
       os: 'Windows',
       version: '2.1.0'
     });
