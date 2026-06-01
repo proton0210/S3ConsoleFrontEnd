@@ -154,7 +154,7 @@ export default function DownloadsPage() {
 
   const handleMacDownload = () => {
     const downloadLink =
-      "https://s3consolemac.s3.ap-south-1.amazonaws.com/S3Console-2.6.7-arm64-mac.zip";
+      "https://s3consolemac.s3.us-east-1.amazonaws.com/S3Console-2.6.7-arm64-mac.zip";
 
     const link = document.createElement("a");
     link.href = downloadLink;
