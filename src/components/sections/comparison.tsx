@@ -3,7 +3,8 @@
 import Section from "@/components/section";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { Check, X, Minus } from "lucide-react";
+import { Check, X } from "lucide-react";
+import { Fragment, useState } from "react";
 
 type CellValue =
   | true // full support
@@ -21,7 +22,11 @@ interface ComparisonFeature {
   awsConsole: CellValue;
 }
 
-const competitors = [
+const competitors: {
+  key: keyof ComparisonFeature;
+  name: string;
+  highlight?: boolean;
+}[] = [
   { key: "s3console", name: "S3Console", highlight: true },
   { key: "awsConsole", name: "AWS Console" },
   { key: "cyberduck", name: "Cyberduck" },
@@ -29,7 +34,7 @@ const competitors = [
   { key: "cloudberry", name: "CloudBerry" },
   { key: "s3browser", name: "S3 Browser" },
   { key: "filezilla", name: "FileZilla Pro" },
-] as const;
+];
 
 const categories: { name: string; features: ComparisonFeature[] }[] = [
   {
@@ -367,18 +372,98 @@ function CellContent({ value }: { value: CellValue }) {
 }
 
 export default function Comparison() {
+  // Mobile: compare S3Console against one rival at a time.
+  const rivals = competitors.filter((c) => !c.highlight);
+  const [activeRival, setActiveRival] = useState<string>(rivals[0].key);
+  const rival = competitors.find((c) => c.key === activeRival)!;
+
   return (
     <Section
       title="Comparison"
       subtitle="S3Console vs. Everything Else"
       description="The only S3 desktop client with code generation, in-app execution, and native AWS Identity Center support."
     >
+      {/* Mobile view — card list with a rival picker (hidden on md+) */}
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.6, type: "spring", stiffness: 80, damping: 30 }}
-        className="mt-10 overflow-x-auto -mx-4 px-4"
+        className="mt-8 md:hidden"
+      >
+        {/* Rival picker */}
+        <div className="mb-4">
+          <label
+            htmlFor="rival-picker"
+            className="mb-1.5 block text-xs font-medium text-muted-foreground"
+          >
+            Compare S3Console with
+          </label>
+          <select
+            id="rival-picker"
+            value={activeRival}
+            onChange={(e) => setActiveRival(e.target.value)}
+            className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm font-medium text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+          >
+            {rivals.map((c) => (
+              <option key={c.key} value={c.key}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="space-y-6">
+          {categories.map((cat, catIdx) => (
+            <div key={`m-cat-${catIdx}`}>
+              <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground/70">
+                {cat.name}
+              </h3>
+              <div className="overflow-hidden rounded-xl border border-border">
+                {cat.features.map((row, rowIdx) => (
+                  <div
+                    key={`m-${catIdx}-${rowIdx}`}
+                    className={cn(
+                      "flex items-center gap-3 px-4 py-3",
+                      rowIdx !== 0 && "border-t border-border/50"
+                    )}
+                  >
+                    <span className="flex-1 text-sm font-medium text-foreground">
+                      {row.feature}
+                    </span>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <div className="flex w-[72px] flex-col items-center gap-1 text-center leading-tight">
+                        <CellContent value={row.s3console} />
+                        <span className="text-[10px] font-semibold text-primary">
+                          S3Console
+                        </span>
+                      </div>
+                      <div className="flex w-[72px] flex-col items-center gap-1 text-center leading-tight">
+                        <CellContent
+                          value={
+                            row[rival.key as keyof ComparisonFeature] as CellValue
+                          }
+                        />
+                        <span className="text-[10px] font-medium text-muted-foreground">
+                          {rival.name}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* Desktop view — full comparison table (hidden below md) */}
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6, type: "spring", stiffness: 80, damping: 30 }}
+        className="mt-10 hidden overflow-x-auto md:block"
       >
         <div className="min-w-[900px]">
           <table className="w-full border-collapse text-left">
@@ -405,9 +490,9 @@ export default function Comparison() {
             </thead>
             <tbody>
               {categories.map((cat, catIdx) => (
-                <>
+                <Fragment key={`cat-${catIdx}`}>
                   {/* Category header */}
-                  <tr key={`cat-${catIdx}`}>
+                  <tr>
                     <td
                       colSpan={competitors.length + 1}
                       className="px-4 pt-6 pb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground/70 border-b border-border"
@@ -442,39 +527,39 @@ export default function Comparison() {
                       ))}
                     </tr>
                   ))}
-                </>
+                </Fragment>
               ))}
             </tbody>
           </table>
         </div>
+      </motion.div>
 
-        {/* Summary callout */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4"
-        >
-          <div className="rounded-xl border border-border bg-background p-5 text-center">
-            <p className="text-3xl font-bold text-primary">6</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Exclusive features no competitor has
-            </p>
-          </div>
-          <div className="rounded-xl border border-border bg-background p-5 text-center">
-            <p className="text-3xl font-bold text-primary">From $9</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Monthly, yearly, or $99 lifetime
-            </p>
-          </div>
-          <div className="rounded-xl border border-border bg-background p-5 text-center">
-            <p className="text-3xl font-bold text-primary">3</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Platforms — macOS, Windows & Linux
-            </p>
-          </div>
-        </motion.div>
+      {/* Summary callout — shown on all breakpoints */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+        className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4"
+      >
+        <div className="rounded-xl border border-border bg-background p-5 text-center">
+          <p className="text-3xl font-bold text-primary">6</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Exclusive features no competitor has
+          </p>
+        </div>
+        <div className="rounded-xl border border-border bg-background p-5 text-center">
+          <p className="text-3xl font-bold text-primary">From $9</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Monthly, yearly, or $99 lifetime
+          </p>
+        </div>
+        <div className="rounded-xl border border-border bg-background p-5 text-center">
+          <p className="text-3xl font-bold text-primary">3</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Platforms — macOS, Windows & Linux
+          </p>
+        </div>
       </motion.div>
     </Section>
   );
