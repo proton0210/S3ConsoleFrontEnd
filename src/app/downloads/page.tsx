@@ -154,11 +154,11 @@ export default function DownloadsPage() {
 
   const handleMacDownload = () => {
     const downloadLink =
-      "https://s3consolemac.s3.us-east-1.amazonaws.com/S3Console-2.6.3-arm64.dmg";
+      "https://s3consolemac.s3.ap-south-1.amazonaws.com/S3Console-2.6.7-arm64-mac.zip";
 
     const link = document.createElement("a");
     link.href = downloadLink;
-    link.download = "S3Console-2.6.3-arm64.dmg";
+    link.download = "S3Console-2.6.7-arm64-mac.zip";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -172,7 +172,7 @@ export default function DownloadsPage() {
 
     sendGAEvent("event", "download_clicked", {
       os: 'macOS',
-      version: '2.1.0-arm64'
+      version: '2.6.7-arm64'
     });
 
     showNotification(downloadLink);
@@ -180,11 +180,11 @@ export default function DownloadsPage() {
 
   const handleLinuxDownload = () => {
     const downloadLink =
-      "https://s3consolelinux.s3.ap-south-1.amazonaws.com/s3Console_2.6.3_arm64.deb";
+      "https://s3consolelinux.s3.ap-south-1.amazonaws.com/s3Console_2.6.7_amd64.deb";
 
     const link = document.createElement("a");
     link.href = downloadLink;
-    link.download = "s3Console_2.6.3_arm64.deb";
+    link.download = "s3Console_2.6.7_amd64.deb";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -198,7 +198,7 @@ export default function DownloadsPage() {
 
     sendGAEvent("event", "download_clicked", {
       os: "Linux",
-      version: "2.3.2-arm64",
+      version: "2.6.7-amd64",
     });
 
     showNotification(downloadLink);
@@ -211,11 +211,11 @@ export default function DownloadsPage() {
   const proceedWithWindowsDownload = () => {
     setShowWindowsModal(false);
     const downloadLink =
-      "https://s3consolewindows.s3.ap-south-1.amazonaws.com/S3Console-Setup-2.6.3.exe";
+      "https://s3consolewindows.s3.ap-south-1.amazonaws.com/S3Console-Setup-2.6.7.exe";
 
     const link = document.createElement("a");
     link.href = downloadLink;
-    link.download = "S3Console-Setup-2.6.3.exe";
+    link.download = "S3Console-Setup-2.6.7.exe";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -229,7 +229,7 @@ export default function DownloadsPage() {
 
     sendGAEvent("event", "download_clicked", {
       os: 'Windows',
-      version: '2.1.0'
+      version: '2.6.7'
     });
 
     showNotification(downloadLink);
@@ -475,7 +475,7 @@ export default function DownloadsPage() {
                 >
                   <FaApple className="h-4 w-4" />
                   macOS
-                  <span className="text-xs text-slate-400">(.dmg, ARM64)</span>
+                  <span className="text-xs text-slate-400">(.zip, ARM64)</span>
                 </button>
                 <button
                   type="button"
@@ -493,7 +493,7 @@ export default function DownloadsPage() {
                 >
                   <FaLinux className="h-4 w-4" />
                   Linux
-                  <span className="text-xs text-slate-400">(.deb, ARM64)</span>
+                  <span className="text-xs text-slate-400">(.deb, AMD64)</span>
                 </button>
               </div>
             </div>

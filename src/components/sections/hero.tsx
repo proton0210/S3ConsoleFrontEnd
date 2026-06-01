@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { sendGAEvent } from "@next/third-parties/google";
 
 import { Icons } from "@/components/icons";
-import HeroVideoDialog from "@/components/magicui/hero-video";
+import HeroShowcase from "@/components/magicui/hero-showcase";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -151,18 +151,12 @@ function HeroCTA() {
 function HeroImage() {
   return (
     <motion.div
-      className="relative mx-auto flex w-full items-center justify-center"
+      className="relative mx-auto mt-16 flex w-full max-w-screen-lg items-center justify-center"
       initial={{ opacity: 0, y: 50 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 1.2, duration: 1, ease }}
     >
-      <HeroVideoDialog
-        animationStyle="from-center"
-        videoSrc="https://www.youtube.com/embed/J5Dk-eize_0"
-        thumbnailSrc="/dashboard.png"
-        thumbnailAlt="S3Console Desktop App - AWS S3 bucket management interface showing file browser, presigned URL generation, and multi-profile support"
-        className="border rounded-lg shadow-lg max-w-screen-lg mt-16"
-      />
+      <HeroShowcase />
     </motion.div>
   );
 }
