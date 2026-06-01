@@ -95,7 +95,7 @@ function VideoSlide({
         aria-label={item.alt}
         onLoadedData={() => setReady(true)}
         className={cn(
-          "size-full object-cover transition-opacity duration-500",
+          "size-full object-contain transition-opacity duration-500",
           ready ? "opacity-100" : "opacity-0"
         )}
       />
@@ -234,7 +234,7 @@ export default function HeroShowcase({ className }: { className?: string }) {
                   alt={item.alt}
                   fill
                   sizes="(max-width: 1024px) 100vw, 1024px"
-                  className="object-cover"
+                  className="object-contain"
                 />
               )}
             </div>
