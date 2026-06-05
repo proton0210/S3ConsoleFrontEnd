@@ -1,0 +1,98 @@
+---
+title: "Why S3Console Is ~700MB: An Honest Breakdown"
+publishedAt: "2026-06-05"
+lastModified: "2026-06-05"
+summary: "S3Console downloads at around 700MB. Here's an honest, no-spin breakdown of where that goes — the bundled AWS CLI (~230MB), the app framework, and the AWS SDKs — and why we ship the CLI so that browser-based AWS login just works on first launch, with no terminal and nothing to install."
+author: "S3Console Team"
+image: "/1-profile.png"
+keywords:
+  - "S3Console download size"
+  - "S3Console 700MB"
+  - "AWS CLI v2 bundled"
+  - "AWS SSO login desktop app"
+  - "aws login browser"
+  - "AWS S3 desktop app"
+  - "IAM Identity Center login"
+  - "Electron app size"
+  - "zero setup AWS app"
+seo:
+  title: "Why S3Console Is ~700MB | An Honest Size Breakdown"
+  description: "An honest breakdown of S3Console's ~700MB download: the bundled AWS CLI (~230MB), the app framework, and the AWS SDKs — and why the bundled CLI makes browser AWS login work with no terminal and no installs."
+  canonical: "https://s3console.com/blog/why-s3console-is-700mb"
+---
+
+Let's address something we hear from time to time, and it's a completely fair question:
+
+> "Why is the download around 700MB? That feels big for an S3 browser."
+
+You're right — it is big, and we don't want to wave that away. So here's the honest breakdown, no spin: where the megabytes actually go, and the one deliberate choice that accounts for the biggest chunk of them.
+
+## Where the ~700MB actually goes
+
+It's roughly three things:
+
+- **The bundled AWS CLI (~230MB).** This is the part we *chose* to add, and we'll explain why below. It's the official AWS CLI v2, which ships with its own embedded Python runtime — that's what makes a command-line tool weigh as much as it does.
+- **The app framework.** S3Console is a desktop app built on a Chromium-based framework (the same engine that renders the interface you actually use). A native, cross-platform desktop app carries that engine with it. This is most of the rest of the size, and it's true of essentially every app in this category.
+- **The AWS SDKs and the app itself.** S3Console talks to a lot of AWS — S3, STS, SSO, CloudFront, and more — so it bundles the relevant AWS SDK clients, plus our own code and assets.
+
+So the honest summary is: the bundled AWS CLI is the slice *we* added on purpose. The framework is the cost of being a real desktop app rather than a browser tab. We're not going to pretend the whole 700MB is some clever optimization — most of it is just what a cross-platform desktop app weighs. The interesting decision is the CLI, so let's talk about that.
+
+## Why we bundle the AWS CLI
+
+Here's the thing we actually deliberated over. We could have skipped the CLI entirely — we already use the AWS SDK directly for the day-to-day work of listing buckets, uploading, and generating presigned URLs. So why carry an extra ~230MB?
+
+One reason: **`aws login` — the browser-based sign-in flow.**
+
+The modern, recommended way to authenticate with AWS (especially SSO / IAM Identity Center) is a browser handshake: you click sign in, a browser tab opens, you approve, and short-lived credentials get issued and quietly rotated as they expire. The AWS CLI handles that entire dance — the device-authorization flow, the token cache, the refresh — and it's the tool AWS itself maintains for exactly this. We'd rather lean on that than hand-roll our own approximation of it and hope we got every edge case right.
+
+So in S3Console, the bundled CLI does the **login**, and the SDK does the **work**. You never open a terminal; we drive the CLI for you behind a normal sign-in button.
+
+A few things fall out of that choice:
+
+- **Browser sign-in works on first launch.** Click to sign in, approve in your browser, and you're in — including SSO / IAM Identity Center. No `aws configure sso` typed by hand.
+- **We don't touch your existing AWS config.** S3Console's login runs in its own isolated sandbox (a private config directory), so it won't clobber your `~/.aws` files or fight with static keys you've already got set up. Your machine's AWS setup stays exactly as you left it.
+- **Credentials rotate automatically.** Because the CLI owns the session, tokens refresh the way AWS intends — no surprise expiries mid-session.
+- **Nothing to install or maintain.** You never install the CLI, never put it on your PATH, never pick a Python version. It's there, it's sandboxed, and it only ever talks to AWS endpoints.
+
+We could have shaved the ~230MB by reimplementing all of this ourselves. But login is exactly the place where "good enough" isn't — so we let AWS's own tool own it.
+
+## The trade-off, stated plainly
+
+We're not going to pretend bundling the CLI is free:
+
+- **A bigger download.** ~230MB of it is a choice we made, on top of a framework that was never going to be tiny.
+- **We own the updates.** When the bundled CLI needs updating, that's on us to ship — not on you to manage.
+
+What you get in return is a sign-in that just works, with no setup session and no terminal. Here's the trade-off honestly — including where a leaner approach genuinely wins:
+
+| | S3Console | Thin client (bring-your-own CLI) |
+|---|---|---|
+| **Download size** | Larger (~230MB is the bundled CLI) | ✅ Smaller |
+| **AWS CLI setup** | ✅ None — bundled & sandboxed | You install & keep it updated |
+| **Browser / SSO sign-in** | ✅ Works on first launch | Manual `aws configure sso` first |
+| **Terminal needed** | ✅ Never | Usually, at least for setup |
+| **Touches your `~/.aws`** | ✅ No — isolated sandbox | Depends on how you set it up |
+| **Always up to date with AWS** | You rely on our updates | ✅ You control the CLI version |
+
+For us, the trade is worth it: the download is a one-time cost, while the setup friction it removes is something you'd otherwise pay every time you set up a new machine or onboard a teammate. If that balance is different for you, that's a completely reasonable view — and the comparison above is there so you can judge it yourself.
+
+## Could we make it smaller? Honestly, maybe.
+
+We think about this. There are real paths to a leaner build — detecting an existing CLI instead of bundling one, trimming what we ship, or splitting the download so the heavy parts come later. We may explore some of them over time. What we won't do is trade away the "sign in and go" experience to win back a few hundred megabytes. If we can shrink it *without* bringing setup friction back, we will. That's the bar.
+
+## A couple of quick FAQs
+
+### Do I need to install the AWS CLI or Python separately?
+No. The CLI (and the Python embedded inside it) is bundled and sandboxed within S3Console. You don't install it, update it, or put anything on your PATH — and it won't disturb any Python or AWS CLI you already have.
+
+### Is the bundled CLI a security concern?
+It's the official AWS CLI v2, run in an isolated config sandbox and used only to talk to AWS endpoints for sign-in. It doesn't change your system, and it doesn't touch your existing `~/.aws` configuration.
+
+### Is the ~700MB a one-time download?
+Yes — it's the size of the app on disk after install. Updates ship through the app; you don't manage the CLI or Python yourself.
+
+## The bottom line
+
+S3Console is ~700MB mostly because it's a real cross-platform desktop app, plus a deliberate ~230MB: the official AWS CLI, bundled so that browser-based AWS sign-in — including SSO — just works on first launch, without ever opening a terminal or installing a thing.
+
+We'd rather carry that weight for you than hand it to you at setup. Thanks for trusting us with it — and if you think we've got the trade-off wrong, we genuinely want to hear it.

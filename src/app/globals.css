@@ -115,4 +115,14 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Make blog (prose) tables scroll horizontally on small screens instead of
+     forcing the whole page to overflow. Applies to every post's GFM tables. */
+  .prose :where(table) {
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }
