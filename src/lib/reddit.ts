@@ -77,3 +77,13 @@ export function trackReddit(event: RedditEvent, data?: RedditEventData): void {
     /* analytics is best-effort */
   }
 }
+
+/**
+ * Fired when a user clicks any "Download Now" CTA (a link that routes to
+ * /downloads). This is a top-of-funnel *intent* signal — distinct from the
+ * `Lead` event we fire when the actual installer download starts. Emitted as
+ * a Custom event so it shows up as its own conversion in Reddit Events Manager.
+ */
+export function trackDownloadClick(): void {
+  trackReddit("Custom", { customEventName: "DownloadNowClick" });
+}

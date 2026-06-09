@@ -16,7 +16,7 @@
 import Script from "next/script";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
-import { REDDIT_PIXEL_ID } from "@/lib/reddit";
+import { REDDIT_PIXEL_ID, trackDownloadClick } from "@/lib/reddit";
 
 export function RedditPixel() {
   const pathname = usePathname();
@@ -33,6 +33,23 @@ export function RedditPixel() {
     if (typeof window === "undefined" || typeof window.rdt !== "function") return;
     window.rdt("track", "PageVisit");
   }, [pathname]);
+
+  // Measure "Download Now" intent: every download CTA on the site is a
+  // <Link href="/downloads">, so a single capture-phase listener catches them
+  // all — on server- and client-rendered pages alike — without wiring each
+  // button. Fires before navigation; the pixel's queue buffers the event.
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      const link = (e.target as HTMLElement | null)?.closest?.(
+        "a[href]"
+      ) as HTMLAnchorElement | null;
+      if (!link) return;
+      const href = link.getAttribute("href") || "";
+      if (/(^|\/)downloads(\/|\?|#|$)/.test(href)) trackDownloadClick();
+    };
+    document.addEventListener("click", onClick, true);
+    return () => document.removeEventListener("click", onClick, true);
+  }, []);
 
   return (
     <Script id="reddit-pixel" strategy="afterInteractive">
