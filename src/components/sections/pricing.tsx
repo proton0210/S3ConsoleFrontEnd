@@ -8,8 +8,18 @@ import { motion } from "framer-motion";
 import { Check } from "lucide-react";
 import Link from "next/link";
 import { FaStar } from "react-icons/fa";
+import { useEffect } from "react";
+import { trackReddit } from "@/lib/reddit";
 
 export default function PricingSection() {
+  // High-intent signal: the user is looking at our plans. Fires once per
+  // mount (home-page section or the dedicated /pricing route).
+  useEffect(() => {
+    trackReddit("ViewContent", {
+      products: [{ id: "pricing", name: "S3Console pricing", category: "pricing" }],
+    });
+  }, []);
+
   return (
     <Section title="Pricing" subtitle="Pick a plan that fits">
       <p className="text-sm text-muted-foreground text-center mb-2 max-w-2xl mx-auto">

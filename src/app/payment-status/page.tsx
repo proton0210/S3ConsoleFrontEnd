@@ -26,6 +26,7 @@ import {
 } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/sections/header";
+import { trackReddit, tierValue } from "@/lib/reddit";
 
 type UiPhase =
   | "loading" // resolving Clerk session
@@ -109,6 +110,7 @@ function PaymentStatusContent() {
     null
   );
   const confettiFired = useRef(false);
+  const purchaseTracked = useRef(false);
   const abortRef = useRef<AbortController | null>(null);
 
   // While polling, tick a 1-Hz elapsed counter so the processing copy can
@@ -172,6 +174,25 @@ function PaymentStatusContent() {
       // canvas-confetti is best-effort; never break the page over it.
     }
   }, [phase]);
+
+  // Fire the Reddit Purchase conversion exactly once when the webhook has
+  // VERIFIED the payment (phase === "succeeded") — not on Dodo's optimistic
+  // redirect hint. This is the revenue event that drives ROAS; value is the
+  // tier price and transactionId dedupes against polling / refresh reloads.
+  useEffect(() => {
+    if (phase !== "succeeded" || purchaseTracked.current) return;
+    purchaseTracked.current = true;
+    const tier = license?.tier;
+    trackReddit("Purchase", {
+      currency: "USD",
+      value: tierValue(tier),
+      itemCount: 1,
+      transactionId: paymentIdParam || subscriptionIdParam || undefined,
+      products: tier
+        ? [{ id: tier, name: `S3Console ${tier} plan` }]
+        : undefined,
+    });
+  }, [phase, license, paymentIdParam, subscriptionIdParam]);
 
   // Polling loop.
   useEffect(() => {

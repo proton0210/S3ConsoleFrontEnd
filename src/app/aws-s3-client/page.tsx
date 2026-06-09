@@ -51,7 +51,7 @@ const FAQS = [
   },
   {
     q: "Is there a free trial?",
-    a: "Yes — every new install gets a fully-featured 14-day trial with no credit card required. The trial unlocks every feature on every supported platform. After the trial, you can subscribe ($9/month or $49/year) or buy a lifetime license ($99 one-time).",
+    a: "Yes — every new install gets a fully-featured 14-day trial with no credit card required. The trial unlocks every feature on every supported platform. After the trial, you can subscribe ($9/month or $79/year) or buy a lifetime license ($149 one-time).",
   },
   {
     q: "Can I generate presigned S3 URLs with S3Console?",

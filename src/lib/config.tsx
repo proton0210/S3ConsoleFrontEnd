@@ -115,7 +115,7 @@ export const siteConfig = {
       name: "YEARLY",
       tier: "yearly",
       href: "/buy?tier=yearly",
-      price: "$49",
+      price: "$79",
       period: "per year",
       yearlyPrice: null,
       features: [
@@ -123,7 +123,7 @@ export const siteConfig = {
         "Use on 2 machines",
         "All features included",
         "Auto-renews yearly",
-        "Save 54% vs monthly",
+        "Save 27% vs monthly",
         "Priority email support",
       ],
       description: "Best value for daily users.",
@@ -134,7 +134,7 @@ export const siteConfig = {
       name: "LIFETIME",
       tier: "lifetime",
       href: "/buy?tier=lifetime",
-      price: "$99",
+      price: "$149",
       period: "one-time",
       yearlyPrice: null,
       features: [
@@ -208,10 +208,10 @@ export const siteConfig = {
       question: "What does each plan include?",
       answer: (
         <span>
-          All three plans (Monthly $9, Yearly $49, Lifetime $99) include
+          All three plans (Monthly $9, Yearly $79, Lifetime $149) include
           identical features and let you use S3Console on up to 2 machines. The
           only difference is how you pay: monthly auto-renews each month,
-          yearly saves 54% vs monthly, and lifetime is a one-time payment with
+          yearly saves 27% vs monthly, and lifetime is a one-time payment with
           no recurring billing.
         </span>
       ),

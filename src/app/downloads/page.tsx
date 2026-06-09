@@ -7,6 +7,7 @@ import Section from "@/components/section";
 import Link from "next/link";
 import { useAuth } from "@clerk/nextjs";
 import { sendGAEvent } from "@next/third-parties/google";
+import { trackReddit } from "@/lib/reddit";
 import {
   FaWindows,
   FaApple,
@@ -170,6 +171,10 @@ export default function DownloadsPage() {
       });
     }
 
+    // Reddit activation signal — a download is the key intent event for a
+    // desktop product.
+    trackReddit("Lead", { conversionId: "mac_download" });
+
     sendGAEvent("event", "download_clicked", {
       os: 'macOS',
       version: '2.6.7-arm64'
@@ -195,6 +200,10 @@ export default function DownloadsPage() {
         conversion_type: "linux_download",
       });
     }
+
+    // Reddit activation signal — a download is the key intent event for a
+    // desktop product.
+    trackReddit("Lead", { conversionId: "linux_download" });
 
     sendGAEvent("event", "download_clicked", {
       os: "Linux",
@@ -226,6 +235,10 @@ export default function DownloadsPage() {
         conversion_type: "windows_download",
       });
     }
+
+    // Reddit activation signal — a download is the key intent event for a
+    // desktop product.
+    trackReddit("Lead", { conversionId: "windows_download" });
 
     sendGAEvent("event", "download_clicked", {
       os: 'Windows',
@@ -830,7 +843,7 @@ export default function DownloadsPage() {
                     See plans &amp; pricing
                   </Link>
                   <p className="text-xs text-muted-foreground text-center">
-                    Monthly $9 · Yearly $49 · Lifetime $99
+                    Monthly $9 · Yearly $79 · Lifetime $149
                   </p>
                 </div>
               </div>

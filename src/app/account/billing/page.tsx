@@ -61,8 +61,8 @@ interface UserData {
 
 const TIER_LABELS: Record<Tier, { name: string; price: string; cadence: string }> = {
   monthly: { name: "Monthly", price: "$9", cadence: "per month" },
-  yearly: { name: "Yearly", price: "$49", cadence: "per year" },
-  lifetime: { name: "Lifetime", price: "$99", cadence: "one-time" },
+  yearly: { name: "Yearly", price: "$79", cadence: "per year" },
+  lifetime: { name: "Lifetime", price: "$149", cadence: "one-time" },
 };
 
 function formatDate(ms?: number | null): string {
@@ -660,7 +660,7 @@ export default function BillingDashboardPage() {
                   </h3>
                   <p className="text-xs text-slate-700 mb-4">
                     {tier === "monthly"
-                      ? "Save 54% with yearly, or pay once for lifetime access."
+                      ? "Save 27% with yearly, or pay once for lifetime access."
                       : "Skip renewals forever with a one-time lifetime purchase."}
                   </p>
                   <div className="space-y-2">

@@ -30,7 +30,7 @@ const FAQS = [
   },
   {
     q: "Is S3Console free like Cyberduck?",
-    a: "Cyberduck is donationware — free to use with a nag screen. S3Console offers a 14-day free trial with full feature access, then $9/month, $49/year, or $99 one-time for lifetime access. The trial doesn't require a credit card.",
+    a: "Cyberduck is donationware — free to use with a nag screen. S3Console offers a 14-day free trial with full feature access, then $9/month, $79/year, or $149 one-time for lifetime access. The trial doesn't require a credit card.",
   },
   {
     q: "How do I migrate from Cyberduck to S3Console?",

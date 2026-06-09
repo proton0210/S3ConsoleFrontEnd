@@ -34,14 +34,14 @@ export function StructuredData({ type = "website", data }: StructuredDataProps) 
     {
       "@type": "Offer",
       name: "Yearly subscription",
-      price: "49",
+      price: "79",
       priceCurrency: "USD",
       priceValidUntil: validUntil,
       availability: "https://schema.org/InStock",
       url: `${baseUrl}/pricing`,
       priceSpecification: {
         "@type": "UnitPriceSpecification",
-        price: "49",
+        price: "79",
         priceCurrency: "USD",
         billingDuration: "P1Y",
       },
@@ -49,7 +49,7 @@ export function StructuredData({ type = "website", data }: StructuredDataProps) 
     {
       "@type": "Offer",
       name: "Lifetime",
-      price: "99",
+      price: "149",
       priceCurrency: "USD",
       priceValidUntil: validUntil,
       availability: "https://schema.org/InStock",

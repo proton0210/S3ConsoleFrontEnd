@@ -11,6 +11,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { compositeLegalVersion } from "@/lib/legalVersions";
+import { trackReddit, tierValue } from "@/lib/reddit";
 
 type Tier = "monthly" | "yearly" | "lifetime";
 
@@ -99,6 +100,14 @@ function BuyPageContent() {
         if (!resp.ok || !data?.checkout_url) {
           throw new Error(data?.error || "Could not start checkout. Please try again.");
         }
+        // Reddit mid-funnel signal — lets the campaign optimize toward
+        // cart-adders, with the tier's price as the cart value.
+        trackReddit("AddToCart", {
+          currency: "USD",
+          value: tierValue(tier),
+          itemCount: 1,
+          products: [{ id: tier!, name: `S3Console ${tier} plan` }],
+        });
         setStatus("redirecting");
         window.location.href = data.checkout_url;
       } catch (err: any) {

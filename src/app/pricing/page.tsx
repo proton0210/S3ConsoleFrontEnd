@@ -38,14 +38,14 @@ const TIERS: TierConfig[] = [
   {
     id: "yearly",
     name: "Yearly",
-    price: "$49",
+    price: "$79",
     period: "per year",
     description: "Best value for daily users.",
     features: [
       "All features included",
       "Use on 2 machines",
       "Auto-renews yearly",
-      "Save 54% vs monthly",
+      "Save 27% vs monthly",
       "Priority email support",
     ],
     highlighted: true,
@@ -54,7 +54,7 @@ const TIERS: TierConfig[] = [
   {
     id: "lifetime",
     name: "Lifetime",
-    price: "$99",
+    price: "$149",
     period: "one-time",
     description: "Pay once, own forever.",
     features: [

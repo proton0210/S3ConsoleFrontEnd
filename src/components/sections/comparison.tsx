@@ -327,7 +327,7 @@ const categories: { name: string; features: ComparisonFeature[] }[] = [
       },
       {
         feature: "Pricing",
-        s3console: "From $9/mo · $99 lifetime",
+        s3console: "From $9/mo · $149 lifetime",
         awsConsole: "Free (with AWS)",
         cyberduck: "Free / donate",
         transmit: "$45 one-time",
@@ -551,7 +551,7 @@ export default function Comparison() {
         <div className="rounded-xl border border-border bg-background p-5 text-center">
           <p className="text-3xl font-bold text-primary">From $9</p>
           <p className="text-sm text-muted-foreground mt-1">
-            Monthly, yearly, or $99 lifetime
+            Monthly, yearly, or $149 lifetime
           </p>
         </div>
         <div className="rounded-xl border border-border bg-background p-5 text-center">

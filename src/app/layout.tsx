@@ -12,6 +12,7 @@ import {
   UserButton,
 } from "@clerk/nextjs";
 import { Inter } from "next/font/google";
+import { RedditPixel } from "@/components/reddit-pixel";
 import "./globals.css";
 
 const inter = Inter({
@@ -66,6 +67,7 @@ export default function RootLayout({
         >
             {children}
             <GoogleAnalytics gaId="G-W5G449QF3Y" />
+            <RedditPixel />
         </body>
       </html>
     </ClerkProvider>

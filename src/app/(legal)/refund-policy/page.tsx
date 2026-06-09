@@ -27,7 +27,7 @@ export default function RefundPolicyPage() {
         your order details.
       </p>
 
-      <h2>Lifetime ($99 one-time)</h2>
+      <h2>Lifetime ($149 one-time)</h2>
       <p>
         7-day money-back guarantee. Lifetime refunds outside this window are
         considered case-by-case and not guaranteed.
