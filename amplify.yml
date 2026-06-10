@@ -4,6 +4,13 @@ frontend:
     preBuild:
       commands:
         - npm ci --legacy-peer-deps
+        # Snapshot server-side env vars from the Amplify build environment into
+        # .env.production so Next.js can read them at SSR runtime. Without this,
+        # non-NEXT_PUBLIC_ vars set in the Amplify Console are present at build
+        # time but NOT at SSR runtime (known Amplify-Hosting gotcha).
+        # NOTE: this repo file OVERRIDES the build spec saved in the Amplify
+        # Console — keep them in sync, this one wins.
+        - printenv | grep -E '^(NEXT_PUBLIC_|CLERK_|DODO_|S3CONSOLE_|RESEND_|LICENSE_|DYNAMO_|FOUNDER_|POSTHOG_|AWS_REGION=)' > .env.production
     build:
       commands:
         - npm run build
