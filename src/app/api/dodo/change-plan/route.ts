@@ -135,6 +135,9 @@ export async function POST(req: NextRequest) {
         metadata: {
           tier,
           plan_change_from: license.tier || "unknown",
+          // Product marker — webhooks drop events that aren't ours (the Dodo
+          // account is shared across products).
+          app: "s3console",
         },
       }),
     });

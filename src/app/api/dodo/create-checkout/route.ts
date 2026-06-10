@@ -159,6 +159,10 @@ export async function POST(req: NextRequest) {
       ...(metadata || {}),
       ...(resolvedTier ? { tier: resolvedTier } : {}),
       ...(accountEmail ? { accountEmail } : {}),
+      // Product marker — the Dodo account is shared across products and every
+      // webhook endpoint receives every event; webhooks use this to drop the
+      // other products' events. Keep last so client metadata can't spoof it.
+      app: "s3console",
     };
 
     // Both subscription (monthly/yearly) and one-time (lifetime) flows go through
