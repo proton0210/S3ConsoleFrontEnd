@@ -49,12 +49,23 @@ declare global {
 }
 
 /** Our license tiers, all USD. Kept in sync with lib/config pricing. */
-export type LicenseTier = "monthly" | "yearly" | "lifetime";
+export type LicenseTier = "monthly" | "yearly" | "lifetime" | "team";
+
+/**
+ * Team seat price — SINGLE SOURCE OF TRUTH for every display site (pricing
+ * card, buy-page seat total, billing TIER_LABELS, /account/team copy).
+ * MUST match the team product's price in the Dodo dashboard: Dodo is what
+ * actually charges (product price × quantity); this constant is only what we
+ * SHOW. If you change the Dodo product price, change this one number.
+ */
+export const TEAM_SEAT_PRICE_USD = 99;
 
 const TIER_VALUE_USD: Record<LicenseTier, number> = {
   monthly: 9,
   yearly: 79,
   lifetime: 149,
+  // Per-seat price — callers multiply by seat count for cart value.
+  team: TEAM_SEAT_PRICE_USD,
 };
 
 /** Numeric USD value for a tier; returns undefined for unknown tiers. */

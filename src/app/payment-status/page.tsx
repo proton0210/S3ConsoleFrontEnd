@@ -37,7 +37,7 @@ type UiPhase =
 
 interface VerifiedLicense {
   key?: string;
-  tier?: "monthly" | "yearly" | "lifetime";
+  tier?: "monthly" | "yearly" | "lifetime" | "team";
   validUntil?: number | null;
   subscriptionStatus?: string;
   licenseCount?: number;
@@ -400,6 +400,19 @@ function PaymentStatusContent() {
           )}
         </div>
 
+        {license.tier === "team" && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8 text-left">
+            <p className="text-sm font-semibold text-blue-900 mb-2">
+              Your team is ready — invite your members
+            </p>
+            <p className="text-sm text-blue-800">
+              You hold the first seat. Invite teammates by email from the team
+              dashboard — each gets their own license key, valid on up to 2
+              machines, delivered straight to their inbox.
+            </p>
+          </div>
+        )}
+
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-8 text-left">
           <p className="text-sm font-semibold text-amber-900 mb-2">
             Activate on your machine
@@ -412,13 +425,31 @@ function PaymentStatusContent() {
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-3">
-          <Button
-            onClick={() => router.push("/downloads")}
-            size="lg"
-            className="bg-primary hover:bg-primary/90 text-white"
-          >
-            Open downloads
-          </Button>
+          {license.tier === "team" ? (
+            <Button
+              onClick={() => router.push("/account/team")}
+              size="lg"
+              className="bg-primary hover:bg-primary/90 text-white"
+            >
+              Invite your team
+            </Button>
+          ) : (
+            <Button
+              onClick={() => router.push("/downloads")}
+              size="lg"
+              className="bg-primary hover:bg-primary/90 text-white"
+            >
+              Open downloads
+            </Button>
+          )}
+          {license.tier === "team" && (
+            <Link
+              href="/downloads"
+              className="inline-flex items-center text-sm text-slate-700 hover:text-primary underline"
+            >
+              Downloads
+            </Link>
+          )}
           <Link
             href="/account/billing"
             className="inline-flex items-center text-sm text-slate-700 hover:text-primary underline"

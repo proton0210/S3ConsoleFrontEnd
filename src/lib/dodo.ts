@@ -12,9 +12,9 @@
  */
 import "server-only";
 
-export type LicenseTier = "monthly" | "yearly" | "lifetime";
+export type LicenseTier = "monthly" | "yearly" | "lifetime" | "team";
 
-const TIERS = ["monthly", "yearly", "lifetime"] as const;
+const TIERS = ["monthly", "yearly", "lifetime", "team"] as const;
 
 export function isLicenseTier(value: unknown): value is LicenseTier {
   return typeof value === "string" && (TIERS as readonly string[]).includes(value);
@@ -30,6 +30,7 @@ export function getProductId(tier: LicenseTier): string {
     monthly: process.env.S3CONSOLE_DODO_PRODUCT_ID_MONTHLY,
     yearly: process.env.S3CONSOLE_DODO_PRODUCT_ID_YEARLY,
     lifetime: process.env.S3CONSOLE_DODO_PRODUCT_ID_LIFETIME,
+    team: process.env.S3CONSOLE_DODO_PRODUCT_ID_TEAM,
   };
   const productId = map[tier];
   if (!productId) {
@@ -45,8 +46,15 @@ export function getProductId(tier: LicenseTier): string {
  * Lifetime is a one-time purchase via /checkouts.
  */
 export function isSubscriptionTier(tier: LicenseTier): boolean {
-  return tier === "monthly" || tier === "yearly";
+  return tier === "monthly" || tier === "yearly" || tier === "team";
 }
+
+/** Minimum seats on a team subscription (mirrors backend team-invite checks). */
+export const MIN_TEAM_SEATS = 3;
+
+/** Maximum seats self-serve — protects against fat-fingered quantities; larger
+ * teams go through sales/support so the charge is reviewed first. */
+export const MAX_TEAM_SEATS = 50;
 
 export function getDodoApiBaseUrl(): string {
   return process.env.DODO_API_BASE_URL || "https://live.dodopayments.com";

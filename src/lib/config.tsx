@@ -1,6 +1,7 @@
 import { Icons } from "@/components/icons";
 import { FaLinkedinIn, FaXTwitter } from "react-icons/fa6";
 import { RiInstagramFill } from "react-icons/ri";
+import { TEAM_SEAT_PRICE_USD } from "@/lib/reddit";
 
 export const BLUR_FADE_DELAY = 0.15;
 
@@ -149,6 +150,25 @@ export const siteConfig = {
       buttonText: "Choose Lifetime",
       isPopular: false,
     },
+    {
+      name: "TEAM",
+      tier: "team",
+      href: "/buy?tier=team&seats=3",
+      price: `$${TEAM_SEAT_PRICE_USD}`,
+      period: "per seat / year · 3+ seats",
+      yearlyPrice: null,
+      features: [
+        "Everything in Yearly, per seat",
+        "Each member uses 2 machines",
+        "One invoice for the whole team",
+        "Invite & remove members anytime",
+        "Add seats as you grow",
+        "Priority email support",
+      ],
+      description: "Centralized billing and seat management for teams.",
+      buttonText: "Choose Team",
+      isPopular: false,
+    },
   ],
   faqs: [
     {
@@ -208,11 +228,13 @@ export const siteConfig = {
       question: "What does each plan include?",
       answer: (
         <span>
-          All three plans (Monthly $9, Yearly $79, Lifetime $149) include
-          identical features and let you use S3Console on up to 2 machines. The
-          only difference is how you pay: monthly auto-renews each month,
-          yearly saves 27% vs monthly, and lifetime is a one-time payment with
-          no recurring billing.
+          All plans (Monthly $9, Yearly $79, Lifetime $149, Team $99/seat/yr)
+          include identical features and let each license holder use S3Console
+          on up to 2 machines. The difference is how you pay: monthly
+          auto-renews each month, yearly saves 27% vs monthly, lifetime is a
+          one-time payment with no recurring billing, and Team gives every
+          member their own license with centralized billing and seat
+          management (3-seat minimum).
         </span>
       ),
     },

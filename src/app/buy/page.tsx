@@ -11,12 +11,21 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { compositeLegalVersion } from "@/lib/legalVersions";
+import { sendGAEvent } from "@next/third-parties/google";
 import { trackReddit, tierValue } from "@/lib/reddit";
 
-type Tier = "monthly" | "yearly" | "lifetime";
+type Tier = "monthly" | "yearly" | "lifetime" | "team";
+
+const MIN_TEAM_SEATS = 3;
+const MAX_TEAM_SEATS = 50;
 
 function isValidTier(value: string | null): value is Tier {
-  return value === "monthly" || value === "yearly" || value === "lifetime";
+  return (
+    value === "monthly" ||
+    value === "yearly" ||
+    value === "lifetime" ||
+    value === "team"
+  );
 }
 
 function BuyPageContent() {
@@ -28,7 +37,21 @@ function BuyPageContent() {
   // the user must consent below before we redirect to Dodo.
   const queryAtv = sp.get("atv") || undefined;
   const { user, isLoaded } = useUser();
-  const [termsAccepted, setTermsAccepted] = useState<boolean>(Boolean(queryAtv));
+  // Team checkouts always pause at the consent box so the buyer sees the seat
+  // selector — a pre-stamped ?atv= must not race them past it with the
+  // default seat count.
+  const [termsAccepted, setTermsAccepted] = useState<boolean>(
+    Boolean(queryAtv) && sp.get("tier") !== "team"
+  );
+  // Team checkout: seat count from ?seats= (pricing card deep-link), clamped;
+  // adjustable in the consent box before we redirect to Dodo.
+  const [seats, setSeats] = useState<number>(() => {
+    const fromQuery = Number(sp.get("seats"));
+    if (Number.isInteger(fromQuery)) {
+      return Math.min(MAX_TEAM_SEATS, Math.max(MIN_TEAM_SEATS, fromQuery));
+    }
+    return MIN_TEAM_SEATS;
+  });
 
   // Email priority: ?email=... query param (from magic-link emails) wins.
   // Fallback to Clerk's authenticated email so signed-in homepage clicks
@@ -71,9 +94,14 @@ function BuyPageContent() {
     // we have no queryEmail and no signed-in user, bounce through sign-up
     // rather than letting the route 400. Lifetime is exempt — /checkouts
     // accepts payments without a customer object.
-    const needsAuth = (tier === "monthly" || tier === "yearly") && !email;
+    const needsAuth =
+      (tier === "monthly" || tier === "yearly" || tier === "team") && !email;
     if (needsAuth) {
-      const here = `/buy?tier=${encodeURIComponent(tier!)}`;
+      // Carry the chosen seat count through the sign-up bounce — without it
+      // the user lands back here with the default and has to re-pick.
+      const here = `/buy?tier=${encodeURIComponent(tier!)}${
+        tier === "team" ? `&seats=${seats}` : ""
+      }`;
       window.location.href = `/sign-up?redirect_url=${encodeURIComponent(here)}`;
       return;
     }
@@ -90,6 +118,7 @@ function BuyPageContent() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             tier,
+            ...(tier === "team" ? { seats } : {}),
             ...(email ? { email } : {}),
             ...(name ? { name } : {}),
             metadata: { acceptedTermsVersion, acceptedTermsAt },
@@ -100,12 +129,16 @@ function BuyPageContent() {
         if (!resp.ok || !data?.checkout_url) {
           throw new Error(data?.error || "Could not start checkout. Please try again.");
         }
+        sendGAEvent({ event: "checkout_started", tier: tier });
         // Reddit mid-funnel signal — lets the campaign optimize toward
         // cart-adders, with the tier's price as the cart value.
         trackReddit("AddToCart", {
           currency: "USD",
-          value: tierValue(tier),
-          itemCount: 1,
+          value:
+            tier === "team"
+              ? (tierValue(tier) ?? 0) * seats
+              : tierValue(tier),
+          itemCount: tier === "team" ? seats : 1,
           products: [{ id: tier!, name: `S3Console ${tier} plan` }],
         });
         setStatus("redirecting");
@@ -119,7 +152,7 @@ function BuyPageContent() {
     return () => {
       canceled = true;
     };
-  }, [tier, email, name, isLoaded, termsAccepted, queryAtv]);
+  }, [tier, seats, email, name, isLoaded, termsAccepted, queryAtv]);
 
   // Magic-link visitors land here without `atv` — show a one-tap consent
   // gate so we capture acceptance *before* sending them to Dodo.
@@ -137,6 +170,55 @@ function BuyPageContent() {
               Before we send you to our payment partner, please review and
               accept our terms.
             </p>
+            {tier === "team" && (
+              <div className="mb-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
+                <label
+                  htmlFor="buy-seats"
+                  className="block text-sm font-medium text-slate-900 mb-2"
+                >
+                  Team seats (minimum {MIN_TEAM_SEATS})
+                </label>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    aria-label="Remove a seat"
+                    onClick={() => setSeats((s) => Math.max(MIN_TEAM_SEATS, s - 1))}
+                    className="h-8 w-8 rounded border border-slate-300 text-slate-700 hover:bg-slate-100"
+                  >
+                    −
+                  </button>
+                  <input
+                    id="buy-seats"
+                    type="number"
+                    min={MIN_TEAM_SEATS}
+                    max={MAX_TEAM_SEATS}
+                    value={seats}
+                    onChange={(e) => {
+                      const v = Number(e.target.value);
+                      if (Number.isInteger(v)) {
+                        setSeats(Math.min(MAX_TEAM_SEATS, Math.max(MIN_TEAM_SEATS, v)));
+                      }
+                    }}
+                    className="w-16 rounded border border-slate-300 px-2 py-1 text-center text-slate-900"
+                  />
+                  <button
+                    type="button"
+                    aria-label="Add a seat"
+                    onClick={() => setSeats((s) => Math.min(MAX_TEAM_SEATS, s + 1))}
+                    className="h-8 w-8 rounded border border-slate-300 text-slate-700 hover:bg-slate-100"
+                  >
+                    +
+                  </button>
+                  <span className="text-sm text-slate-600 ml-1">
+                    ${(tierValue("team") ?? 0) * seats}/year total
+                  </span>
+                </div>
+                <p className="mt-2 text-xs text-slate-500">
+                  You can add seats later from your account; invite teammates
+                  by email after purchase.
+                </p>
+              </div>
+            )}
             <label
               htmlFor="buy-terms"
               className="flex items-start gap-2 text-sm text-slate-700 cursor-pointer select-none"

@@ -43,11 +43,14 @@ export async function POST(req: NextRequest) {
     if (!email) {
       return NextResponse.json({ error: "Missing email" }, { status: 400 });
     }
-    if (!tier || !isLicenseTier(tier) || !isSubscriptionTier(tier)) {
+    // Team is a subscription tier but is per-seat — seat changes go through
+    // /api/team/seats, and solo↔team conversions are a new checkout, never an
+    // in-place change (quantity semantics differ).
+    if (!tier || !isLicenseTier(tier) || !isSubscriptionTier(tier) || tier === "team") {
       return NextResponse.json(
         {
           error:
-            "tier must be 'monthly' or 'yearly' for in-place plan change. Lifetime upgrades go through /api/dodo/create-checkout.",
+            "tier must be 'monthly' or 'yearly' for in-place plan change. Lifetime upgrades go through /api/dodo/create-checkout; team seats are managed at /account/team.",
         },
         { status: 400 }
       );

@@ -23,6 +23,7 @@ import { useAuth, useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/sections/header";
 import Section from "@/components/section";
+import { TEAM_SEAT_PRICE_USD } from "@/lib/reddit";
 import {
   FaCrown,
   FaSpinner,
@@ -38,7 +39,7 @@ import {
   FaSync,
 } from "react-icons/fa";
 
-type Tier = "monthly" | "yearly" | "lifetime";
+type Tier = "monthly" | "yearly" | "lifetime" | "team";
 type SubStatus = "active" | "past_due" | "canceled" | string;
 
 interface UserData {
@@ -63,6 +64,7 @@ const TIER_LABELS: Record<Tier, { name: string; price: string; cadence: string }
   monthly: { name: "Monthly", price: "$9", cadence: "per month" },
   yearly: { name: "Yearly", price: "$79", cadence: "per year" },
   lifetime: { name: "Lifetime", price: "$149", cadence: "one-time" },
+  team: { name: "Team", price: `$${TEAM_SEAT_PRICE_USD}`, cadence: "per seat / year" },
 };
 
 function formatDate(ms?: number | null): string {
@@ -443,6 +445,18 @@ export default function BillingDashboardPage() {
               </button>
             </div>
           </div>
+
+          {tier === "team" && (
+            <div className="max-w-5xl mx-auto mb-6">
+              <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+                You're on a Team plan —{" "}
+                <Link href="/account/team" className="underline font-medium">
+                  manage seats and members here
+                </Link>
+                .
+              </div>
+            </div>
+          )}
 
           {error && (
             <div className="max-w-5xl mx-auto mb-6">
