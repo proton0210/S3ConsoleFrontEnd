@@ -29,7 +29,7 @@ export default function LegalDocPage({ filename }: LegalDocPageProps) {
           >
             &larr; Back to Home
           </Link>
-          <article className="prose prose-neutral dark:prose-invert max-w-none mt-6">
+          <article className="prose prose-neutral max-w-none mt-6">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdown}</ReactMarkdown>
           </article>
         </div>
