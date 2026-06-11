@@ -113,7 +113,15 @@ export async function POST(req: NextRequest) {
         proration_billing_mode: "prorated_immediately",
         effective_at: "immediately",
         on_payment_failure: "prevent_change",
-        metadata: { tier: "team", seats_change_from: String(team.seatsPurchased ?? "") },
+        // change-plan REPLACES the subscription's metadata — re-stamp the
+        // routing keys (app/accountEmail) or downstream webhook events lose
+        // their product marker and row key after any seat change.
+        metadata: {
+          tier: "team",
+          seats_change_from: String(team.seatsPurchased ?? ""),
+          accountEmail: ownerEmail,
+          app: "s3console",
+        },
       }),
     });
 

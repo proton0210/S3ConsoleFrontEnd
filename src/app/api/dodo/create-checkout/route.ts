@@ -128,7 +128,22 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: err.message }, { status: 500 });
       }
     } else if (legacyProductId) {
-      // Legacy seat-add flow (will be removed in Phase 11).
+      // Legacy seat-add flow (will be removed in Phase 11). Must be one of OUR
+      // products: an arbitrary id would create a checkout for another product
+      // in the shared Dodo account stamped with OUR metadata.app, which the
+      // webhooks would then mis-route (cross-product license minting).
+      const ownProducts = [
+        process.env.S3CONSOLE_DODO_PRODUCT_ID_MONTHLY,
+        process.env.S3CONSOLE_DODO_PRODUCT_ID_YEARLY,
+        process.env.S3CONSOLE_DODO_PRODUCT_ID_LIFETIME,
+        process.env.S3CONSOLE_DODO_PRODUCT_ID_TEAM,
+      ].filter(Boolean);
+      if (!ownProducts.includes(legacyProductId)) {
+        return NextResponse.json(
+          { error: "Unknown productId." },
+          { status: 400 }
+        );
+      }
       productId = legacyProductId;
     } else {
       return NextResponse.json(
@@ -155,8 +170,18 @@ export async function POST(req: NextRequest) {
       resolvedTier === "team"
         ? clerkEmail || effectiveEmail
         : effectiveEmail;
+    // The routing keys (app/tier/accountEmail) are derived server-side and
+    // must never come from the client: a spoofed tier:"team" would mint a
+    // phantom team row in the webhook, and a spoofed accountEmail would key
+    // someone else's row. Strip them from client metadata before merging.
+    const {
+      app: _app,
+      tier: _tier,
+      accountEmail: _accountEmail,
+      ...clientMetadata
+    } = metadata || {};
     const checkoutMetadata: Record<string, string> = {
-      ...(metadata || {}),
+      ...clientMetadata,
       ...(resolvedTier ? { tier: resolvedTier } : {}),
       ...(accountEmail ? { accountEmail } : {}),
       // Product marker — the Dodo account is shared across products and every
