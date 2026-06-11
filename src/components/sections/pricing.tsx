@@ -45,7 +45,7 @@ export default function PricingSection() {
               delay: 0.1 * index,
             }}
             className={cn(
-              "relative rounded-2xl p-8 bg-background text-center transition-all duration-300",
+              "relative rounded-2xl p-8 bg-background text-center transition-all duration-300 flex flex-col h-full",
               "border",
               plan.isPopular
                 ? "border-primary shadow-lg shadow-primary/10 scale-[1.02]"
@@ -73,7 +73,7 @@ export default function PricingSection() {
               {plan.period}
             </p>
 
-            <ul className="space-y-2.5 text-left mb-8">
+            <ul className="space-y-2.5 text-left mb-8 flex-1">
               {plan.features.map((feature, idx) => (
                 <li key={idx} className="flex items-start gap-2 text-sm">
                   <Check className="mt-0.5 h-4 w-4 text-primary flex-shrink-0" />
@@ -82,21 +82,23 @@ export default function PricingSection() {
               ))}
             </ul>
 
-            <Link
-              href={plan.href}
-              className={cn(
-                buttonVariants({ variant: "default" }),
-                "w-full font-medium",
-                plan.isPopular
-                  ? "bg-primary hover:bg-primary/90 text-white"
-                  : "bg-slate-900 hover:bg-slate-800 text-white"
-              )}
-            >
-              {plan.buttonText}
-            </Link>
-            <p className="mt-3 text-xs text-muted-foreground">
-              {plan.description}
-            </p>
+            <div className="mt-auto">
+              <Link
+                href={plan.href}
+                className={cn(
+                  buttonVariants({ variant: "default" }),
+                  "w-full font-medium",
+                  plan.isPopular
+                    ? "bg-primary hover:bg-primary/90 text-white"
+                    : "bg-slate-900 hover:bg-slate-800 text-white"
+                )}
+              >
+                {plan.buttonText}
+              </Link>
+              <p className="mt-3 text-xs text-muted-foreground">
+                {plan.description}
+              </p>
+            </div>
           </motion.div>
         ))}
       </div>
