@@ -7,7 +7,7 @@ import { sendGAEvent } from "@next/third-parties/google";
 import { FaCheck, FaSpinner, FaCrown } from "react-icons/fa";
 import Header from "@/components/sections/header";
 
-type Tier = "monthly" | "yearly" | "lifetime";
+type Tier = "monthly" | "yearly" | "lifetime" | "team";
 
 interface TierConfig {
   id: Tier;
@@ -18,6 +18,8 @@ interface TierConfig {
   features: string[];
   highlighted?: boolean;
   badge?: string;
+  /** Shown under the price, e.g. the 3-seat minimum math for Team. */
+  priceNote?: string;
 }
 
 const TIERS: TierConfig[] = [
@@ -65,7 +67,27 @@ const TIERS: TierConfig[] = [
       "Priority email support",
     ],
   },
+  {
+    id: "team",
+    name: "Team",
+    price: "$99",
+    period: "per seat / year",
+    priceNote: "3-seat minimum · up to 50 seats",
+    description: "One license, one invoice, whole team.",
+    badge: "For Teams",
+    features: [
+      "Everything in Yearly, per seat",
+      "Each member uses 2 machines",
+      "One invoice for the whole team",
+      "Invite & remove members anytime",
+      "Add seats as you grow",
+    ],
+  },
 ];
+
+// Team checkout needs a seat count, so it goes through the /buy seat
+// selector instead of straight to create-checkout.
+const TEAM_BUY_URL = "/buy?tier=team&seats=3";
 
 export default function PricingPage() {
   const { isSignedIn } = useAuth();
@@ -82,6 +104,14 @@ export default function PricingPage() {
         location: "pricing_page",
         signedIn: !!isSignedIn,
       });
+
+      // Team checkout picks a seat count on /buy before paying.
+      if (tier === "team") {
+        window.location.href = isSignedIn
+          ? TEAM_BUY_URL
+          : `/sign-up?redirect_url=${encodeURIComponent(TEAM_BUY_URL)}`;
+        return;
+      }
 
       // Anonymous users go through Clerk first so /buy has the email + name
       // it needs to satisfy Dodo's CustomerRequest schema. Clerk redirects
@@ -144,8 +174,8 @@ export default function PricingPage() {
             Pick a plan that fits
           </h1>
           <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-            Same powerful S3Console — three ways to pay. Every plan includes
-            every feature on up to 2 machines.
+            Same powerful S3Console — solo or with your whole team. Every plan
+            includes every feature on up to 2 machines per seat.
           </p>
           <p className="text-sm text-slate-500 mt-4">
             All plans start with a 14-day free trial. No credit card required.
@@ -153,23 +183,30 @@ export default function PricingPage() {
         </div>
 
         {/* Tier Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
           {TIERS.map((tier) => {
             const loading = loadingTier === tier.id;
             const disabled = loadingTier !== null && loadingTier !== tier.id;
+            const isTeam = tier.id === "team";
 
             return (
               <div
                 key={tier.id}
                 className={`relative rounded-2xl border p-8 transition-all duration-300 ${
                   tier.highlighted
-                    ? "border-primary shadow-xl shadow-primary/20 bg-white scale-105"
-                    : "border-slate-200 bg-white hover:shadow-lg hover:border-primary/30"
+                    ? "border-primary shadow-xl shadow-primary/20 bg-white lg:scale-105"
+                    : isTeam
+                      ? "border-slate-900 bg-slate-50 hover:shadow-lg"
+                      : "border-slate-200 bg-white hover:shadow-lg hover:border-primary/30"
                 }`}
               >
                 {tier.badge && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="bg-primary text-white text-xs font-semibold px-4 py-1 rounded-full">
+                    <span
+                      className={`${
+                        isTeam ? "bg-slate-900" : "bg-primary"
+                      } text-white text-xs font-semibold px-4 py-1 rounded-full`}
+                    >
                       {tier.badge}
                     </span>
                   </div>
@@ -187,6 +224,11 @@ export default function PricingPage() {
                       {tier.period}
                     </span>
                   </div>
+                  {tier.priceNote && (
+                    <p className="text-xs text-slate-500 mb-2">
+                      {tier.priceNote}
+                    </p>
+                  )}
                   <p className="text-sm text-slate-600">{tier.description}</p>
                 </div>
 
@@ -227,6 +269,18 @@ export default function PricingPage() {
           <p>
             Lifetime is a one-time payment with no recurring billing. All
             future updates included.
+          </p>
+          <p>
+            Team is billed yearly per seat with a 3-seat minimum (up to 50
+            seats self-serve). Invite members and add seats anytime from your
+            account. Need more than 50 seats?{" "}
+            <a
+              href="mailto:vidit@serverlesscreed.com"
+              className="underline hover:text-slate-700"
+            >
+              Contact us
+            </a>
+            .
           </p>
           <p className="text-xs mt-4">
             By purchasing, you agree to our{" "}
