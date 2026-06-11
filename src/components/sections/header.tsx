@@ -124,13 +124,13 @@ export default function Header() {
                   Sign In
                 </Link>
                 <Link
-                  href="/sign-up"
+                  href="/downloads"
                   className={cn(
                     buttonVariants({ variant: "default" }),
                     "w-full sm:w-auto text-background flex gap-2"
                   )}
                 >
-                  Get Started for Free
+                  Download Now
                 </Link>
               </SignedOut>
               <SignedIn>
