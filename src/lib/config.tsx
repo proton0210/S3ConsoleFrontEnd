@@ -52,40 +52,8 @@ export const siteConfig = {
   },
   header: [
     {
-      trigger: "Features",
-      content: {
-        main: {
-          icon: null,
-          title: "Native S3 Desktop App",
-          description:
-            "Professional S3 management with an intuitive interface.",
-          href: "#",
-        },
-        items: [
-          {
-            href: "#",
-            title: "AI Code Generation",
-            description:
-              "Generate S3 operation code with AI-powered suggestions.",
-          },
-          {
-            href: "#",
-            title: "Secure Presigned URLs",
-            description:
-              "Create and share temporary download links with expiration dates.",
-          },
-          {
-            href: "#",
-            title: "Multi-Profile Management",
-            description: "Switch between AWS profiles and regions instantly.",
-          },
-          {
-            href: "#",
-            title: "Smart Object Preview",
-            description: "Preview files directly without downloading.",
-          },
-        ],
-      },
+      href: "/#features",
+      label: "Features",
     },
     {
       href: "/blog",

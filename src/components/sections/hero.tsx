@@ -19,15 +19,12 @@ function HeroPill() {
       transition={{ duration: 0.8, ease }}
     >
       <Link
-        href="/downloads"
+        href="/blog/best-s3-desktop-client-2026"
         onClick={() => sendGAEvent("event", "hero_pill_clicked")}
-        className="flex w-auto items-center space-x-2 rounded-full bg-primary/20 px-2 py-1 ring-1 ring-accent whitespace-pre transition-colors hover:bg-primary/30"
+        className="flex w-auto items-center space-x-2 rounded-full bg-gradient-to-r from-primary/20 to-primary/5 px-4 py-1.5 ring-1 ring-primary/20 whitespace-pre transition-all hover:from-primary/30 hover:to-primary/10"
       >
-        <div className="w-fit rounded-full bg-accent px-2 py-0.5 text-center text-xs font-medium text-primary sm:text-sm">
-          New
-        </div>
         <p className="text-xs font-medium text-primary sm:text-sm">
-          S3Console 2.6
+          S3Console vs Rest
         </p>
         <svg
           width="12"
@@ -60,8 +57,8 @@ function HeroTitles() {
           staggerChildren: 0.2,
         }}
       >
-        <span className="sr-only">AWS S3 Desktop App for Mac, Windows & Linux</span>
-        {["AWS S3", "Desktop", "App", "for Mac,", "Windows", "& Linux"].map(
+        <span className="sr-only">S3 Workflows, Simplified</span>
+        {["S3", "Workflows,", "Simplified"].map(
           (text, index) => (
             <motion.span
               key={index}
@@ -90,9 +87,7 @@ function HeroTitles() {
           ease,
         }}
       >
-        Professional S3 bucket manager with intuitive GUI and AI-powered code
-        generation. Create presigned URLs, switch between AWS profiles
-        instantly, preview files without downloading.
+        Move faster with a professional desktop app for AWS S3.
       </motion.p>
     </div>
   );
@@ -116,23 +111,8 @@ function HeroCTA() {
             "w-full sm:w-auto text-background flex gap-2"
           )}
         >
-          Download — start 14-day trial
+          Try Free — Download Now
         </Link>
-      </motion.div>
-      <motion.div
-        className="mt-5 text-center"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.0, duration: 0.8 }}
-      >
-        <p className="text-sm text-muted-foreground">
-          14-day free trial. Plans from $9/month. No credit card to start.
-        </p>
-        <p className="text-xs text-muted-foreground/80 mt-2 max-w-md mx-auto">
-          * Security-first design: We never store your AWS credentials. All
-          authentication happens locally on your device for maximum security and
-          privacy.
-        </p>
       </motion.div>
     </>
   );

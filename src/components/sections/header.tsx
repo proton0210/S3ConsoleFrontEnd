@@ -11,6 +11,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import { Mail } from "lucide-react";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -44,14 +45,58 @@ export default function Header() {
     <header className="relative sticky top-0 z-50 bg-background/60 backdrop-blur">
       {pathname === "/" && <HomeStickyPromo />}
       <div className="flex items-center justify-between container py-2">
-        <Link
-          href="/"
-          title="brand-logo"
-          className="relative mr-6 flex items-center space-x-2"
-        >
-          <Icons.logo className="w-auto h-[55px]" />
-          <span className="font-bold text-xl">{siteConfig.name}</span>
-        </Link>
+        <div className="relative mr-6 flex items-center gap-1">
+          <Link
+            href="/"
+            title="brand-logo"
+            className="relative flex items-center space-x-2"
+          >
+            <Icons.logo className="w-auto h-[55px]" />
+            <span className="font-bold text-xl">{siteConfig.name}</span>
+          </Link>
+          <NavigationMenu>
+            <NavigationMenuList>
+              <NavigationMenuItem className="relative">
+                <NavigationMenuTrigger
+                  aria-label="Contact the Dev"
+                  className="peer"
+                >
+                  <Mail className="h-5 w-5" />
+                  <span className="sr-only">Contact the Dev</span>
+                </NavigationMenuTrigger>
+                <span className="pointer-events-none absolute left-1/2 top-full z-50 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-xs text-background opacity-0 transition-opacity peer-hover:opacity-100 peer-data-[state=open]:opacity-0">
+                  Contact the Dev
+                </span>
+                <NavigationMenuContent>
+                  <ul className="w-[200px] p-2">
+                    <li>
+                      <Link
+                        href="https://x.com/Vidit_210"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 rounded-md p-3 hover:bg-accent transition-colors"
+                      >
+                        <Icons.twitter className="h-5 w-5 fill-current" />
+                        <span>X (Twitter)</span>
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        href="https://www.linkedin.com/in/vidit-shah/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 rounded-md p-3 hover:bg-accent transition-colors"
+                      >
+                        <Icons.linkedin className="h-5 w-5" />
+                        <span>LinkedIn</span>
+                      </Link>
+                    </li>
+                  </ul>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+            </NavigationMenuList>
+          </NavigationMenu>
+        </div>
 
         <div className="hidden lg:block">
           <div className="flex items-center ">
@@ -62,39 +107,6 @@ export default function Header() {
             )}
 
             <div className="gap-2 flex items-center">
-              <NavigationMenu>
-                <NavigationMenuList>
-                  <NavigationMenuItem>
-                    <NavigationMenuTrigger>Contact The Developer</NavigationMenuTrigger>
-                    <NavigationMenuContent>
-                      <ul className="w-[200px] p-2">
-                        <li>
-                          <Link
-                            href="https://x.com/Vidit_210"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-3 rounded-md p-3 hover:bg-accent transition-colors"
-                          >
-                            <Icons.twitter className="h-5 w-5 fill-current" />
-                            <span>X (Twitter)</span>
-                          </Link>
-                        </li>
-                        <li>
-                          <Link
-                            href="https://www.linkedin.com/in/vidit-shah/"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-3 rounded-md p-3 hover:bg-accent transition-colors"
-                          >
-                            <Icons.linkedin className="h-5 w-5" />
-                            <span>LinkedIn</span>
-                          </Link>
-                        </li>
-                      </ul>
-                    </NavigationMenuContent>
-                  </NavigationMenuItem>
-                </NavigationMenuList>
-              </NavigationMenu>
               <SignedOut>
                 <Link
                   href="/pricing"

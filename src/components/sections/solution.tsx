@@ -93,7 +93,6 @@ const features = [
 export default function Component() {
   return (
     <Section
-      title="Meet Your New S3 Workflow"
       subtitle="A Desktop App That Actually Gets S3 Management Right"
       description="No more wrestling with web consoles or wrestling with CLI commands. S3Console brings the simplicity of modern desktop apps to AWS S3 management."
       className="bg-neutral-100"

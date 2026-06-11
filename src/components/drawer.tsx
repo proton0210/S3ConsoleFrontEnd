@@ -42,13 +42,9 @@ export default function drawerDemo() {
               <ul className="mt-7 text-left">
                 {siteConfig.header.map((item, index) => (
                   <li key={index} className="my-3">
-                    {item.trigger ? (
-                      <span className="font-semibold">{item.trigger}</span>
-                    ) : (
-                      <Link href={item.href || ""} className="font-semibold">
-                        {item.label}
-                      </Link>
-                    )}
+                    <Link href={item.href || ""} className="font-semibold">
+                      {item.label}
+                    </Link>
                   </li>
                 ))}
               </ul>

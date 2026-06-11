@@ -325,16 +325,7 @@ const categories: { name: string; features: ComparisonFeature[] }[] = [
         s3browser: false,
         filezilla: true,
       },
-      {
-        feature: "Pricing",
-        s3console: "From $9/mo · $149 lifetime",
-        awsConsole: "Free (with AWS)",
-        cyberduck: "Free / donate",
-        transmit: "$45 one-time",
-        cloudberry: "$59.99 Pro",
-        s3browser: "$49.99 Pro",
-        filezilla: "~$14/yr",
-      },
+
       {
         feature: "One-Time Payment (No Subscription)",
         s3console: true,
@@ -534,33 +525,6 @@ export default function Comparison() {
         </div>
       </motion.div>
 
-      {/* Summary callout — shown on all breakpoints */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.5, delay: 0.3 }}
-        className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4"
-      >
-        <div className="rounded-xl border border-border bg-background p-5 text-center">
-          <p className="text-3xl font-bold text-primary">6</p>
-          <p className="text-sm text-muted-foreground mt-1">
-            Exclusive features no competitor has
-          </p>
-        </div>
-        <div className="rounded-xl border border-border bg-background p-5 text-center">
-          <p className="text-3xl font-bold text-primary">From $9</p>
-          <p className="text-sm text-muted-foreground mt-1">
-            Monthly, yearly, or $149 lifetime
-          </p>
-        </div>
-        <div className="rounded-xl border border-border bg-background p-5 text-center">
-          <p className="text-3xl font-bold text-primary">3</p>
-          <p className="text-sm text-muted-foreground mt-1">
-            Platforms — macOS, Windows & Linux
-          </p>
-        </div>
-      </motion.div>
     </Section>
   );
 }

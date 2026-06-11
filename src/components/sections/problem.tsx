@@ -26,19 +26,7 @@ const problems = [
 
 export default function Component() {
   return (
-    <Section
-      title="The S3 Management Struggle is Real"
-      subtitle="S3 management shouldn’t be rocket science.
-
-
-
-
-
-
-
-
-"
-    >
+    <Section subtitle="S3 management shouldn’t be rocket science.">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
         {problems.map((problem, index) => (
           <BlurFade key={index} delay={0.2 + index * 0.2} inView>
