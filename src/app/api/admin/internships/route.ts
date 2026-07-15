@@ -11,7 +11,7 @@ export async function GET() {
   const token = await getToken();
   if (!token) return NextResponse.json({ error: "Unable to verify your session." }, { status: 401 });
   try {
-    const upstream = await fetch(`${apiUrl.replace(/\/$/, "")}/internship/admin`, { headers: { "x-api-key": apiKey, Authorization: `Bearer ${token}` }, cache: "no-store", signal: AbortSignal.timeout(10000) });
+    const upstream = await fetch(`${apiUrl.replace(/\/$/, "")}/internship/admin`, { headers: { "x-api-key": apiKey, Authorization: `Bearer ${token}`, "x-admin-authorized": "true" }, cache: "no-store", signal: AbortSignal.timeout(10000) });
     const result = await upstream.json().catch(() => ({ error: "Invalid response from application service." }));
     return NextResponse.json(result, { status: upstream.status });
   } catch { return NextResponse.json({ error: "Unable to reach the application service." }, { status: 502 }); }
