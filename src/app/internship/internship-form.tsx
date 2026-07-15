@@ -6,6 +6,7 @@ import { ArrowLeft, CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const words = (value: string) => value.trim().split(/\s+/).filter(Boolean).length;
 const DEADLINE = Date.parse("2026-07-31T18:29:00.000Z");
@@ -15,6 +16,7 @@ export function InternshipForm({ initialEmail, initialName }: { initialEmail: st
   const [form, setForm] = useState({ name: initialName, email: initialEmail, phone: "+91 ", experience: "", motivation: "", dailyCommitment: "", awsAccount: "", operatingSystem: "", links: "" });
   const [status, setStatus] = useState<"idle" | "submitting" | "success">("idle");
   const [error, setError] = useState("");
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [closed, setClosed] = useState(() => Date.now() >= DEADLINE);
   useEffect(() => { const timer = window.setInterval(() => setClosed(Date.now() >= DEADLINE), 1000); return () => window.clearInterval(timer); }, []);
   const counts = useMemo(() => ({ experience: words(form.experience), motivation: words(form.motivation) }), [form.experience, form.motivation]);
@@ -25,11 +27,19 @@ export function InternshipForm({ initialEmail, initialName }: { initialEmail: st
     if (closed) { setError("Applications closed on 31 July 2026 at 11:59 PM IST."); return; }
     if (!/^\+?91[6-9]\d{9}$/.test(form.phone.replace(/[\s()-]/g, ""))) { setError("Sorry, this internship is only valid for Indians. Please enter a valid +91 mobile number."); return; }
     if (counts.experience < 50 || counts.motivation < 50) { setError("Both long-form answers must contain at least 50 words."); return; }
-    setStatus("submitting");
-    const response = await fetch("/api/internship", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, dailyCommitment: form.dailyCommitment === "yes", awsAccount: form.awsAccount === "yes" }) });
-    const result = await response.json().catch(() => ({}));
-    if (!response.ok) { setError(result.error || "Unable to submit your application."); setStatus("idle"); return; }
-    setStatus("success");
+    setConfirmOpen(true);
+  }
+
+  async function confirmSubmission() {
+    setConfirmOpen(false); setStatus("submitting"); setError("");
+    try {
+      const response = await fetch("/api/internship", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, dailyCommitment: form.dailyCommitment === "yes", awsAccount: form.awsAccount === "yes" }) });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) { setError(result.error || "Unable to submit your application."); setStatus("idle"); return; }
+      setStatus("success");
+    } catch {
+      setError("We could not reach the application service. Please check your connection and try again."); setStatus("idle");
+    }
   }
 
   if (status === "success") return <main className="flex min-h-screen items-center justify-center bg-muted/30 px-4"><div className="max-w-lg rounded-2xl border bg-card p-10 text-center shadow-sm"><CheckCircle2 className="mx-auto h-12 w-12 text-emerald-600" /><h1 className="mt-5 text-3xl font-semibold tracking-tight">Application received</h1><p className="mt-3 text-muted-foreground">Thanks for applying to the S3Console internship. We’ll review your application and contact you by email.</p><Button asChild className="mt-7"><Link href="/">Back to S3Console</Link></Button></div></main>;
@@ -49,6 +59,12 @@ export function InternshipForm({ initialEmail, initialName }: { initialEmail: st
       {error && <div role="alert" className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">{error}</div>}
       <Button type="submit" size="lg" className="w-full rounded-xl" disabled={closed || status === "submitting"}>{status === "submitting" && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}{closed ? "Applications closed" : "Submit application"}</Button>
       </fieldset>
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent className="w-[calc(100%_-_2rem)] rounded-2xl sm:max-w-md">
+          <DialogHeader><DialogTitle>Confirm your application</DialogTitle><DialogDescription className="pt-2 leading-6">Please review your information carefully before continuing. Each applicant may submit only one application, and you will not be able to submit another application after confirmation.</DialogDescription></DialogHeader>
+          <DialogFooter className="mt-2 gap-2 sm:gap-0"><Button type="button" variant="outline" onClick={() => setConfirmOpen(false)}>Review application</Button><Button type="button" onClick={confirmSubmission}>Confirm and submit</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
     </form></div></main>;
 }
 
