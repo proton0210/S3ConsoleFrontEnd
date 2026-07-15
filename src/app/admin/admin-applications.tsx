@@ -46,7 +46,7 @@ export function AdminApplications({ project }: { project: string }) {
     try {
       const saved = JSON.parse(window.localStorage.getItem(storageKey) || "[]");
       if (Array.isArray(saved)) setFavourites(new Set(saved.filter((value): value is string => typeof value === "string")));
-    } catch { window.localStorage.removeItem(storageKey); }
+    } catch { try { window.localStorage.removeItem(storageKey); } catch { /* Storage may be blocked. */ } }
   }, [storageKey]);
 
   const filtered = useMemo(() => {
@@ -71,7 +71,7 @@ export function AdminApplications({ project }: { project: string }) {
   const toggleFavourite = (id: string) => setFavourites((current) => {
     const next = new Set(current);
     if (next.has(id)) next.delete(id); else next.add(id);
-    window.localStorage.setItem(storageKey, JSON.stringify([...next]));
+    try { window.localStorage.setItem(storageKey, JSON.stringify([...next])); } catch { /* Keep favourites in memory when storage is unavailable. */ }
     return next;
   });
   const toggleExpanded = (id: string) => setExpanded((current) => {
