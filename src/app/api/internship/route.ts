@@ -8,7 +8,7 @@ const wordCount = (value: unknown) =>
 
 export async function POST(request: Request) {
   if (Date.now() >= DEADLINE) return NextResponse.json({ error: "Applications closed on 31 July 2026 at 11:59 PM IST." }, { status: 410 });
-  const { userId } = await auth();
+  const { userId, getToken } = await auth();
   if (!userId) return NextResponse.json({ error: "Please sign in to apply." }, { status: 401 });
 
   const user = await currentUser();
@@ -30,7 +30,9 @@ export async function POST(request: Request) {
   const apiUrl = process.env.LICENSE_API_URL;
   const apiKey = process.env.LICENSE_API_KEY;
   if (!apiUrl || !apiKey) return NextResponse.json({ error: "The application service is not configured." }, { status: 500 });
-  const upstream = await fetch(`${apiUrl.replace(/\/$/, "")}/internship`, { method: "POST", headers: { "Content-Type": "application/json", "x-api-key": apiKey }, body: JSON.stringify({ ...body, email: accountEmail, clerkUserId: userId }), cache: "no-store" });
+  const token = await getToken();
+  if (!token) return NextResponse.json({ error: "Unable to verify your session." }, { status: 401 });
+  const upstream = await fetch(`${apiUrl.replace(/\/$/, "")}/internship`, { method: "POST", headers: { "Content-Type": "application/json", "x-api-key": apiKey, Authorization: `Bearer ${token}` }, body: JSON.stringify({ ...body, email: accountEmail, clerkUserId: userId }), cache: "no-store" });
   const result = await upstream.json().catch(() => ({ error: "Invalid response from application service." }));
   return NextResponse.json(result, { status: upstream.status });
 }
