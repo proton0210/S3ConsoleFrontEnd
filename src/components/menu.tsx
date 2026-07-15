@@ -17,11 +17,14 @@ export default function NavigationMenuDemo() {
       <NavigationMenuList>
         {siteConfig.header.map((item, index) => (
           <NavigationMenuItem key={index}>
-            <Link href={item.href || ""} legacyBehavior passHref>
-              <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+            <NavigationMenuLink asChild>
+              <Link
+                href={item.href || ""}
+                className={navigationMenuTriggerStyle()}
+              >
                 {item.label}
-              </NavigationMenuLink>
-            </Link>
+              </Link>
+            </NavigationMenuLink>
           </NavigationMenuItem>
         ))}
       </NavigationMenuList>

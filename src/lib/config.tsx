@@ -153,7 +153,7 @@ export const siteConfig = {
       question: "How can I get started with S3Console?",
       answer: (
         <span>
-          You can get started with S3Console by signing up for an account on our
+          You can get started with S3Console by downloading the app from our
           website, connecting your AWS credentials, and following our
           quick-start guide. We also offer tutorials and documentation to help
           you along the way.
