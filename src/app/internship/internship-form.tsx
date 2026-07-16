@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 const words = (value: string) => value.trim().split(/\s+/).filter(Boolean).length;
 const DEADLINE = Date.parse("2026-07-31T18:29:00.000Z");
 const fieldClass = "mt-2 w-full rounded-xl border border-border bg-background px-3 py-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20";
-const COMMUNITY_ROLES = ["AWS Cloud Captain", "AWS Student Group Leader", "AWS Community Builder", "None", "Something else"];
+const COMMUNITY_ROLES = ["AWS Cloud Captain", "AWS Student Group Leader", "AWS Community Builder", "Something else", "None"];
 
 export function InternshipForm({ initialEmail, initialName }: { initialEmail: string; initialName: string }) {
   const [form, setForm] = useState({ name: initialName, email: initialEmail, phone: "+91 ", experience: "", motivation: "", dailyCommitment: "", awsAccount: "", operatingSystem: "", communityRole: "", communityProofLink: "", communityDetails: "", links: "" });
