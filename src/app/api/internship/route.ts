@@ -44,7 +44,7 @@ export async function POST(request: Request) {
   if (typeof city !== "string" || city.trim().length < 2 || city.trim().length > 80) return NextResponse.json({ error: "Please enter a valid city." }, { status: 400 });
   if (!INDIAN_STATES.has(state)) return NextResponse.json({ error: "Please select a valid state or union territory." }, { status: 400 });
   if (typeof branch !== "string" || branch.trim().length < 2 || branch.trim().length > 80) return NextResponse.json({ error: "Please enter a valid branch." }, { status: 400 });
-  if (typeof graduationYear !== "string" || !/^20(2\d|3[0-5])$/.test(graduationYear)) return NextResponse.json({ error: "Please select a valid graduation year." }, { status: 400 });
+  if (typeof graduationYear !== "string" || !/^(202[6-9]|203[0-5])$/.test(graduationYear)) return NextResponse.json({ error: "This internship is only open to current students graduating between 2026 and 2035." }, { status: 400 });
   if (wordCount(experience) < 50) return NextResponse.json({ error: "Your AWS S3 experience must be at least 50 words." }, { status: 400 });
   if (wordCount(motivation) < 50) return NextResponse.json({ error: "Why you want to apply must be at least 50 words." }, { status: 400 });
   if (typeof dailyCommitment !== "boolean" || typeof awsAccount !== "boolean") return NextResponse.json({ error: "Please answer all Yes or No questions." }, { status: 400 });
