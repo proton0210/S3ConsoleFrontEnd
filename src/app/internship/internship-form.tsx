@@ -11,9 +11,10 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 const words = (value: string) => value.trim().split(/\s+/).filter(Boolean).length;
 const DEADLINE = Date.parse("2026-07-31T18:29:00.000Z");
 const fieldClass = "mt-2 w-full rounded-xl border border-border bg-background px-3 py-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20";
+const COMMUNITY_ROLES = ["AWS Cloud Captain", "AWS Student Group Leader", "AWS Community Builder", "None", "Something else"];
 
 export function InternshipForm({ initialEmail, initialName }: { initialEmail: string; initialName: string }) {
-  const [form, setForm] = useState({ name: initialName, email: initialEmail, phone: "+91 ", experience: "", motivation: "", dailyCommitment: "", awsAccount: "", operatingSystem: "", links: "" });
+  const [form, setForm] = useState({ name: initialName, email: initialEmail, phone: "+91 ", experience: "", motivation: "", dailyCommitment: "", awsAccount: "", operatingSystem: "", communityRole: "", communityProofLink: "", communityDetails: "", links: "" });
   const [status, setStatus] = useState<"idle" | "submitting" | "success">("idle");
   const [error, setError] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -21,12 +22,21 @@ export function InternshipForm({ initialEmail, initialName }: { initialEmail: st
   useEffect(() => { const timer = window.setInterval(() => setClosed(Date.now() >= DEADLINE), 1000); return () => window.clearInterval(timer); }, []);
   const counts = useMemo(() => ({ experience: words(form.experience), motivation: words(form.motivation) }), [form.experience, form.motivation]);
   const update = (name: string, value: string) => setForm((current) => ({ ...current, [name]: value }));
+  const updateCommunityRole = (communityRole: string) => setForm((current) => ({
+    ...current,
+    communityRole,
+    communityProofLink: communityRole === "None" ? "" : current.communityProofLink,
+    communityDetails: communityRole === "Something else" ? current.communityDetails : "",
+  }));
 
   async function submit(event: FormEvent) {
     event.preventDefault(); setError("");
     if (closed) { setError("Applications closed on 31 July 2026 at 11:59 PM IST."); return; }
     if (!/^\+?91[6-9]\d{9}$/.test(form.phone.replace(/[\s()-]/g, ""))) { setError("Sorry, this internship is only valid for Indians. Please enter a valid +91 mobile number."); return; }
     if (counts.experience < 50 || counts.motivation < 50) { setError("Both long-form answers must contain at least 50 words."); return; }
+    if (!form.communityRole) { setError("Please select your AWS community role."); return; }
+    if (form.communityRole !== "None" && !/^https?:\/\/\S+$/i.test(form.communityProofLink.trim())) { setError("Please provide a valid supporting link beginning with http:// or https://."); return; }
+    if (form.communityRole === "Something else" && form.communityDetails.trim().length < 80) { setError("Please add a short paragraph showcasing your skills and achievements."); return; }
     setConfirmOpen(true);
   }
 
@@ -55,6 +65,12 @@ export function InternshipForm({ initialEmail, initialName }: { initialEmail: st
       <Choice label="Will you be able to dedicate 1–2 hours daily?" name="dailyCommitment" value={form.dailyCommitment} choices={["yes", "no"]} onChange={(v) => update("dailyCommitment", v)} />
       <Choice label="Do you have an AWS account?" name="awsAccount" value={form.awsAccount} choices={["yes", "no"]} onChange={(v) => update("awsAccount", v)} />
       <Choice label="Which operating system do you use?" name="operatingSystem" value={form.operatingSystem} choices={["Mac", "Windows", "Linux"]} onChange={(v) => update("operatingSystem", v)} />
+      <section className="space-y-5 rounded-2xl border bg-muted/20 p-4 sm:p-6">
+        <div><h2 className="text-base font-semibold">AWS community involvement</h2><p className="mt-1 text-sm text-muted-foreground">Tell us whether you currently hold an AWS community or student leadership role.</p></div>
+        <Choice label="Which option best describes you?" name="communityRole" value={form.communityRole} choices={COMMUNITY_ROLES} onChange={updateCommunityRole} preserveCase />
+        {form.communityRole && form.communityRole !== "None" && <Field label="Supporting link" hint="Share an official profile, announcement, AWS page, community page, or another public link that verifies this role." required><Input type="url" value={form.communityProofLink} onChange={(e) => update("communityProofLink", e.target.value)} placeholder="https://…" required className="mt-2 h-12 rounded-xl" /></Field>}
+        {form.communityRole === "Something else" && <Field label="Showcase your skills and achievements" hint="Describe your AWS work, leadership, technical contributions, community impact, certifications, or other relevant accomplishments." required><textarea className={fieldClass} rows={6} minLength={80} value={form.communityDetails} onChange={(e) => update("communityDetails", e.target.value)} placeholder="Tell us what makes your experience stand out…" required /><p className="mt-1 text-right text-xs text-muted-foreground">{form.communityDetails.trim().length} / 80 characters minimum</p></Field>}
+      </section>
       <Field label="Project links, LinkedIn or X" required><textarea className={fieldClass} rows={4} value={form.links} onChange={(e) => update("links", e.target.value)} placeholder="Share relevant links and a little context." required /></Field>
       {error && <div role="alert" className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">{error}</div>}
       <Button type="submit" size="lg" className="w-full rounded-xl" disabled={closed || status === "submitting"}>{status === "submitting" && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}{closed ? "Applications closed" : "Submit application"}</Button>
@@ -70,4 +86,4 @@ export function InternshipForm({ initialEmail, initialName }: { initialEmail: st
 
 function Field({ label, hint, required, children }: { label: string; hint?: string; required?: boolean; children: React.ReactNode }) { return <div><Label className="text-sm font-medium">{label}{required && <span className="text-destructive"> *</span>}</Label>{hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}{children}</div>; }
 function LongField({ label, value, count, onChange }: { label: string; value: string; count: number; onChange: (value: string) => void }) { return <Field label={label} required><textarea className={fieldClass} rows={7} value={value} onChange={(e) => onChange(e.target.value)} required /><p className={`mt-1 text-right text-xs ${count < 50 ? "text-muted-foreground" : "text-emerald-600"}`}>{count} / 50 words minimum</p></Field>; }
-function Choice({ label, name, value, choices, onChange }: { label: string; name: string; value: string; choices: string[]; onChange: (value: string) => void }) { return <fieldset><legend className="text-sm font-medium leading-6">{label} <span className="text-destructive">*</span></legend><div className="mt-3 flex flex-wrap gap-3">{choices.map((choice) => <label key={choice} className={`flex min-h-11 min-w-[5.5rem] flex-1 cursor-pointer items-center justify-center rounded-xl border px-4 py-3 text-sm capitalize transition sm:flex-none ${value === choice ? "border-primary bg-primary/5 ring-2 ring-primary/20" : "hover:bg-muted"}`}><input className="sr-only" type="radio" name={name} value={choice} checked={value === choice} onChange={() => onChange(choice)} required />{choice}</label>)}</div></fieldset>; }
+function Choice({ label, name, value, choices, onChange, preserveCase = false }: { label: string; name: string; value: string; choices: string[]; onChange: (value: string) => void; preserveCase?: boolean }) { return <fieldset><legend className="text-sm font-medium leading-6">{label} <span className="text-destructive">*</span></legend><div className="mt-3 flex flex-wrap gap-3">{choices.map((choice) => <label key={choice} className={`flex min-h-11 min-w-[5.5rem] flex-1 cursor-pointer items-center justify-center rounded-xl border px-4 py-3 text-center text-sm transition sm:flex-none ${preserveCase ? "" : "capitalize"} ${value === choice ? "border-primary bg-primary/5 ring-2 ring-primary/20" : "hover:bg-muted"}`}><input className="sr-only" type="radio" name={name} value={choice} checked={value === choice} onChange={() => onChange(choice)} required />{choice}</label>)}</div></fieldset>; }

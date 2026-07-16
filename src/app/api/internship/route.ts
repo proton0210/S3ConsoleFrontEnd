@@ -2,6 +2,7 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 const OS_OPTIONS = new Set(["Mac", "Windows", "Linux"]);
+const COMMUNITY_ROLES = new Set(["AWS Cloud Captain", "AWS Student Group Leader", "AWS Community Builder", "None", "Something else"]);
 const DEADLINE = Date.parse("2026-07-31T18:29:00.000Z");
 const wordCount = (value: unknown) =>
   typeof value === "string" ? value.trim().split(/\s+/).filter(Boolean).length : 0;
@@ -17,7 +18,7 @@ export async function POST(request: Request) {
 
   const body = await request.json().catch(() => null);
   if (!body || typeof body !== "object") return NextResponse.json({ error: "Invalid application." }, { status: 400 });
-  const { name, email, phone, experience, motivation, dailyCommitment, awsAccount, operatingSystem, links } = body;
+  const { name, email, phone, experience, motivation, dailyCommitment, awsAccount, operatingSystem, communityRole, communityProofLink, communityDetails, links } = body;
   if (typeof name !== "string" || name.trim().length < 2) return NextResponse.json({ error: "Please enter your name." }, { status: 400 });
   if (typeof email !== "string" || email.trim().toLowerCase() !== accountEmail) return NextResponse.json({ error: "Use the email address linked to your signed-in account." }, { status: 400 });
   if (typeof phone !== "string" || !/^\+?91[6-9]\d{9}$/.test(phone.replace(/[\s()-]/g, ""))) return NextResponse.json({ error: "Sorry, this internship is only valid for Indians. Use a +91 mobile number." }, { status: 400 });
@@ -25,6 +26,9 @@ export async function POST(request: Request) {
   if (wordCount(motivation) < 50) return NextResponse.json({ error: "Why you want to apply must be at least 50 words." }, { status: 400 });
   if (typeof dailyCommitment !== "boolean" || typeof awsAccount !== "boolean") return NextResponse.json({ error: "Please answer all Yes or No questions." }, { status: 400 });
   if (!OS_OPTIONS.has(operatingSystem)) return NextResponse.json({ error: "Please choose your operating system." }, { status: 400 });
+  if (!COMMUNITY_ROLES.has(communityRole)) return NextResponse.json({ error: "Please select a valid AWS community role." }, { status: 400 });
+  if (communityRole !== "None" && (typeof communityProofLink !== "string" || !/^https?:\/\/\S+$/i.test(communityProofLink.trim()))) return NextResponse.json({ error: "Please provide a valid supporting link." }, { status: 400 });
+  if (communityRole === "Something else" && (typeof communityDetails !== "string" || communityDetails.trim().length < 80)) return NextResponse.json({ error: "Please add a short paragraph showcasing your skills and achievements." }, { status: 400 });
   if (typeof links !== "string" || !links.trim()) return NextResponse.json({ error: "Project links, LinkedIn or X is mandatory." }, { status: 400 });
 
   const apiUrl = process.env.LICENSE_API_URL;
