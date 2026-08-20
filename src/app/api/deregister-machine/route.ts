@@ -1,64 +1,51 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
+import { getLicenseByEmail, licenseApiRequest } from "@/lib/license-api";
 
-const API_URL = process.env.NEXT_PUBLIC_API_GATEWAY_URL || "https://mg1hzgzyxh.execute-api.ap-south-1.amazonaws.com/prod";
-const API_KEY = process.env.NEXT_PUBLIC_API_KEY || "BXGFrlXS1u4zZOoiSQrnI2ppBJZl3p77S7bslQR9";
-
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
-    // Get the authenticated user
     const { userId } = await auth();
-
     if (!userId) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { email, machineId } = body;
-
-    if (!email || !machineId) {
-      return NextResponse.json(
-        { success: false, error: "Missing email or machineId" },
-        { status: 400 }
-      );
+    const user = await currentUser();
+    const email = user?.primaryEmailAddress?.emailAddress?.trim().toLowerCase();
+    if (!email) {
+      return NextResponse.json({ success: false, error: "No primary email on account" }, { status: 400 });
     }
 
-    // Call backend API Gateway
-    const response = await fetch(`${API_URL}/license/deregister`, {
+    const body = await request.json().catch(() => null);
+    const machineId = body?.machineId;
+    if (typeof machineId !== "string" || !machineId.trim()) {
+      return NextResponse.json({ success: false, error: "Missing machineId" }, { status: 400 });
+    }
+
+    const { response: licenseResponse, data: license } = await getLicenseByEmail(email);
+    if (!licenseResponse.ok) {
+      return NextResponse.json(
+        { success: false, error: license.error || "License lookup failed" },
+        { status: licenseResponse.status },
+      );
+    }
+    if (license.clerkId && license.clerkId !== userId) {
+      return NextResponse.json({ success: false, error: "Unauthorized access to this account" }, { status: 403 });
+    }
+
+    const { response, data } = await licenseApiRequest("/license/deregister", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": API_KEY,
-      },
-      body: JSON.stringify({ email, machineId }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, machineId: machineId.trim() }),
     });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return NextResponse.json(
-        { success: false, error: data.error || "Failed to deregister machine" },
-        { status: response.status }
-      );
-    }
-
-    return NextResponse.json({
-      success: true,
-      ...data,
-    });
-  } catch (error) {
-    console.error("Error in deregister-machine API:", error);
     return NextResponse.json(
-      {
-        success: false,
-        error: "Failed to deregister machine",
-        details: (error as any)?.message || "Unknown error",
-      },
-      { status: 500 }
+      { success: response.ok, ...data },
+      { status: response.status },
+    );
+  } catch (error) {
+    console.error("[deregister-machine] license service request failed", error);
+    return NextResponse.json(
+      { success: false, error: "Unable to reach license service" },
+      { status: 502 },
     );
   }
 }
-

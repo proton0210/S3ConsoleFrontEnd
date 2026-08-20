@@ -1,13 +1,6 @@
 import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
-import { getDdbClientConfig } from "@/lib/dynamodb";
-
-const docClient = DynamoDBDocumentClient.from(
-  new DynamoDBClient(getDdbClientConfig())
-);
-const TABLE_NAME = "S3Console";
+import { getLicenseByEmail } from "@/lib/license-api";
 
 /**
  * GET /api/team — team overview for the signed-in owner.
@@ -48,13 +41,10 @@ export async function GET() {
   // teamOwner, so removed members correctly fall through to plain 404).
   if (resp.status === 404) {
     try {
-      const { Item } = await docClient.send(
-        new GetCommand({
-          TableName: TABLE_NAME,
-          Key: { email: ownerEmail },
-        })
-      );
+      const { response: licenseResponse, data: Item } =
+        await getLicenseByEmail(ownerEmail);
       if (
+        licenseResponse.ok &&
         Item?.tier === "team" &&
         typeof Item?.teamOwner === "string" &&
         Item.teamOwner &&

@@ -11,11 +11,6 @@
  * the change and returns immediately.
  */
 import { NextRequest, NextResponse } from "next/server";
-import {
-  DynamoDBClient,
-  GetItemCommand,
-} from "@aws-sdk/client-dynamodb";
-import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 import { auth } from "@clerk/nextjs/server";
 import {
   getDodoApiBaseUrl,
@@ -24,10 +19,7 @@ import {
   isSubscriptionTier,
   type LicenseTier,
 } from "@/lib/dodo";
-import { getDdbClientConfig } from "@/lib/dynamodb";
-
-const TABLE_NAME = "S3Console";
-const ddb = new DynamoDBClient(getDdbClientConfig());
+import { getLicenseByEmail } from "@/lib/license-api";
 
 export async function POST(req: NextRequest) {
   try {
@@ -56,16 +48,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { Item } = await ddb.send(
-      new GetItemCommand({
-        TableName: TABLE_NAME,
-        Key: marshall({ email }),
-      })
-    );
-    if (!Item) {
+    const { response: licenseResponse, data: license } =
+      await getLicenseByEmail(email);
+    if (licenseResponse.status === 404) {
       return NextResponse.json({ error: "License not found" }, { status: 404 });
     }
-    const license = unmarshall(Item);
+    if (!licenseResponse.ok) {
+      return NextResponse.json(
+        { error: license.error || "License lookup failed" },
+        { status: licenseResponse.status },
+      );
+    }
 
     if (license.clerkId && license.clerkId !== userId) {
       return NextResponse.json(

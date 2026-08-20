@@ -36,7 +36,8 @@ const environmentVariables: EnvVar[] = [
     description: 'Resend API key for sending emails'
   },
 
-  // AWS DynamoDB credentials are NO LONGER read from env vars.
+  // AWS DynamoDB credentials are NO LONGER read from env vars. Database
+  // access belongs to the API Gateway/Lambda backend execution roles.
   // Phase 11 migrated all DDB access to server-side routes that pick up
   // credentials from the Amplify SSR IAM role via the SDK default chain.
   // If NEXT_PUBLIC_DYNAMO_* is still set anywhere, that's a critical leak —
@@ -58,6 +59,9 @@ const environmentVariables: EnvVar[] = [
 const DEPRECATED_LEAK_VARS = [
   'NEXT_PUBLIC_DYNAMO_ACCESS_KEY_ID',
   'NEXT_PUBLIC_DYNAMO_SECRET_ACCESS_KEY',
+  'DYNAMO_ACCESS_KEY_ID',
+  'DYNAMO_SECRET_ACCESS_KEY',
+  'NEXT_PUBLIC_RAZORPAY_KEY_SECRET',
 ] as const;
 
 export function validateEnvironmentVariables(): {
@@ -87,7 +91,7 @@ export function validateEnvironmentVariables(): {
   DEPRECATED_LEAK_VARS.forEach((name) => {
     if (process.env[name]) {
       missing.push(
-        `${name} is set — REMOVE IT. NEXT_PUBLIC_* values ship to every browser; AWS keys here = critical credential leak. DDB now goes through the Amplify SSR IAM role.`
+        `${name} is set — REMOVE IT. Private credentials must never use NEXT_PUBLIC_* or be embedded in a frontend build.`
       );
     }
   });

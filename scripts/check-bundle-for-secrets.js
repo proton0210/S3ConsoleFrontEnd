@@ -13,7 +13,7 @@
  *         - node scripts/check-bundle-for-secrets.js
  *
  * Patterns flagged:
- *   - AKIA[0-9A-Z]{16}        AWS access key id
+ *   - AKIA/ASIA access key IDs
  *   - aws_secret_access_key   any literal mention
  *   - accessKeyId             SDK config field
  *   - secretAccessKey         SDK config field
@@ -24,8 +24,9 @@ const path = require("path");
 const STATIC_DIR = path.join(__dirname, "..", ".next", "static", "chunks");
 
 const PATTERNS = [
-  /AKIA[0-9A-Z]{16}/,
+  /A(?:KI|SI)A[0-9A-Z]{16}/,
   /aws_secret_access_key/i,
+  /NEXT_PUBLIC_(?:AWS|DYNAMO|RAZORPAY).*?(?:SECRET|ACCESS_KEY)/i,
   /\baccessKeyId\b\s*[:=]\s*["'][^"']+["']/,
   /\bsecretAccessKey\b\s*[:=]\s*["'][^"']+["']/,
 ];
@@ -49,7 +50,7 @@ for (const file of walk(STATIC_DIR)) {
   for (const pattern of PATTERNS) {
     const match = contents.match(pattern);
     if (match) {
-      findings.push({ file: path.relative(process.cwd(), file), pattern: pattern.toString(), excerpt: match[0].slice(0, 60) });
+      findings.push({ file: path.relative(process.cwd(), file), pattern: pattern.toString() });
     }
   }
 }
@@ -59,7 +60,6 @@ if (findings.length > 0) {
   for (const f of findings) {
     console.error(`  ${f.file}`);
     console.error(`    pattern: ${f.pattern}`);
-    console.error(`    excerpt: ${f.excerpt}`);
   }
   console.error(
     "\n  Fix: ensure no NEXT_PUBLIC_* env var contains an AWS key, and no\n" +

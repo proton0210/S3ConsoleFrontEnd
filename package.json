@@ -5,10 +5,11 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "check:client-secrets": "node scripts/check-bundle-for-secrets.js",
     "start": "next start",
     "lint": "next lint",
     "validate-env": "node scripts/validate-env.js",
-    "prebuild": "npm run validate-env || true"
+    "prebuild": "npm run validate-env"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.821.0",

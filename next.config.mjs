@@ -1,3 +1,18 @@
+const forbiddenDynamoCredentialVars = [
+  "NEXT_PUBLIC_DYNAMO_ACCESS_KEY_ID",
+  "NEXT_PUBLIC_DYNAMO_SECRET_ACCESS_KEY",
+  "DYNAMO_ACCESS_KEY_ID",
+  "DYNAMO_SECRET_ACCESS_KEY",
+];
+const configuredDynamoCredentialVars = forbiddenDynamoCredentialVars.filter(
+  (name) => Boolean(process.env[name])
+);
+if (configuredDynamoCredentialVars.length > 0) {
+  throw new Error(
+    `Remove ${configuredDynamoCredentialVars.join(", ")}. DynamoDB is owned by the backend API; AWS access keys must not be embedded in the frontend build.`
+  );
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
@@ -15,36 +30,10 @@ const nextConfig = {
     // !! WARN !!
     ignoreBuildErrors: true,
   },
-  // Amplify SSR gotcha: env vars set in the Amplify Console are exposed at
-  // BUILD time only — they do NOT flow into the SSR Lambda runtime. Forwarding
-  // them here inlines the values at build time so route handlers can read them
-  // via process.env at request time.
-  env: {
-    CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
-    CLERK_WEBHOOK_SECRET: process.env.CLERK_WEBHOOK_SECRET,
-    POLAR_ACCESS_TOKEN: process.env.POLAR_ACCESS_TOKEN,
-    POLAR_WEBHOOK_SECRET: process.env.POLAR_WEBHOOK_SECRET,
-    RESEND_API_KEY: process.env.RESEND_API_KEY,
-    RESEND_FROM_EMAIL: process.env.RESEND_FROM_EMAIL,
-    FOUNDER_NOTIFICATION_EMAIL: process.env.FOUNDER_NOTIFICATION_EMAIL,
-    FOUNDER_DIGEST_MODE: process.env.FOUNDER_DIGEST_MODE,
-    DODO_API_KEY: process.env.DODO_API_KEY,
-    DODO_API_BASE_URL: process.env.DODO_API_BASE_URL,
-    // DODO_WEBHOOK_SECRET / DODO_WEBHOOK_SECRET_ARN are NOT forwarded:
-    // the webhook now runs on a dedicated Lambda Function URL (see
-    // backend-s3Console/src/handlers/dodo-webhook.ts). The Next.js app no
-    // longer receives Dodo webhook traffic.
-    RESEND_SECRET_ARN: process.env.RESEND_SECRET_ARN,
-    LICENSE_SIGNING_SECRET_ARN: process.env.LICENSE_SIGNING_SECRET_ARN,
-    CLERK_WEBHOOK_SECRET_ARN: process.env.CLERK_WEBHOOK_SECRET_ARN,
-    S3CONSOLE_DODO_PRODUCT_ID_MONTHLY: process.env.S3CONSOLE_DODO_PRODUCT_ID_MONTHLY,
-    S3CONSOLE_DODO_PRODUCT_ID_YEARLY: process.env.S3CONSOLE_DODO_PRODUCT_ID_YEARLY,
-    S3CONSOLE_DODO_PRODUCT_ID_LIFETIME: process.env.S3CONSOLE_DODO_PRODUCT_ID_LIFETIME,
-    DYNAMO_ACCESS_KEY_ID: process.env.DYNAMO_ACCESS_KEY_ID,
-    DYNAMO_SECRET_ACCESS_KEY: process.env.DYNAMO_SECRET_ACCESS_KEY,
-    // AWS_REGION intentionally NOT forwarded — Lambda's runtime sets it
-    // automatically; baking the build-time value risks overriding it.
-  },
+  // Never put secrets in next.config `env`. Next replaces those values at
+  // build time, which destroys the server/runtime boundary and can copy them
+  // into generated JavaScript. Server code reads its runtime environment or
+  // Secrets Manager directly; DynamoDB is accessed only by backend Lambdas.
 
   // Convenience aliases for the download CTA. /download (singular) and
   // /get are common shortcuts; map them to the canonical /downloads page.

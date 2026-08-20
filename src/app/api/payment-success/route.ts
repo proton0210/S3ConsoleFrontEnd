@@ -11,16 +11,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import {
-  DynamoDBClient,
-  GetItemCommand,
-} from "@aws-sdk/client-dynamodb";
-import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
-import { getDdbClientConfig } from "@/lib/dynamodb";
-
-const TABLE_NAME = "S3Console";
-
-const client = new DynamoDBClient(getDdbClientConfig());
+import { getLicenseByEmail } from "@/lib/license-api";
 
 export async function POST(req: NextRequest) {
   try {
@@ -38,14 +29,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { Item } = await client.send(
-      new GetItemCommand({
-        TableName: TABLE_NAME,
-        Key: marshall({ email }),
-      })
-    );
-
-    if (!Item) {
+    const { response, data: license } = await getLicenseByEmail(email);
+    if (response.status === 404) {
       // Webhook hasn't landed yet — return pending so the client retries.
       return NextResponse.json({
         success: true,
@@ -54,7 +39,12 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const license = unmarshall(Item);
+    if (!response.ok) {
+      return NextResponse.json(
+        { success: false, error: license.error || "License lookup failed" },
+        { status: response.status },
+      );
+    }
 
     // Defense-in-depth: if a clerkId is on the row, ensure it matches the caller.
     if (license.clerkId && license.clerkId !== userId) {

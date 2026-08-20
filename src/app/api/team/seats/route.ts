@@ -12,11 +12,6 @@
  * seat.
  */
 import { NextRequest, NextResponse } from "next/server";
-import {
-  DynamoDBClient,
-  GetItemCommand,
-} from "@aws-sdk/client-dynamodb";
-import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 import { currentUser } from "@clerk/nextjs/server";
 import {
   getDodoApiBaseUrl,
@@ -24,10 +19,7 @@ import {
   MAX_TEAM_SEATS,
   MIN_TEAM_SEATS,
 } from "@/lib/dodo";
-import { getDdbClientConfig } from "@/lib/dynamodb";
-
-const TABLE_NAME = "S3Console";
-const ddb = new DynamoDBClient(getDdbClientConfig());
+import { getTeamByOwner } from "@/lib/license-api";
 
 export async function POST(req: NextRequest) {
   try {
@@ -52,19 +44,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { Item } = await ddb.send(
-      new GetItemCommand({
-        TableName: TABLE_NAME,
-        Key: marshall({ email: `TEAM#${ownerEmail}` }),
-      })
-    );
-    if (!Item) {
+    const { response: teamResponse, data: team } =
+      await getTeamByOwner(ownerEmail);
+    if (teamResponse.status === 404) {
       return NextResponse.json(
         { error: "No team subscription for this account" },
         { status: 404 }
       );
     }
-    const team = unmarshall(Item);
+    if (!teamResponse.ok) {
+      return NextResponse.json(
+        { error: team.error || "Team lookup failed" },
+        { status: teamResponse.status },
+      );
+    }
 
     if (!team.subscriptionId) {
       return NextResponse.json(
@@ -72,9 +65,9 @@ export async function POST(req: NextRequest) {
         { status: 409 }
       );
     }
-    const memberCount = Array.isArray(team.memberEmails)
-      ? team.memberEmails.length
-      : 0;
+    const memberCount = Array.isArray(team.members)
+      ? team.members.length
+      : Number(team.seatsUsed || 0);
     if (seats < memberCount) {
       return NextResponse.json(
         {

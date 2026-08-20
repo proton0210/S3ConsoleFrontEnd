@@ -5,31 +5,43 @@
  * Can be run with regular Node.js without TypeScript
  */
 
+// Match Next.js's environment loading behavior for local builds. In Amplify,
+// the same values are already present in the process environment.
+require('@next/env').loadEnvConfig(process.cwd());
+
 // Phase 11 — `NEXT_PUBLIC_DYNAMO_*` removed; DDB now goes through the Amplify
 // SSR IAM role. `RESEND_API_KEY` moved to Secrets Manager (RESEND_SECRET_ARN).
 const requiredVars = [
   'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY',
   'CLERK_SECRET_KEY',
-  'NEXT_PUBLIC_APP_URL'
+  'NEXT_PUBLIC_APP_URL',
+  'LICENSE_API_URL',
+  'LICENSE_API_KEY'
 ];
 
 // Either-or: prod uses Secrets Manager ARN, local dev uses raw env.
 const eitherOr = [
   { label: 'Resend API key',      options: ['RESEND_API_KEY', 'RESEND_SECRET_ARN'] },
   { label: 'Dodo API key',        options: ['DODO_API_KEY', 'DODO_API_KEY_SECRET_ARN'] },
-  { label: 'Dodo webhook secret', options: ['DODO_WEBHOOK_SECRET', 'DODO_WEBHOOK_SECRET_ARN'] },
 ];
 
 const warnings = [];
 const missing = [];
+const securityErrors = [];
 
 console.log('🔍 Validating environment variables...\n');
 
 // Phase 11 — flag leaked client-side AWS credentials as a hard failure.
-['NEXT_PUBLIC_DYNAMO_ACCESS_KEY_ID', 'NEXT_PUBLIC_DYNAMO_SECRET_ACCESS_KEY'].forEach((k) => {
+[
+  'NEXT_PUBLIC_DYNAMO_ACCESS_KEY_ID',
+  'NEXT_PUBLIC_DYNAMO_SECRET_ACCESS_KEY',
+  'DYNAMO_ACCESS_KEY_ID',
+  'DYNAMO_SECRET_ACCESS_KEY',
+  'NEXT_PUBLIC_RAZORPAY_KEY_SECRET',
+].forEach((k) => {
   if (process.env[k]) {
-    warnings.push(
-      `🛑  ${k} is set — REMOVE IT. NEXT_PUBLIC_* values ship to every browser; this is a critical credential leak.`
+    securityErrors.push(
+      `🛑  ${k} is set — REMOVE IT. Private credentials must never use NEXT_PUBLIC_* or be embedded in a frontend build.`
     );
   }
 });
@@ -61,10 +73,19 @@ if (warnings.length > 0) {
   console.log('');
 }
 
+if (securityErrors.length > 0) {
+  console.error('Security Errors:');
+  securityErrors.forEach(error => console.error(error));
+  console.error('');
+}
+
 if (missing.length > 0) {
   console.log('❌ Missing required environment variables:');
   missing.forEach(varName => console.log(`   - ${varName}`));
   console.log('\nPlease set these in your .env.local file or Amplify environment settings.');
+}
+
+if (missing.length > 0 || securityErrors.length > 0) {
   process.exit(1);
 } else {
   console.log('✅ All required environment variables are set!');
