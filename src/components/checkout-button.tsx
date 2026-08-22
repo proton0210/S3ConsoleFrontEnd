@@ -78,8 +78,12 @@ export default function CheckoutButton({
       }
 
       window.location.href = data.checkout_url;
-    } catch {
-      alert("Failed to start checkout. Please try again.");
+    } catch (error) {
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Failed to start checkout. Please try again."
+      );
       setLoading(false);
     }
   };
