@@ -13,6 +13,7 @@ import {
 } from "@clerk/nextjs";
 import { Inter } from "next/font/google";
 import { RedditPixel } from "@/components/reddit-pixel";
+import { MaintenanceNotice } from "@/components/maintenance-notice";
 import "./globals.css";
 
 const inter = Inter({
@@ -65,6 +66,7 @@ export default function RootLayout({
             inter.variable
           )}
         >
+            <MaintenanceNotice />
             {children}
             <GoogleAnalytics gaId="G-W5G449QF3Y" />
             <RedditPixel />

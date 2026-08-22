@@ -16,6 +16,21 @@ export type LicenseTier = "monthly" | "yearly" | "lifetime" | "team";
 
 const TIERS = ["monthly", "yearly", "lifetime", "team"] as const;
 
+export function getConfiguredProductIds(tier?: LicenseTier): string[] {
+  const tiers = tier ? [tier] : TIERS;
+  return tiers
+    .flatMap((value) => {
+      const suffix = value.toUpperCase();
+      return [
+        process.env[`BUCKETS_DODO_PRODUCT_ID_${suffix}`],
+        process.env[`S3CONSOLE_DODO_PRODUCT_ID_${suffix}`],
+      ];
+    })
+    .filter((value, index, values): value is string =>
+      !!value && values.indexOf(value) === index
+    );
+}
+
 export function isLicenseTier(value: unknown): value is LicenseTier {
   return typeof value === "string" && (TIERS as readonly string[]).includes(value);
 }
@@ -26,16 +41,10 @@ export function isLicenseTier(value: unknown): value is LicenseTier {
  * the wrong product.
  */
 export function getProductId(tier: LicenseTier): string {
-  const map: Record<LicenseTier, string | undefined> = {
-    monthly: process.env.S3CONSOLE_DODO_PRODUCT_ID_MONTHLY,
-    yearly: process.env.S3CONSOLE_DODO_PRODUCT_ID_YEARLY,
-    lifetime: process.env.S3CONSOLE_DODO_PRODUCT_ID_LIFETIME,
-    team: process.env.S3CONSOLE_DODO_PRODUCT_ID_TEAM,
-  };
-  const productId = map[tier];
+  const productId = getConfiguredProductIds(tier)[0];
   if (!productId) {
     throw new Error(
-      `S3CONSOLE_DODO_PRODUCT_ID_${tier.toUpperCase()} env var is not set. Configure tier products in the Dodo dashboard and Amplify env.`
+      `BUCKETS_DODO_PRODUCT_ID_${tier.toUpperCase()} or its legacy S3CONSOLE alias is not set. Configure tier products in the Dodo dashboard and Amplify env.`
     );
   }
   return productId;

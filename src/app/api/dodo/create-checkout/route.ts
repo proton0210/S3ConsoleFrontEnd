@@ -2,12 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import {
   getProductId,
+  getConfiguredProductIds,
   getDodoApiBaseUrl,
   isLicenseTier,
   MAX_TEAM_SEATS,
   MIN_TEAM_SEATS,
   type LicenseTier,
 } from "@/lib/dodo";
+import { isMaintenanceMode } from "@/lib/maintenance";
 
 type CreateCheckoutBody = {
   /** New tier-based flow (preferred). */
@@ -31,6 +33,22 @@ type CreateCheckoutBody = {
 };
 
 export async function POST(req: NextRequest) {
+  if (isMaintenanceMode()) {
+    return NextResponse.json(
+      {
+        error:
+          "Purchases are temporarily paused during scheduled authentication maintenance. Please try again shortly.",
+      },
+      {
+        status: 503,
+        headers: {
+          "Cache-Control": "no-store",
+          "Retry-After": "900",
+        },
+      }
+    );
+  }
+
   try {
     const body: CreateCheckoutBody = await req.json();
     const { tier, seats, email, name, metadata, productId: legacyProductId, quantity } = body;
@@ -132,12 +150,7 @@ export async function POST(req: NextRequest) {
       // products: an arbitrary id would create a checkout for another product
       // in the shared Dodo account stamped with OUR metadata.app, which the
       // webhooks would then mis-route (cross-product license minting).
-      const ownProducts = [
-        process.env.S3CONSOLE_DODO_PRODUCT_ID_MONTHLY,
-        process.env.S3CONSOLE_DODO_PRODUCT_ID_YEARLY,
-        process.env.S3CONSOLE_DODO_PRODUCT_ID_LIFETIME,
-        process.env.S3CONSOLE_DODO_PRODUCT_ID_TEAM,
-      ].filter(Boolean);
+      const ownProducts = getConfiguredProductIds();
       if (!ownProducts.includes(legacyProductId)) {
         return NextResponse.json(
           { error: "Unknown productId." },
