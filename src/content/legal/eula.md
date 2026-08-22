@@ -1,8 +1,8 @@
 # S3Console — End-User License Agreement (EULA)
 
 **Effective Date:** 22 May 2026
-**Last Updated:** 22 May 2026
-**Version:** 1.0
+**Last Updated:** 22 August 2026
+**Version:** 1.1
 
 > **READ THIS AGREEMENT CAREFULLY BEFORE INSTALLING OR USING THE SOFTWARE.** By installing, copying, activating, accessing, or otherwise using the S3Console software (the "**Software**"), you agree to be bound by the terms of this End-User License Agreement (this "**EULA**"). If you do not agree to these terms, do not install or use the Software, and uninstall any copy in your possession or control.
 
@@ -336,7 +336,7 @@ For questions about this EULA, License Key activation issues, or compliance enqu
 
 - **Email (General, Support, Legal):** vidit@serverlesscreed.com
 - **Postal Address:** Khetwadi-11, Mumbai, India
-- **Website:** https://s3console.com
+- **Website:** https://buckets.serverlesscreed.com
 - **GSTIN:** 27FZZPS3310E1ZX
 
 ---

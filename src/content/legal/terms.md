@@ -1,8 +1,8 @@
 # S3Console — Terms and Conditions
 
 **Effective Date:** 22 May 2026
-**Last Updated:** 22 May 2026
-**Version:** 1.0
+**Last Updated:** 22 August 2026
+**Version:** 1.1
 
 These Terms and Conditions ("**Terms**") form a binding legal agreement between **Serverless Creed** ("**ServerlessCreed**", "**we**", "**us**", or "**our**") — a sole proprietorship organized under the laws of India, operating under GSTIN 27FZZPS3310E1ZX, with principal place of business at Khetwadi-11, Mumbai, India — and you, either an individual or the legal entity you represent ("**you**", "**your**", or "**Customer**"), governing your access to and use of the S3Console desktop application, its associated services, documentation, and any related materials (collectively, the "**Software**").
 
@@ -118,7 +118,7 @@ In these Terms, the following capitalized terms have the meanings set forth belo
 
 ## 7. Subscription, Renewal, and Billing
 
-7.1 **Subscription Plans.** Available Subscription plans, durations, features, and prices are published on our website at https://s3console.com/pricing and may be updated from time to time. The plan you purchase governs the scope of your license.
+7.1 **Subscription Plans.** Available Subscription plans, durations, features, and prices are published on our website at https://buckets.serverlesscreed.com/pricing and may be updated from time to time. The plan you purchase governs the scope of your license.
 
 7.2 **Automatic Renewal.** Unless you cancel before the end of your then-current Subscription Term, your Subscription will automatically renew for successive periods equal in length to the original term, at the renewal price then in effect. Renewal charges will be billed to your designated payment method.
 
@@ -219,7 +219,7 @@ In these Terms, the following capitalized terms have the meanings set forth belo
 
 14.4 **No Customer Content to ServerlessCreed.** Except as expressly described above, the Software does not transmit Customer Content (including S3 object contents, bucket data, or AWS credentials) to ServerlessCreed.
 
-14.5 **Privacy Policy.** The collection, use, and protection of personal information is further described in our Privacy Policy, available at https://s3console.com/privacy, which is incorporated by reference into these Terms.
+14.5 **Privacy Policy.** The collection, use, and protection of personal information is further described in our Privacy Policy, available at https://buckets.serverlesscreed.com/privacy, which is incorporated by reference into these Terms.
 
 14.6 **Your Responsibility for Customer Content.** As between you and ServerlessCreed, you retain all right, title, and interest in and to Customer Content. You represent and warrant that you have all rights, consents, and authorizations necessary to access, process, and transmit Customer Content through the Software.
 
@@ -451,7 +451,7 @@ For questions about these Terms, billing, support, or your Subscription, please 
 
 - **Email (General, Support, and Legal):** vidit@serverlesscreed.com
 - **Postal Address:** Khetwadi-11, Mumbai, India
-- **Website:** https://s3console.com
+- **Website:** https://buckets.serverlesscreed.com
 - **GSTIN:** 27FZZPS3310E1ZX
 
 ---
