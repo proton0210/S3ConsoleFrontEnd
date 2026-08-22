@@ -5,10 +5,10 @@ import { TEAM_SEAT_PRICE_USD } from "@/lib/reddit";
 
 export const BLUR_FADE_DELAY = 0.15;
 
-const productName = process.env.NEXT_PUBLIC_PRODUCT_NAME || "S3Console";
+const productName = process.env.NEXT_PUBLIC_PRODUCT_NAME || "ServerlessCreed Buckets";
 const productDescription =
   process.env.NEXT_PUBLIC_PRODUCT_DESCRIPTION ||
-  "S3Console is a native desktop client for Amazon S3 on Mac, Windows, and Linux, with AI code generation, presigned URLs, multi-profile SSO, and a visual bucket policy editor. Free 14-day trial, no credit card.";
+  "ServerlessCreed Buckets is a native desktop client for Amazon S3 and compatible object storage on Mac, Windows, and Linux. Free 14-day trial, no credit card.";
 
 export const siteConfig = {
   name: productName,
@@ -47,13 +47,16 @@ export const siteConfig = {
   publisher: "ServerlessCreed",
   category: "Software",
   links: {
-    email: "vidit@serverlesscreed.com",
+    email:
+      process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "vidit@serverlesscreed.com",
     twitter: "https://x.com/ServerlessCreed",
     discord: "https://discord.gg/s3console",
-    github: "https://github.com/s3console",
+    github: "https://github.com/proton0210",
     instagram: "https://www.instagram.com/serverlesscreed/",
     linkedin: "https://www.linkedin.com/company/serverless-creed",
   },
+  nonAffiliation:
+    "ServerlessCreed is independent and is not sponsored, endorsed, or affiliated with Amazon Web Services.",
   header: [
     {
       href: "/#features",
@@ -144,20 +147,20 @@ export const siteConfig = {
   ],
   faqs: [
     {
-      question: "What is S3Console?",
+      question: "What is ServerlessCreed Buckets?",
       answer: (
         <span>
-          S3Console is a platform that helps you build and manage your AWS S3
+          ServerlessCreed Buckets is a platform that helps you build and manage your AWS S3
           storage. It provides tools and services to streamline the management
           and monitoring of S3 buckets and objects.
         </span>
       ),
     },
     {
-      question: "How can I get started with S3Console?",
+      question: "How can I get started with ServerlessCreed Buckets?",
       answer: (
         <span>
-          You can get started with S3Console by downloading the app from our
+          You can get started with ServerlessCreed Buckets by downloading the app from our
           website, connecting your AWS credentials, and following our
           quick-start guide. We also offer tutorials and documentation to help
           you along the way.
@@ -165,10 +168,10 @@ export const siteConfig = {
       ),
     },
     {
-      question: "What S3 features does S3Console support?",
+      question: "What S3 features does ServerlessCreed Buckets support?",
       answer: (
         <span>
-          S3Console supports a wide range of S3 features, including but not
+          ServerlessCreed Buckets supports a wide range of S3 features, including but not
           limited to bucket management, object operations, versioning, and
           lifecycle policies. We continuously update our platform to support the
           latest S3 capabilities.
@@ -176,10 +179,10 @@ export const siteConfig = {
       ),
     },
     {
-      question: "Is S3Console suitable for beginners in AWS S3?",
+      question: "Is ServerlessCreed Buckets suitable for beginners in AWS S3?",
       answer: (
         <span>
-          Yes, S3Console is designed to be user-friendly for both beginners and
+          Yes, ServerlessCreed Buckets is designed to be user-friendly for both beginners and
           experienced AWS users. We offer intuitive interfaces, pre-built
           templates, and extensive learning resources to help users of all skill
           levels manage their S3 storage effectively.
@@ -201,7 +204,7 @@ export const siteConfig = {
       answer: (
         <span>
           All plans (Monthly $9, Yearly $79, Lifetime $149, Team $99/seat/yr)
-          include identical features and let each license holder use S3Console
+          include identical features and let each license holder use ServerlessCreed Buckets
           on up to 2 machines. The difference is how you pay: monthly
           auto-renews each month, yearly saves 27% vs monthly, lifetime is a
           one-time payment with no recurring billing, and Team gives every

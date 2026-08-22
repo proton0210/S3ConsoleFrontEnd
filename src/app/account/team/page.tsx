@@ -233,7 +233,7 @@ export default function TeamPage() {
           <FaUsers className="text-primary" /> Team
         </h1>
         <p className="text-muted-foreground mb-8">
-          Manage seats and members on your S3Console team subscription.
+          Manage seats and members on your ServerlessCreed Buckets team subscription.
         </p>
 
         {loading && (
@@ -294,7 +294,7 @@ export default function TeamPage() {
             )}
             <div className="flex flex-wrap gap-3">
               <Link href="/downloads">
-                <Button>Download S3Console</Button>
+                <Button>Download ServerlessCreed Buckets</Button>
               </Link>
             </div>
             <p className="mt-4 text-xs text-muted-foreground">

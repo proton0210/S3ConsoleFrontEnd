@@ -4,8 +4,8 @@ import { Metadata } from "next";
 // Private user-only page; explicitly noindex so it doesn't compete with
 // the public landing pages for ranking authority.
 export const metadata: Metadata = constructMetadata({
-  title: "Billing & Subscription — S3Console",
-  description: "Manage your S3Console subscription, payment method, and invoices.",
+  title: "Billing & Subscription — ServerlessCreed Buckets",
+  description: "Manage your ServerlessCreed Buckets subscription, payment method, and invoices.",
   canonical: "/account/billing",
   noindex: true,
   nofollow: true,

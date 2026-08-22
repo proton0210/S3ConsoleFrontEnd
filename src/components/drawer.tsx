@@ -101,7 +101,7 @@ export default function drawerDemo() {
                   "w-full sm:w-auto text-background"
                 )}
               >
-                Download S3Console
+                Download ServerlessCreed Buckets
               </Link>
             )}
             <div className="flex justify-center">

@@ -42,7 +42,7 @@ export default function CtaSection() {
               "w-full sm:w-auto text-background"
             )}
           >
-            Download S3Console
+            Download ServerlessCreed Buckets
           </Link>
           <Link
             href="/pricing"

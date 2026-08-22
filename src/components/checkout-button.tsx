@@ -29,7 +29,7 @@ interface CheckoutButtonProps {
 }
 
 export default function CheckoutButton({
-  text = "Purchase S3Console",
+  text = "Purchase ServerlessCreed Buckets",
   className,
   quantity = 1,
   tier,

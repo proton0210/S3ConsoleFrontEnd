@@ -2,7 +2,6 @@ import { TailwindIndicator } from "@/components/tailwind-indicator";
 import { StructuredData } from "@/components/structured-data";
 import { cn, constructMetadata } from "@/lib/utils";
 import { type Metadata, Viewport } from "next";
-import { GoogleAnalytics } from "@next/third-parties/google";
 import {
   ClerkProvider,
   SignInButton,
@@ -12,8 +11,8 @@ import {
   UserButton,
 } from "@clerk/nextjs";
 import { Inter } from "next/font/google";
-import { RedditPixel } from "@/components/reddit-pixel";
 import { MaintenanceNotice } from "@/components/maintenance-notice";
+import { ConsentManagedTracking } from "@/components/consent-managed-tracking";
 import "./globals.css";
 
 const inter = Inter({
@@ -47,18 +46,6 @@ export default function RootLayout({
           <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
           <StructuredData type="website" />
           <StructuredData type="software" />
-          {/* Twitter conversion tracking base code */}
-          <script
-            dangerouslySetInnerHTML={{
-              __html: `
-                !function(e,t,n,s,u,a){e.twq||(s=e.twq=function(){s.exe?s.exe.apply(s,arguments):s.queue.push(arguments);
-                },s.version='1.1',s.queue=[],u=t.createElement(n),u.async=!0,u.src='https://static.ads-twitter.com/uwt.js',
-                a=t.getElementsByTagName(n)[0],a.parentNode.insertBefore(u,a))}(window,document,'script');
-                twq('config','pyshe');
-              `,
-            }}
-          />
-          {/* End Twitter conversion tracking base code */}
         </head>
         <body
           className={cn(
@@ -68,8 +55,7 @@ export default function RootLayout({
         >
             <MaintenanceNotice />
             {children}
-            <GoogleAnalytics gaId="G-W5G449QF3Y" />
-            <RedditPixel />
+            <ConsentManagedTracking gaId="G-W5G449QF3Y" />
         </body>
       </html>
     </ClerkProvider>
