@@ -1,10 +1,10 @@
 # S3Console — Privacy Policy
 
 **Effective Date:** 22 May 2026
-**Last Updated:** 22 May 2026
-**Version:** 1.0
+**Last Updated:** 22 August 2026
+**Version:** 1.1
 
-This Privacy Policy describes how **Serverless Creed** ("**ServerlessCreed**", "**we**", "**us**", or "**our**") — a sole proprietorship organized under the laws of India, operating under GSTIN 27FZZPS3310E1ZX, with principal place of business at Khetwadi-11, Mumbai, India — collects, uses, shares, and protects personal information in connection with the S3Console desktop application, the website at https://s3console.com, and related services (collectively, the "**Services**").
+This Privacy Policy describes how **Serverless Creed** ("**ServerlessCreed**", "**we**", "**us**", or "**our**") — a sole proprietorship organized under the laws of India, operating under GSTIN 27FZZPS3310E1ZX, with principal place of business at Khetwadi-11, Mumbai, India — collects, uses, shares, and protects personal information in connection with the S3Console desktop application, the website at https://buckets.serverlesscreed.com, and related services (collectively, the "**Services**").
 
 For the avoidance of doubt and for purposes of statutory disclosure under Indian law, Serverless Creed is the registered trade name of a sole proprietorship of which Mr. Vidit Jinesh Shah is the proprietor. The proprietor is the natural person who is the Data Fiduciary under the Digital Personal Data Protection Act, 2023, acting through the business known as Serverless Creed.
 
@@ -50,7 +50,7 @@ For purposes of this Policy:
 3.1 This Policy applies to:
 
 (a) the **S3Console desktop application** distributed by ServerlessCreed;
-(b) the **website at https://s3console.com** and any subdomains; and
+(b) the **website at https://buckets.serverlesscreed.com** and any subdomains; and
 (c) related sales, billing, licensing, and support interactions you have with us.
 
 3.2 This Policy does **not** apply to:
@@ -98,7 +98,7 @@ We collect Personal Information in three ways: (a) you provide it directly, (b) 
 
 (d) **Usage analytics (optional).** If enabled, the Software may transmit anonymized usage analytics (e.g., which features are used, button clicks, screen views) to help us improve the product. Analytics events do not include Customer Content. You can disable this in the Software's settings.
 
-(e) **Website analytics.** When you visit https://s3console.com, we may use privacy-conscious analytics (such as page-view counts, referrer, country-level location, browser type) to understand site traffic. We strive to minimize the use of tracking cookies.
+(e) **Website analytics.** When you visit https://buckets.serverlesscreed.com, we may use privacy-conscious analytics (such as page-view counts, referrer, country-level location, browser type) to understand site traffic. We strive to minimize the use of tracking cookies.
 
 ### 4.3 Information We Receive from Third Parties
 
@@ -269,7 +269,7 @@ We will not discriminate against you for exercising any of your privacy rights. 
 
 11.1 **Desktop application.** S3Console is a desktop application and does not use HTTP cookies in the conventional web sense. The Software stores configuration data, preferences, AWS credentials, and License Keys in **local files and operating-system-provided secure storage** on your device.
 
-11.2 **Website.** The website https://s3console.com may use a minimal set of cookies, local storage, and similar technologies, including:
+11.2 **Website.** The website https://buckets.serverlesscreed.com may use a minimal set of cookies, local storage, and similar technologies, including:
 
 - **Strictly necessary cookies** — required for the website to function (e.g., session, security).
 - **Preference cookies** — remember your settings (e.g., theme).
@@ -366,7 +366,7 @@ For any questions, requests, or complaints regarding this Privacy Policy or our 
 
 - **Email (General, Support, Privacy, and Grievance):** vidit@serverlesscreed.com
 - **Postal Address:** Khetwadi-11, Mumbai, India
-- **Website:** https://s3console.com
+- **Website:** https://buckets.serverlesscreed.com
 - **GSTIN:** 27FZZPS3310E1ZX
 
 ---

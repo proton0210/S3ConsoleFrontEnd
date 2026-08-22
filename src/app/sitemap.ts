@@ -12,7 +12,8 @@ import { MetadataRoute } from "next";
  *     because hero copy + testimonials shift; monthly for stable content.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://s3console.com";
+  const baseUrl =
+    process.env.NEXT_PUBLIC_APP_URL || "https://buckets.serverlesscreed.com";
   const now = new Date();
 
   const posts = await getBlogPosts();

@@ -76,14 +76,14 @@ Create different environment configurations:
 #### Production (.env.production)
 
 ```
-NEXT_PUBLIC_APP_URL=https://s3console.com
+NEXT_PUBLIC_APP_URL=https://buckets.serverlesscreed.com
 NODE_ENV=production
 ```
 
 #### Staging (.env.staging)
 
 ```
-NEXT_PUBLIC_APP_URL=https://staging.s3console.com
+NEXT_PUBLIC_APP_URL=https://staging.buckets.serverlesscreed.com
 NODE_ENV=staging
 ```
 

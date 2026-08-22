@@ -181,7 +181,7 @@ export function TermsAndConditions() {
             </h3>
             <p>
               If you have any questions about these Terms, please contact us at
-              support@s3console.com.
+              support@serverlesscreed.com.
             </p>
           </section>
         </div>

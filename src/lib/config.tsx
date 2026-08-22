@@ -13,7 +13,7 @@ const productDescription =
 export const siteConfig = {
   name: productName,
   description: productDescription,
-  url: process.env.NEXT_PUBLIC_APP_URL || "https://s3console.com",
+  url: process.env.NEXT_PUBLIC_APP_URL || "https://buckets.serverlesscreed.com",
   keywords: [
     // Primary buyer-intent — winnable
     "AWS S3 client",
@@ -226,7 +226,7 @@ export const siteConfig = {
       answer: (
         <span>
           14-day money-back guarantee on monthly and yearly plans. 7-day
-          guarantee on Lifetime. Email support@s3console.com with your order
+          guarantee on Lifetime. Email support@serverlesscreed.com with your order
           details — see the{" "}
           <a href="/refund-policy" className="underline hover:text-foreground">
             full refund policy
