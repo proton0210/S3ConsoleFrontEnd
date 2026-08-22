@@ -7,6 +7,7 @@ const publicRoutes = [
   "/sign-up",
   "/internship",
   "/privacy",
+  "/api/legal/current-versions",
   "/blog",
   "/blog/(.*)",
 ];
