@@ -7,15 +7,15 @@ import Header from "@/components/sections/header";
 import Hero from "@/components/sections/hero";
 import Pricing from "@/components/sections/pricing";
 import { StructuredData } from "@/components/structured-data";
+import { siteConfig } from "@/lib/config";
 import { constructMetadata } from "@/lib/utils";
 import { Metadata } from "next";
 
 export const metadata: Metadata = constructMetadata({
   // Title-tag rule of thumb: lead with the primary keyword, brand last, ~60 chars.
   // Description ~150-160 chars, includes secondary keywords + CTA hook.
-  title: "AWS S3 Client for Mac, Windows & Linux | S3Console",
-  description:
-    "The fastest AWS S3 client for Mac, Windows, and Linux. A native S3 desktop GUI with AI code generation, presigned URLs, multi-profile SSO, and a visual bucket policy editor. Free 14-day trial.",
+  title: `Amazon S3 Desktop Client for Mac, Windows & Linux | ${siteConfig.name}`,
+  description: siteConfig.description,
   canonical: "/",
 });
 
