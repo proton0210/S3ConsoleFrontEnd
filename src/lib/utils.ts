@@ -101,7 +101,7 @@ export function constructMetadata({
       shortcut: "/favicon.ico",
       apple: "/favicon.ico",
     },
-    manifest: "/manifest.json",
+    manifest: "/manifest.webmanifest",
     metadataBase: new URL(siteConfig.url),
     verification: {
       // Add verification codes here when available

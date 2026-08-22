@@ -68,7 +68,7 @@ export function StructuredData({ type = "website", data }: StructuredDataProps) 
     offers,
     publisher: {
       "@type": "Organization",
-      name: siteConfig.creator,
+      name: siteConfig.publisher,
       email: siteConfig.links.email,
       url: baseUrl,
     },
@@ -102,7 +102,7 @@ export function StructuredData({ type = "website", data }: StructuredDataProps) 
     downloadUrl: `${baseUrl}/downloads`,
     publisher: {
       "@type": "Organization",
-      name: siteConfig.creator,
+      name: siteConfig.publisher,
       url: baseUrl,
     },
   };
@@ -110,7 +110,7 @@ export function StructuredData({ type = "website", data }: StructuredDataProps) 
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: siteConfig.creator,
+    name: siteConfig.publisher,
     url: baseUrl,
     logo: {
       "@type": "ImageObject",

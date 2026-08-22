@@ -5,10 +5,14 @@ import { TEAM_SEAT_PRICE_USD } from "@/lib/reddit";
 
 export const BLUR_FADE_DELAY = 0.15;
 
+const productName = process.env.NEXT_PUBLIC_PRODUCT_NAME || "S3Console";
+const productDescription =
+  process.env.NEXT_PUBLIC_PRODUCT_DESCRIPTION ||
+  "S3Console is the fastest AWS S3 client for Mac, Windows, and Linux. A native desktop S3 GUI with AI code generation, presigned URLs, multi-profile SSO, and a visual bucket policy editor. Free 14-day trial, no credit card.";
+
 export const siteConfig = {
-  name: "S3Console",
-  description:
-    "S3Console is the fastest AWS S3 client for Mac, Windows, and Linux. A native desktop S3 GUI with AI code generation, presigned URLs, multi-profile SSO, and a visual bucket policy editor. Free 14-day trial, no credit card.",
+  name: productName,
+  description: productDescription,
   url: process.env.NEXT_PUBLIC_APP_URL || "https://s3console.com",
   keywords: [
     // Primary buyer-intent — winnable
@@ -38,9 +42,9 @@ export const siteConfig = {
     "S3 multi-profile",
     "S3 cost estimator",
   ],
-  author: "S3Console Team",
-  creator: "S3Console",
-  publisher: "S3Console",
+  author: `${productName} Team`,
+  creator: productName,
+  publisher: "ServerlessCreed",
   category: "Software",
   links: {
     email: "vidit@serverlesscreed.com",
