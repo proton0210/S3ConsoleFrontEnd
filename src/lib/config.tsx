@@ -8,7 +8,7 @@ export const BLUR_FADE_DELAY = 0.15;
 const productName = process.env.NEXT_PUBLIC_PRODUCT_NAME || "S3Console";
 const productDescription =
   process.env.NEXT_PUBLIC_PRODUCT_DESCRIPTION ||
-  "S3Console is the fastest AWS S3 client for Mac, Windows, and Linux. A native desktop S3 GUI with AI code generation, presigned URLs, multi-profile SSO, and a visual bucket policy editor. Free 14-day trial, no credit card.";
+  "S3Console is a native desktop client for Amazon S3 on Mac, Windows, and Linux, with AI code generation, presigned URLs, multi-profile SSO, and a visual bucket policy editor. Free 14-day trial, no credit card.";
 
 export const siteConfig = {
   name: productName,

@@ -12,9 +12,9 @@ import { constructMetadata } from "@/lib/utils";
 import { Metadata } from "next";
 
 export const metadata: Metadata = constructMetadata({
-  // Title-tag rule of thumb: lead with the primary keyword, brand last, ~60 chars.
-  // Description ~150-160 chars, includes secondary keywords + CTA hook.
-  title: `Amazon S3 Desktop Client for Mac, Windows & Linux | ${siteConfig.name}`,
+  // Keep the ServerlessCreed product identity first and use the AWS mark only
+  // in the factual relational phrase permitted by the AWS trademark guidance.
+  title: `${siteConfig.name} — Desktop Client for Amazon S3`,
   description: siteConfig.description,
   canonical: "/",
 });
