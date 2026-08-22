@@ -1,4 +1,4 @@
-# S3Console - Feature Reference
+# ServerlessCreed Buckets - Feature Reference
 
 A powerful desktop S3 client built with Electron, React, and the AWS SDK v3.
 

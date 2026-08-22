@@ -383,7 +383,7 @@ export default function BillingDashboardPage() {
               </h1>
               <p className="text-slate-600 mb-6">
                 You're signed in but haven't purchased a plan yet. Pick a plan to
-                unlock S3Console Pro on up to two machines.
+                unlock ServerlessCreed Buckets Pro on up to two machines.
               </p>
               <Link
                 href="/pricing"
@@ -431,7 +431,7 @@ export default function BillingDashboardPage() {
                   Billing &amp; Subscription
                 </h1>
                 <p className="text-slate-600 mt-1.5">
-                  Manage your S3Console Pro plan, payment method, and invoices.
+                  Manage your ServerlessCreed Buckets Pro plan, payment method, and invoices.
                 </p>
               </div>
               <button
@@ -528,7 +528,7 @@ export default function BillingDashboardPage() {
                   </p>
                   <div className="flex items-baseline gap-3 flex-wrap">
                     <h2 className="text-2xl font-bold text-slate-900">
-                      S3Console Pro · {tierInfo.name}
+                      ServerlessCreed Buckets Pro · {tierInfo.name}
                     </h2>
                     <StatusBadge
                       tier={tier}
@@ -723,7 +723,7 @@ export default function BillingDashboardPage() {
                     <FaInfinity className="h-4 w-4 text-violet-600" /> Lifetime access
                   </h3>
                   <p className="text-xs text-slate-700 mb-4">
-                    You own S3Console Pro forever. No renewals, no recurring
+                    You own ServerlessCreed Buckets Pro forever. No renewals, no recurring
                     charges. All future updates are included.
                   </p>
                   <Link

@@ -16,7 +16,7 @@ export default function PricingSection() {
   // mount (home-page section or the dedicated /pricing route).
   useEffect(() => {
     trackReddit("ViewContent", {
-      products: [{ id: "pricing", name: "S3Console pricing", category: "pricing" }],
+      products: [{ id: "pricing", name: "ServerlessCreed Buckets pricing", category: "pricing" }],
     });
   }, []);
 

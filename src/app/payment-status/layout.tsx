@@ -2,7 +2,7 @@ import { constructMetadata } from "@/lib/utils";
 import { Metadata } from "next";
 
 export const metadata: Metadata = constructMetadata({
-  title: "Payment Status — S3Console",
+  title: "Payment Status — ServerlessCreed Buckets",
   canonical: "/payment-status",
   noindex: true,
   nofollow: true,

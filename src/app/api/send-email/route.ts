@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const RESEND_FROM_EMAIL = "Vidit <vidit@serverlesscreed.com>";
+const RESEND_FROM_EMAIL =
+  process.env.RESEND_FROM_EMAIL ||
+  "ServerlessCreed Buckets <vidit@serverlesscreed.com>";
+const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL || "vidit@serverlesscreed.com";
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,20 +33,22 @@ export async function POST(req: NextRequest) {
       },
       body: JSON.stringify({
         from: RESEND_FROM_EMAIL,
+        reply_to: SUPPORT_EMAIL,
         to: [email],
-        subject: "Thanks for purchasing S3Console",
+        subject: "Thanks for purchasing ServerlessCreed Buckets",
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #333;">Welcome to S3Console!</h2>
+            <h2 style="color: #333;">Welcome to ServerlessCreed Buckets!</h2>
             <p>Hi${name ? ` ${name}` : ""},</p>
-            <p>Thank you for purchasing <strong>S3Console</strong>. Your support means the world to us!</p>
+            <p>Thank you for purchasing <strong>ServerlessCreed Buckets</strong>. Your support means the world to us!</p>
             <p>You now have lifetime access to all features.</p>
             <div style="background-color: #f3f4f6; border-left: 4px solid #3b82f6; padding: 16px; margin: 20px 0;">
               <p style="margin: 0; font-weight: bold; color: #1f2937;">Important: To activate your Pro license</p>
-              <p style="margin: 8px 0 0 0; color: #4b5563;">If you're currently logged into the S3Console desktop application, please log out and log back in to see your updated Pro license status.</p>
+              <p style="margin: 8px 0 0 0; color: #4b5563;">If you're currently logged into the ServerlessCreed Buckets desktop application, please log out and log back in to see your updated Pro license status.</p>
             </div>
             <p>If you have any questions or need assistance, please don't hesitate to reach out.</p>
-            <p style="margin-top: 30px;">Best regards,<br/>The S3Console Team</p>
+            <p><a href="https://buckets.serverlesscreed.com/downloads">Download ServerlessCreed Buckets</a> · <a href="mailto:${SUPPORT_EMAIL}">Contact support</a></p>
+            <p style="margin-top: 30px;">Best regards,<br/>The ServerlessCreed Buckets Team</p>
           </div>
         `,
       }),

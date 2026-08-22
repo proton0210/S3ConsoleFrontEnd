@@ -61,7 +61,8 @@ const COPY_STAGE_RELAXED_MS = 90_000;
 // (refresh, billing dashboard, email support).
 const LOADING_FALLBACK_MS = 15_000;
 
-const SUPPORT_EMAIL = "vidit@serverlesscreed.com";
+const SUPPORT_EMAIL =
+  process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "vidit@serverlesscreed.com";
 
 export default function PaymentStatusPage() {
   return (
@@ -189,7 +190,7 @@ function PaymentStatusContent() {
       itemCount: 1,
       transactionId: paymentIdParam || subscriptionIdParam || undefined,
       products: tier
-        ? [{ id: tier, name: `S3Console ${tier} plan` }]
+        ? [{ id: tier, name: `ServerlessCreed Buckets ${tier} plan` }]
         : undefined,
     });
   }, [phase, license, paymentIdParam, subscriptionIdParam]);
@@ -303,7 +304,9 @@ function PaymentStatusContent() {
             Try again
           </Button>
           <a
-            href={`mailto:${SUPPORT_EMAIL}?subject=Payment%20failed%20on%20S3Console`}
+            href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(
+              "Payment failed on ServerlessCreed Buckets"
+            )}`}
             className="inline-flex items-center gap-2 text-sm text-slate-700 hover:text-primary underline"
           >
             <FaEnvelope className="h-3.5 w-3.5" /> Contact support
@@ -353,8 +356,8 @@ function PaymentStatusContent() {
           <a
             href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(
               paymentIdParam
-                ? `Payment pending on S3Console (payment_id=${paymentIdParam})`
-                : "Payment pending on S3Console"
+                ? `Payment pending on ServerlessCreed Buckets (payment_id=${paymentIdParam})`
+                : "Payment pending on ServerlessCreed Buckets"
             )}`}
             className="inline-flex items-center gap-2 text-sm text-slate-700 hover:text-primary underline"
           >
@@ -375,7 +378,7 @@ function PaymentStatusContent() {
           Payment successful
         </h1>
         <p className="text-lg text-slate-600 mb-8">
-          Thank you for upgrading to S3Console Pro. Your account is active.
+          Thank you for upgrading to ServerlessCreed Buckets Pro. Your account is active.
         </p>
 
         <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl p-6 mb-8 text-left">
@@ -418,7 +421,7 @@ function PaymentStatusContent() {
             Activate on your machine
           </p>
           <ol className="text-sm text-amber-800 list-decimal list-inside space-y-1">
-            <li>Open the S3Console desktop app</li>
+            <li>Open the ServerlessCreed Buckets desktop app</li>
             <li>Enter your email and the license key above</li>
             <li>You can activate up to {license.licenseCount ?? 2} machines with the same key</li>
           </ol>

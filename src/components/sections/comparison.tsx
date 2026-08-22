@@ -27,7 +27,7 @@ const competitors: {
   name: string;
   highlight?: boolean;
 }[] = [
-  { key: "s3console", name: "S3Console", highlight: true },
+  { key: "s3console", name: "ServerlessCreed Buckets", highlight: true },
   { key: "awsConsole", name: "AWS Console" },
   { key: "cyberduck", name: "Cyberduck" },
   { key: "transmit", name: "Transmit 5" },
@@ -363,7 +363,7 @@ function CellContent({ value }: { value: CellValue }) {
 }
 
 export default function Comparison() {
-  // Mobile: compare S3Console against one rival at a time.
+  // Mobile: compare ServerlessCreed Buckets against one rival at a time.
   const rivals = competitors.filter((c) => !c.highlight);
   const [activeRival, setActiveRival] = useState<string>(rivals[0].key);
   const rival = competitors.find((c) => c.key === activeRival)!;
@@ -371,7 +371,7 @@ export default function Comparison() {
   return (
     <Section
       title="Comparison"
-      subtitle="S3Console vs. Everything Else"
+      subtitle="ServerlessCreed Buckets vs. Everything Else"
       description="The only S3 desktop client with code generation, in-app execution, and native AWS Identity Center support."
     >
       {/* Mobile view — card list with a rival picker (hidden on md+) */}
@@ -388,7 +388,7 @@ export default function Comparison() {
             htmlFor="rival-picker"
             className="mb-1.5 block text-xs font-medium text-muted-foreground"
           >
-            Compare S3Console with
+            Compare ServerlessCreed Buckets with
           </label>
           <select
             id="rival-picker"
@@ -426,7 +426,7 @@ export default function Comparison() {
                       <div className="flex w-[72px] flex-col items-center gap-1 text-center leading-tight">
                         <CellContent value={row.s3console} />
                         <span className="text-[10px] font-semibold text-primary">
-                          S3Console
+                          ServerlessCreed Buckets
                         </span>
                       </div>
                       <div className="flex w-[72px] flex-col items-center gap-1 text-center leading-tight">

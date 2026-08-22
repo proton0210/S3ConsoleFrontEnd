@@ -261,7 +261,7 @@ export default function DownloadsPage() {
         </div>
         <div class="flex-1">
           <p class="font-semibold mb-1">Download Started!</p>
-          <p class="text-sm text-slate-300 mb-2">Your S3Console download should begin shortly.</p>
+          <p class="text-sm text-slate-300 mb-2">Your ServerlessCreed Buckets download should begin shortly.</p>
           <p class="text-xs text-slate-400">If the download doesn't start automatically, <a href="${downloadLink}" class="text-primary hover:underline">click here</a>.</p>
         </div>
       </div>
@@ -371,7 +371,7 @@ export default function DownloadsPage() {
                 <div className="bg-blue-50 border border-blue-100 p-4 rounded-lg">
                   <p className="font-semibold text-blue-800 mb-1 flex items-center gap-2">
                     <FaCheck className="h-4 w-4" />
-                    S3Console is 100% Safe
+                    ServerlessCreed Buckets is 100% Safe
                   </p>
                   <p className="text-sm text-blue-700">
                     We are a new verified publisher, so Microsoft is still building trust with our certificate. This warning is a standard security check for new software.
@@ -416,7 +416,7 @@ export default function DownloadsPage() {
                 Payment Successful!
               </h3>
               <p className="text-slate-600 mb-6">
-                Your S3Console Pro license is now active
+                Your ServerlessCreed Buckets Pro license is now active
               </p>
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
                 <p className="text-sm text-amber-800">
@@ -438,7 +438,7 @@ export default function DownloadsPage() {
           {/* HERO — centered single download CTA, OS auto-detected */}
           <div className="max-w-3xl mx-auto text-center mb-16">
             <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-slate-900 mb-4">
-              Download S3Console
+              Download ServerlessCreed Buckets
             </h1>
             <p className="text-base md:text-lg text-slate-600 mb-2">
               Your 14-day free trial starts the moment you launch the app. No
@@ -588,7 +588,7 @@ export default function DownloadsPage() {
                       </p>
                       {requiresActivation && (
                         <p className="text-xs text-amber-700 mt-1">
-                          Open the S3Console desktop app and activate your license with your email and license key to register this machine.
+                          Open the ServerlessCreed Buckets desktop app and activate your license with your email and license key to register this machine.
                         </p>
                       )}
                     </div>
@@ -825,7 +825,7 @@ export default function DownloadsPage() {
                 <div className="bg-gradient-to-r from-primary to-primary/80 p-6 text-white text-center">
                   <FaCrown className="h-10 w-10 mx-auto mb-3" />
                   <h3 className="text-2xl font-bold mb-1">
-                    Unlock S3Console Pro
+                    Unlock ServerlessCreed Buckets Pro
                   </h3>
                   <p className="text-base opacity-90">
                     One-time payment, lifetime access

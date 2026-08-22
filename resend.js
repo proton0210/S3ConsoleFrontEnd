@@ -39,7 +39,9 @@ const RESEND_API_KEY =
     );
   })();
 const RESEND_FROM_EMAIL =
-  process.env.RESEND_FROM_EMAIL || "Vidit <vidit@serverlesscreed.com>";
+  process.env.RESEND_FROM_EMAIL ||
+  "ServerlessCreed Buckets <vidit@serverlesscreed.com>";
+const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL || "vidit@serverlesscreed.com";
 
 const ddb = new DynamoDBClient({
   region: "ap-south-1",
@@ -198,15 +200,16 @@ export const handler = async (event) => {
       },
       body: JSON.stringify({
         from: RESEND_FROM_EMAIL,
+        reply_to: SUPPORT_EMAIL,
         to: [email],
-        subject: "Welcome to S3Console – your licence key inside 🔑",
+        subject: "Welcome to ServerlessCreed Buckets – your licence key inside 🔑",
         html: `
           <p>Hi ${name},</p>
-          <p>Thanks for signing up for <strong>S3Console</strong>.</p>
+          <p>Thanks for signing up for <strong>ServerlessCreed Buckets</strong>.</p>
           <p>Your personal licence key:</p>
           <pre style="font-size:1.3em;font-weight:bold">${licenceKey}</pre>
           <p>Paste it into the activation dialog when you launch the app.</p>
-          <p>— The S3Console Team</p>
+          <p>— The ServerlessCreed Buckets Team</p>
         `,
       }),
     });

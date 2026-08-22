@@ -165,7 +165,7 @@ export default async function BlogPostPage({ params }: RouteProps) {
 
         <div className="rounded-xl border bg-muted/30 p-6 sm:p-8 text-center">
           <h2 className="text-xl font-semibold text-foreground mb-2">
-            Try S3Console free for 14 days
+            Try ServerlessCreed Buckets free for 14 days
           </h2>
           <p className="text-sm text-muted-foreground mb-5 max-w-md mx-auto">
             Native AWS S3 client for Mac, Windows, and Linux. Upload from URL,
@@ -176,7 +176,7 @@ export default async function BlogPostPage({ params }: RouteProps) {
               href="/downloads"
               className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
             >
-              Download S3Console
+              Download ServerlessCreed Buckets
             </a>
             <a
               href="/pricing"

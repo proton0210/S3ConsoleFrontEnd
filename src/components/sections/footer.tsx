@@ -40,8 +40,8 @@ const NAV = [
   {
     title: "Solutions",
     links: [
-      { label: "AWS S3 Client", href: "/aws-s3-client" },
-      { label: "AWS S3 GUI", href: "/aws-s3-gui" },
+      { label: "Client for Amazon S3", href: "/aws-s3-client" },
+      { label: "GUI for Amazon S3", href: "/aws-s3-gui" },
       { label: "Cyberduck Alternative", href: "/vs/cyberduck" },
     ],
   },
@@ -66,7 +66,7 @@ export default function Footer() {
               {siteConfig.name}
             </Link>
             <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
-              The fastest AWS S3 client for Mac, Windows, and Linux.
+              Desktop client for Amazon S3 and compatible object storage.
             </p>
             <div className="flex items-center gap-3 mt-4">
               {SOCIALS.map(({ label, href, Icon }) => (
@@ -82,6 +82,12 @@ export default function Footer() {
                 </a>
               ))}
             </div>
+            <a
+              href={`mailto:${siteConfig.links.email}`}
+              className="mt-4 inline-block text-sm text-muted-foreground underline hover:text-primary"
+            >
+              Contact support
+            </a>
           </div>
           {NAV.map((col) => (
             <div key={col.title}>
@@ -109,9 +115,9 @@ export default function Footer() {
             <Link href="/" className="hover:text-primary transition-colors">
               {siteConfig.name}
             </Link>
-            . The fastest AWS S3 client for Mac, Windows, and Linux.
+            . Desktop client for Amazon S3 and compatible object storage.
           </span>
-          <span>Built for developers who live in AWS.</span>
+          <span>{siteConfig.nonAffiliation}</span>
         </div>
       </div>
     </footer>
