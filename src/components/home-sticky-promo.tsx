@@ -9,10 +9,10 @@ import { cn } from "@/lib/utils";
 const HERO_ID = "hero";
 
 const promo = {
-  badge: "DynoConsole",
-  description: "Manage your DynamoDB tables like a pro.",
-  href: "https://dynoconsole.com/",
-  cta: "Explore DynoConsole",
+  badge: "ServerlessCreed Tables",
+  description: "Manage your Amazon DynamoDB tables like a pro.",
+  href: "https://tables.serverlesscreed.com/",
+  cta: "Explore Tables",
   variant: "outline" as const,
 };
 
