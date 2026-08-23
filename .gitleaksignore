@@ -6,3 +6,5 @@ d51be868e461493b3ee2da27b36eb02ba2700456:resend.js:generic-api-key:25
 d51be868e461493b3ee2da27b36eb02ba2700456:src/app/downloads/page.tsx:aws-access-token:12
 d51be868e461493b3ee2da27b36eb02ba2700456:src/app/downloads/page.tsx:generic-api-key:13
 
+# Clerk publishable CI key: intentionally public and restricted to test mode.
+9bb9197125dc65634b10c70f16cdb3184932d303:.github/workflows/security.yml:generic-api-key:16
