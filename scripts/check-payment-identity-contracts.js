@@ -20,6 +20,7 @@ const changePlan = read("src/app/api/dodo/change-plan/route.ts");
 const portal = read("src/app/api/dodo/portal-session/route.ts");
 const paymentSuccess = read("src/app/api/payment-success/route.ts");
 const teamSeats = read("src/app/api/team/seats/route.ts");
+const amplify = read("amplify.yml");
 
 for (const [label, source] of [
   ["checkout", checkout],
@@ -63,5 +64,8 @@ for (const [label, source] of [
   mustContain(source, "accountSubject: userId", `${label} metadata`);
   mustContain(source, 'app: "serverless-buckets"', `${label} product marker`);
 }
+
+mustContain(amplify, '"$AWS_BRANCH" != "main"', "Amplify preview branch gate");
+mustContain(amplify, "MAINTENANCE_MODE=true", "Amplify preview payment pause");
 
 console.log("Payment identity contracts passed for Serverless Buckets.");
