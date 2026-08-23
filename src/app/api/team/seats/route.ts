@@ -12,7 +12,7 @@
  * seat.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { currentUser } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import {
   getDodoApiBaseUrl,
   getProductId,
@@ -21,8 +21,15 @@ import {
 } from "@/lib/dodo";
 import { getTeamByOwner } from "@/lib/license-api";
 
+function errorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
+}
 export async function POST(req: NextRequest) {
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const user = await currentUser();
     const ownerEmail = user?.primaryEmailAddress?.emailAddress;
     if (!ownerEmail) {
@@ -113,6 +120,7 @@ export async function POST(req: NextRequest) {
           tier: "team",
           seats_change_from: String(team.seatsPurchased ?? ""),
           accountEmail: ownerEmail,
+          accountSubject: userId,
           app: "serverless-buckets",
         },
       }),
@@ -122,9 +130,6 @@ export async function POST(req: NextRequest) {
     if (!dodoResp.ok) {
       console.error("[team-seats] Dodo error", {
         status: dodoResp.status,
-        message: data?.message,
-        subscriptionId: team.subscriptionId,
-        seats,
       });
       return NextResponse.json(
         { error: data?.message || "Failed to change seat count." },
@@ -138,10 +143,10 @@ export async function POST(req: NextRequest) {
       message:
         "Seat change submitted. Your dashboard will reflect the new count within a few seconds.",
     });
-  } catch (err: any) {
-    console.error("[team-seats] unexpected", err);
+  } catch (error: unknown) {
+    console.error("[team-seats] Unexpected request failure.");
     return NextResponse.json(
-      { error: err?.message || "Unexpected error" },
+      { error: errorMessage(error, "Unexpected error") },
       { status: 500 }
     );
   }

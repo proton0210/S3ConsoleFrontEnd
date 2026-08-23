@@ -1,0 +1,71 @@
+name: Security gates
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+  schedule:
+    - cron: "31 3 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-audit:
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_ZHVtbXkuY2xlcmsuYWNjb3VudHMuZGV2JA
+      CLERK_SECRET_KEY: ci-placeholder
+      RESEND_API_KEY: ci-placeholder
+      DODO_API_KEY: ci-placeholder
+      LICENSE_API_URL: https://example.invalid
+      LICENSE_API_KEY: ci-placeholder
+      NEXT_PUBLIC_APP_URL: https://buckets.serverlesscreed.com
+      NEXT_PUBLIC_PRODUCT_NAME: Buckets by Serverless Creed
+      NEXT_PUBLIC_PRODUCT_DESCRIPTION: Secure S3 desktop client
+      BUCKETS_DODO_PRODUCT_ID_MONTHLY: ci-monthly
+      BUCKETS_DODO_PRODUCT_ID_YEARLY: ci-yearly
+      BUCKETS_DODO_PRODUCT_ID_LIFETIME: ci-lifetime
+      BUCKETS_DODO_PRODUCT_ID_TEAM: ci-team
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: npm audit --audit-level=high
+      - run: npm run check:payment-identity
+      - run: npm run typecheck
+      - run: npm run build
+      - run: npm run check:client-secrets
+
+  codeql:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: github/codeql-action/init@v4
+        with:
+          languages: javascript-typescript
+          queries: security-extended
+      - uses: github/codeql-action/analyze@v4
+
+  secrets-and-config:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"

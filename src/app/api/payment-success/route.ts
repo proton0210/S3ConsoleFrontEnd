@@ -10,9 +10,12 @@
  * The browser's /payment-status page hits this in a polling loop.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { getLicenseByEmail } from "@/lib/license-api";
 
+function errorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
+}
 export async function POST(req: NextRequest) {
   try {
     const { userId } = await auth();
@@ -20,11 +23,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await req.json().catch(() => ({}));
-    const email: string | undefined = typeof body?.email === "string" ? body.email : undefined;
+    // Keep accepting the existing request body for released clients, but never
+    // use its email to select an account. Identity comes from Clerk.
+    await req.json().catch(() => ({}));
+    const user = await currentUser();
+    const email = user?.primaryEmailAddress?.emailAddress?.trim();
     if (!email) {
       return NextResponse.json(
-        { success: false, error: "Email is required" },
+        { success: false, error: "No primary email on authenticated account" },
         { status: 400 }
       );
     }
@@ -78,10 +84,10 @@ export async function POST(req: NextRequest) {
       status: "pending",
       message: "Payment not yet confirmed. The browser will keep polling for ~30s.",
     });
-  } catch (err: any) {
-    console.error("[payment-success] poller error", err);
+  } catch (error: unknown) {
+    console.error("[payment-success] Poller request failed.");
     return NextResponse.json(
-      { success: false, error: err?.message || "Unexpected error" },
+      { success: false, error: errorMessage(error, "Unexpected error") },
       { status: 500 }
     );
   }
