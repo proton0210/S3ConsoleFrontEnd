@@ -74,9 +74,9 @@ export function InternshipForm({ initialEmail, initialName }: { initialEmail: st
     }
   }
 
-  if (status === "success") return <main className="flex min-h-screen items-center justify-center bg-muted/30 px-4"><div className="max-w-lg rounded-2xl border bg-card p-10 text-center shadow-sm"><CheckCircle2 className="mx-auto h-12 w-12 text-emerald-600" /><h1 className="mt-5 text-3xl font-semibold tracking-tight">Application received</h1><p className="mt-3 text-muted-foreground">Thank you for applying to the S3Console internship. Our team will evaluate your application, and we will reach out to you if you are shortlisted.</p><Button asChild className="mt-7"><Link href="/">Back to S3Console</Link></Button></div></main>;
+  if (status === "success") return <main className="flex min-h-screen items-center justify-center bg-muted/30 px-4"><div className="max-w-lg rounded-2xl border bg-card p-10 text-center shadow-sm"><CheckCircle2 className="mx-auto h-12 w-12 text-emerald-600" /><h1 className="mt-5 text-3xl font-semibold tracking-tight">Application received</h1><p className="mt-3 text-muted-foreground">Thank you for applying to the Serverless Buckets internship. Our team will evaluate your application, and we will reach out to you if you are shortlisted.</p><Button asChild className="mt-7"><Link href="/">Back to Serverless Buckets</Link></Button></div></main>;
 
-  return <main className="min-h-screen bg-muted/30 py-10 sm:py-16"><div className="mx-auto max-w-3xl px-4"><Link href="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="h-4 w-4" />Back to S3Console</Link><div className="mt-8"><span className="rounded-full border bg-background px-3 py-1 text-xs font-medium">S3Console Internship</span><h1 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">Build real-world AWS S3 experience</h1><p className="mt-4 max-w-2xl text-lg text-muted-foreground">Tell us about yourself and why you’d be a great fit. This internship is open to applicants in India who can contribute 1–2 hours each day.</p></div>
+  return <main className="min-h-screen bg-muted/30 py-10 sm:py-16"><div className="mx-auto max-w-3xl px-4"><Link href="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="h-4 w-4" />Back to Serverless Buckets</Link><div className="mt-8"><span className="rounded-full border bg-background px-3 py-1 text-xs font-medium">Serverless Buckets Internship</span><h1 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">Build real-world AWS S3 experience</h1><p className="mt-4 max-w-2xl text-lg text-muted-foreground">Tell us about yourself and why you’d be a great fit. This internship is open to applicants in India who can contribute 1–2 hours each day.</p></div>
     <form onSubmit={submit} className="mt-10 space-y-8 rounded-2xl border bg-card p-5 shadow-sm sm:p-8">
       {closed && <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">Applications closed on 31 July 2026 at 11:59 PM IST.</div>}
       {checkingApplication && <div className="flex items-center justify-center rounded-xl border bg-muted/40 px-4 py-3 text-sm text-muted-foreground"><Loader2 className="mr-2 h-4 w-4 animate-spin" />Checking your application status…</div>}
@@ -110,7 +110,7 @@ export function InternshipForm({ initialEmail, initialName }: { initialEmail: st
           <DialogFooter className="mt-2 gap-2 sm:gap-0"><Button type="button" variant="outline" onClick={() => setConfirmOpen(false)}>Review application</Button><Button type="button" onClick={confirmSubmission}>Confirm and submit</Button></DialogFooter>
         </DialogContent>
       </Dialog>
-      <AlreadySubmittedDialog open={alreadySubmitted} product="S3Console" />
+      <AlreadySubmittedDialog open={alreadySubmitted} product="Serverless Buckets" />
     </form></div></main>;
 }
 

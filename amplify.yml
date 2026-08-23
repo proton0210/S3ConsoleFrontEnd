@@ -13,7 +13,7 @@ frontend:
         # Console — keep them in sync, this one wins.
         # DynamoDB credentials are intentionally excluded. The website calls
         # the API Gateway/Lambda license service, whose execution role owns DDB.
-        - printenv | grep -E '^(NEXT_PUBLIC_|CLERK_|DODO_|S3CONSOLE_|RESEND_|LICENSE_|FOUNDER_|POSTHOG_|AWS_REGION=)' | grep -Ev '^(NEXT_PUBLIC_RAZORPAY_KEY_SECRET|NEXT_PUBLIC_DYNAMO_|DYNAMO_)=' > .env.production
+        - printenv | grep -E '^(NEXT_PUBLIC_|CLERK_|DODO_|BUCKETS_|S3CONSOLE_|RESEND_|LICENSE_|FOUNDER_|POSTHOG_|AWS_REGION=)' | grep -Ev '^(NEXT_PUBLIC_RAZORPAY_KEY_SECRET|NEXT_PUBLIC_DYNAMO_|DYNAMO_)=' > .env.production
     build:
       commands:
         - npm run build

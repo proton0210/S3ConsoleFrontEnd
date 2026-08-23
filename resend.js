@@ -10,7 +10,7 @@
  * DDB_TABLE_NAME        (e.g. “S3Console”)
  * CLERK_WEBHOOK_SECRET  (looks like “whsec_…”, from Clerk dashboard)
  * RESEND_API_KEY        (starts with “re_…”)
- * RESEND_FROM_EMAIL     (e.g. “S3Console <support@s3console.app>”)
+ * RESEND_FROM_EMAIL     (e.g. “Serverless Buckets <support@serverlesscreed.com>”)
 
  */
 
@@ -199,14 +199,14 @@ export const handler = async (event) => {
       body: JSON.stringify({
         from: RESEND_FROM_EMAIL,
         to: [email],
-        subject: "Welcome to S3Console – your licence key inside 🔑",
+        subject: "Welcome to Serverless Buckets – your licence key inside 🔑",
         html: `
           <p>Hi ${name},</p>
-          <p>Thanks for signing up for <strong>S3Console</strong>.</p>
+          <p>Thanks for signing up for <strong>Serverless Buckets</strong>.</p>
           <p>Your personal licence key:</p>
           <pre style="font-size:1.3em;font-weight:bold">${licenceKey}</pre>
           <p>Paste it into the activation dialog when you launch the app.</p>
-          <p>— The S3Console Team</p>
+          <p>— The Serverless Buckets Team</p>
         `,
       }),
     });
