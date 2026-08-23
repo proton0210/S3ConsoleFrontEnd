@@ -16,7 +16,7 @@ import { usePathname } from "next/navigation";
 import { IoMenuSharp } from "react-icons/io5";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 
-export default function drawerDemo() {
+export default function DrawerMenu() {
   const pathname = usePathname();
   const isDownloadsPage = pathname === "/downloads";
 
@@ -31,10 +31,13 @@ export default function drawerDemo() {
             <Link
               href="/"
               title="brand-logo"
-              className="relative mr-6 flex items-center space-x-2"
+              aria-label={`${siteConfig.name} home`}
+              className="group relative mr-6 flex items-center gap-2.5"
             >
-              <Icons.logo className="w-auto h-[40px]" />
-              <span className="font-bold text-xl">{siteConfig.name}</span>
+              <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-xl border border-amber-200/80 bg-gradient-to-br from-white via-amber-50 to-orange-100 shadow-[0_8px_24px_-14px_rgba(194,65,12,0.8)] transition duration-300 group-hover:-translate-y-0.5">
+                <Icons.logo className="h-10 w-10 object-contain" />
+              </span>
+              <span className="text-xl font-semibold tracking-[-0.02em]">{siteConfig.name}</span>
             </Link>
           </div>
           {!isDownloadsPage && (
