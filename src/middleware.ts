@@ -23,6 +23,19 @@ const publicRoutes = [
 const isPublic = createRouteMatcher(publicRoutes);
 
 export default clerkMiddleware(async (auth, req) => {
+  const hostname = (req.headers.get("host") || req.nextUrl.hostname)
+    .split(":")[0]
+    .toLowerCase();
+
+  if (hostname === "s3console.com" || hostname === "www.s3console.com") {
+    const destination = req.nextUrl.clone();
+    destination.protocol = "https:";
+    destination.hostname = "buckets.serverlesscreed.com";
+    destination.port = "";
+
+    return NextResponse.redirect(destination, 308);
+  }
+
   if (!isPublic(req)) {
     const { userId } = await auth();
     if (!userId) {
