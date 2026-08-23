@@ -1,0 +1,5 @@
+Contact: mailto:vidit@serverlesscreed.com
+Expires: 2027-08-24T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://buckets.serverlesscreed.com/.well-known/security.txt
+Policy: https://buckets.serverlesscreed.com/trust#vulnerability-disclosure

@@ -76,6 +76,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // Legal / policy
     {
+      url: `${baseUrl}/trust`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
       url: `${baseUrl}/terms`,
       lastModified: now,
       changeFrequency: "yearly",
@@ -95,6 +101,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     {
       url: `${baseUrl}/eula`,
+      lastModified: now,
+      changeFrequency: "yearly",
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/marketplace-eula`,
       lastModified: now,
       changeFrequency: "yearly",
       priority: 0.3,

@@ -63,6 +63,10 @@ export const siteConfig = {
       href: "/blog",
       label: "Blog",
     },
+    {
+      href: "/trust",
+      label: "Trust",
+    },
   ],
   pricing: [
     {

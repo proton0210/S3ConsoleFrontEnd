@@ -48,10 +48,12 @@ const NAV = [
   {
     title: "Legal",
     links: [
+      { label: "Trust Center", href: "/trust" },
       { label: "Privacy", href: "/privacy" },
       { label: "Terms", href: "/terms" },
       { label: "Refunds", href: "/refund-policy" },
       { label: "EULA", href: "/eula" },
+      { label: "Marketplace EULA", href: "/marketplace-eula" },
     ],
   },
 ];
