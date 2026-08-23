@@ -1,20 +1,13 @@
 import Image from "next/image";
 
 type IconProps = React.HTMLAttributes<SVGElement>;
-type LogoProps = React.HTMLAttributes<HTMLImageElement> & {
-  width?: number;
-  height?: number;
+type LogoProps = Omit<React.ComponentProps<typeof Image>, "src" | "alt"> & {
+  alt?: string;
 };
 
 export const Icons = {
-  logo: (props: LogoProps) => (
-    <Image
-      src="/logo.png"
-      alt="Logo"
-      width={props.width || 40}
-      height={props.height || 40}
-      {...props}
-    />
+  logo: ({ alt = "Serverless Buckets", width = 40, height = 40, ...props }: LogoProps) => (
+    <Image src="/serverless-buckets.png" alt={alt} width={width} height={height} {...props} />
   ),
   twitter: (props: IconProps) => (
     <svg
