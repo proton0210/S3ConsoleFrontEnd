@@ -151,7 +151,7 @@ export default function Header() {
                       "w-full sm:w-auto text-background"
                     )}
                   >
-                    Download S3Console
+                    Download Serverless Buckets
                   </Link>
                 )}
                 <UserButton afterSignOutUrl="/" />

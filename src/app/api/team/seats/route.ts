@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
           tier: "team",
           seats_change_from: String(team.seatsPurchased ?? ""),
           accountEmail: ownerEmail,
-          app: "s3console",
+          app: "serverless-buckets",
         },
       }),
     });

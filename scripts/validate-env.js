@@ -15,15 +15,22 @@ const requiredVars = [
   'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY',
   'CLERK_SECRET_KEY',
   'NEXT_PUBLIC_APP_URL',
+  'NEXT_PUBLIC_PRODUCT_NAME',
+  'NEXT_PUBLIC_PRODUCT_DESCRIPTION',
   'LICENSE_API_URL',
-  'LICENSE_API_KEY'
+  'LICENSE_API_KEY',
+  'DODO_API_KEY'
 ];
 
 // Either-or: prod uses Secrets Manager ARN, local dev uses raw env.
 const eitherOr = [
   { label: 'Resend API key',      options: ['RESEND_API_KEY', 'RESEND_SECRET_ARN'] },
-  { label: 'Dodo API key',        options: ['DODO_API_KEY', 'DODO_API_KEY_SECRET_ARN'] },
 ];
+
+const productVars = ['MONTHLY', 'YEARLY', 'LIFETIME', 'TEAM'].map((tier) => ({
+  label: `Serverless Buckets ${tier.toLowerCase()} Dodo product`,
+  options: [`BUCKETS_DODO_PRODUCT_ID_${tier}`, `S3CONSOLE_DODO_PRODUCT_ID_${tier}`],
+}));
 
 const warnings = [];
 const missing = [];
@@ -59,6 +66,26 @@ eitherOr.forEach(({ label, options }) => {
     missing.push(`${label} — set one of: ${options.join(', ')}`);
   }
 });
+
+productVars.forEach(({ label, options }) => {
+  if (!options.some((name) => !!process.env[name])) {
+    missing.push(`${label} — set one of: ${options.join(', ')}`);
+  }
+});
+
+if (
+  process.env.NODE_ENV === 'production' &&
+  process.env.NEXT_PUBLIC_APP_URL !== 'https://buckets.serverlesscreed.com'
+) {
+  missing.push('NEXT_PUBLIC_APP_URL - production must be https://buckets.serverlesscreed.com');
+}
+
+if (
+  process.env.NODE_ENV === 'production' &&
+  process.env.NEXT_PUBLIC_PRODUCT_NAME !== 'Serverless Buckets'
+) {
+  missing.push('NEXT_PUBLIC_PRODUCT_NAME - production must be Serverless Buckets');
+}
 
 // Security warnings
 

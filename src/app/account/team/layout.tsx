@@ -4,8 +4,8 @@ import { Metadata } from "next";
 // Private user-only page; explicitly noindex so it doesn't compete with
 // the public landing pages for ranking authority.
 export const metadata: Metadata = constructMetadata({
-  title: "Team Management — S3Console",
-  description: "Manage your S3Console team seats and members.",
+  title: "Team Management — Serverless Buckets",
+  description: "Manage your Serverless Buckets team seats and members.",
   canonical: "/account/team",
   noindex: true,
 });
