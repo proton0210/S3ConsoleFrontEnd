@@ -1,16 +1,16 @@
-# S3Console — End-User License Agreement (EULA)
+# Serverless Buckets — End-User License Agreement (EULA)
 
 **Effective Date:** 22 May 2026
 **Last Updated:** 22 August 2026
 **Version:** 1.1
 
-> **READ THIS AGREEMENT CAREFULLY BEFORE INSTALLING OR USING THE SOFTWARE.** By installing, copying, activating, accessing, or otherwise using the S3Console software (the "**Software**"), you agree to be bound by the terms of this End-User License Agreement (this "**EULA**"). If you do not agree to these terms, do not install or use the Software, and uninstall any copy in your possession or control.
+> **READ THIS AGREEMENT CAREFULLY BEFORE INSTALLING OR USING THE SOFTWARE.** By installing, copying, activating, accessing, or otherwise using the Serverless Buckets software (the "**Software**"), you agree to be bound by the terms of this End-User License Agreement (this "**EULA**"). If you do not agree to these terms, do not install or use the Software, and uninstall any copy in your possession or control.
 
 This EULA is a binding legal agreement between **Serverless Creed** ("**ServerlessCreed**", "**we**", "**us**", or "**our**") — a sole proprietorship organized under the laws of India, operating under GSTIN 27FZZPS3310E1ZX, with principal place of business at Khetwadi-11, Mumbai, India — and you, either an individual or the legal entity you represent ("**you**", "**your**", or "**Licensee**").
 
 For the avoidance of doubt and for purposes of statutory disclosure under Indian law, Serverless Creed is the registered trade name of a sole proprietorship of which Mr. Vidit Jinesh Shah is the proprietor.
 
-This EULA governs the **use of the Software itself**. The commercial relationship (Subscription, billing, refunds, support, dispute resolution, governing law) is governed by the [S3Console Terms and Conditions](terms-and-conditions.md) ("**Terms**"). The handling of personal information is governed by the [S3Console Privacy Policy](privacy-policy.md). Together, these three documents form the complete agreement between you and ServerlessCreed.
+This EULA governs the **use of the Software itself**. The commercial relationship (Subscription, billing, refunds, support, dispute resolution, governing law) is governed by the [Serverless Buckets Terms and Conditions](terms-and-conditions.md) ("**Terms**"). The handling of personal information is governed by the [Serverless Buckets Privacy Policy](privacy-policy.md). Together, these three documents form the complete agreement between you and ServerlessCreed.
 
 ---
 
@@ -28,7 +28,7 @@ In this EULA, the following capitalized terms have the meanings set out below. C
 
 1.5 **"Open-Source Components"** means third-party software components incorporated in the Software and licensed under open-source licenses, as identified in the Documentation or in the Software's "About" / "Licenses" view.
 
-1.6 **"Software"** means the S3Console desktop application in object-code form, including all components, updates, upgrades, modifications, bug fixes, releases, and accompanying Documentation that ServerlessCreed makes available to you under this EULA.
+1.6 **"Software"** means the Serverless Buckets desktop application in object-code form, including all components, updates, upgrades, modifications, bug fixes, releases, and accompanying Documentation that ServerlessCreed makes available to you under this EULA.
 
 1.7 **"Subscription"** means a paid, time-limited right to access and use the Software, including all Updates released during the Subscription Term, as set out in the Terms.
 
@@ -140,7 +140,7 @@ in each case for the Authorized User's internal business or personal use.
 
 8.3 **Feedback.** If you provide ServerlessCreed with any suggestions, feedback, ideas, or proposals regarding the Software ("**Feedback**"), you hereby grant ServerlessCreed a worldwide, perpetual, irrevocable, royalty-free, fully paid-up, transferable, sublicensable license to use, reproduce, modify, distribute, and otherwise exploit such Feedback for any purpose, without restriction or compensation to you.
 
-8.4 **Trademarks.** "S3Console", "Serverless Creed", "ServerlessCreed", and any associated logos are trademarks of ServerlessCreed. You shall not use these marks without prior written permission, except for nominative fair use to truthfully identify the Software.
+8.4 **Trademarks.** "Serverless Buckets", "Serverless Creed", "ServerlessCreed", and any associated logos are trademarks of ServerlessCreed. You shall not use these marks without prior written permission, except for nominative fair use to truthfully identify the Software.
 
 8.5 **Third-Party Marks.** "Amazon Web Services", "AWS", "Amazon S3", and related marks are trademarks of Amazon.com, Inc. or its affiliates. Their appearance in the Software is for identification only and does not imply endorsement.
 

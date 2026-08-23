@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import LegalDocPage from "@/components/legal/LegalDocPage";
 
 export const metadata: Metadata = {
-  title: "Terms and Conditions — S3Console",
+  title: "Terms and Conditions — Serverless Buckets",
   description:
-    "S3Console Terms and Conditions: license, subscription, refunds, liability, and jurisdiction.",
+    "Serverless Buckets Terms and Conditions: license, subscription, refunds, liability, and jurisdiction.",
 };
 
 export default function TermsPage() {

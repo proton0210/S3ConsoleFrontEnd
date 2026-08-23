@@ -17,7 +17,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { getDodoApiBaseUrl } from "@/lib/dodo";
+import { getDodoApiBaseUrl, getProductAppOrigin } from "@/lib/dodo";
 import { getLicenseByEmail } from "@/lib/license-api";
 
 export async function POST(req: NextRequest) {
@@ -81,12 +81,14 @@ export async function POST(req: NextRequest) {
     }
 
     const baseUrl = getDodoApiBaseUrl();
-    const origin = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin || "";
     // Send the user back to the billing dashboard so they immediately see the
     // updated state. The `?from=portal` marker tells the dashboard to poll
     // for the inbound webhook (cancel / payment-method update / etc.) for a
     // few seconds before settling.
-    const returnUrl = `${origin}/account/billing?from=portal`;
+    const returnUrl = new URL(
+      "/account/billing?from=portal",
+      getProductAppOrigin(req.nextUrl.origin)
+    ).toString();
 
     const portalUrl = new URL(
       `${baseUrl}/customers/${encodeURIComponent(dodoCustomerId)}/customer-portal/session`

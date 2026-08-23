@@ -139,7 +139,7 @@ function BuyPageContent() {
               ? (tierValue(tier) ?? 0) * seats
               : tierValue(tier),
           itemCount: tier === "team" ? seats : 1,
-          products: [{ id: tier!, name: `S3Console ${tier} plan` }],
+          products: [{ id: tier!, name: `Serverless Buckets ${tier} plan` }],
         });
         setStatus("redirecting");
         window.location.href = data.checkout_url;

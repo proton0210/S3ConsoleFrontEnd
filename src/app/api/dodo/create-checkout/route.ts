@@ -4,6 +4,7 @@ import {
   getProductId,
   getConfiguredProductIds,
   getDodoApiBaseUrl,
+  getCheckoutReturnUrl,
   isLicenseTier,
   MAX_TEAM_SEATS,
   MIN_TEAM_SEATS,
@@ -165,7 +166,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const origin = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl?.origin || "";
     const baseUrl = getDodoApiBaseUrl();
 
     // Webhook reads this metadata to correlate the event to a license row.
@@ -200,7 +200,7 @@ export async function POST(req: NextRequest) {
       // Product marker — the Dodo account is shared across products and every
       // webhook endpoint receives every event; webhooks use this to drop the
       // other products' events. Keep last so client metadata can't spoof it.
-      app: "s3console",
+      app: "serverless-buckets",
     };
 
     // Both subscription (monthly/yearly) and one-time (lifetime) flows go through
@@ -223,7 +223,7 @@ export async function POST(req: NextRequest) {
           quantity: resolvedQuantity,
         },
       ],
-      return_url: `${origin}/payment-status`,
+      return_url: getCheckoutReturnUrl(req.nextUrl?.origin),
       ...(customer ? { customer } : {}),
       ...(Object.keys(checkoutMetadata).length > 0
         ? { metadata: checkoutMetadata }

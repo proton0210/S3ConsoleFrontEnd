@@ -1,15 +1,15 @@
 ---
 title: "Upload a File from URL Directly to S3 — Without Downloading It First"
 publishedAt: "2026-05-18"
-summary: "The AWS Console has no 'Upload from URL' button. Here's how S3Console streams a remote URL straight into S3 — no disk staging, no 5 GB browser cap, no Lambda required — with code from the production implementation."
-author: "S3Console Team"
+summary: "The AWS Console has no 'Upload from URL' button. Here's how Serverless Buckets streams a remote URL straight into S3 — no disk staging, no 5 GB browser cap, no Lambda required — with code from the production implementation."
+author: "Serverless Buckets Team"
 image: "/media/bucket-transfer.jpeg"
 videoId: "Gn4CkRjwOi8"
 ---
 
 If you've ever wanted to copy a file from a public URL — a CDN asset, a sibling S3 bucket, a Dropbox share — into one of your own S3 buckets, you've probably hit this wall: **the AWS S3 web console doesn't let you upload from a URL**. Your options collapse to two unappealing choices: download the file locally and re-upload it, or write a Lambda. Both are bad.
 
-This post walks through the third option — streaming the remote bytes directly into S3 from your desktop — what it actually means under the hood, and how we built **Upload from URL** in [S3Console](/downloads). If you'd rather watch than read, the [demo is on YouTube](https://youtu.be/Gn4CkRjwOi8).
+This post walks through the third option — streaming the remote bytes directly into S3 from your desktop — what it actually means under the hood, and how we built **Upload from URL** in [Serverless Buckets](/downloads). If you'd rather watch than read, the [demo is on YouTube](https://youtu.be/Gn4CkRjwOi8).
 
 ## The Problem: The AWS Web Console Has No "Upload from URL"
 
@@ -28,18 +28,18 @@ The real solution is simpler: **don't move the bytes through your disk at all.**
 
 ## What "Upload from URL" Actually Does
 
-In S3Console you paste a URL, choose a destination key, and click *Upload from URL*. Under the hood, the app:
+In Serverless Buckets you paste a URL, choose a destination key, and click *Upload from URL*. Under the hood, the app:
 
 1. Opens an HTTPS request to the source URL (following redirects up to 5 hops).
 2. Reads the response body as a Node.js stream — never writing it to disk.
 3. Pipes that stream straight into an AWS SDK [`@aws-sdk/lib-storage`](https://github.com/aws/aws-sdk-js-v3/tree/main/lib/lib-storage) `Upload`, which transparently handles S3 multipart for you.
 4. Reports progress to the same UI that drag-and-drop file uploads use, with the same cancel button.
 
-The whole pipeline is native: it runs in the Electron main process on your machine, talks directly to S3 with your local AWS credentials, and never proxies your data through any S3Console server. There is no S3Console-hosted backend in the data path.
+The whole pipeline is native: it runs in the Electron main process on your machine, talks directly to S3 with your local AWS credentials, and never proxies your data through any Serverless Buckets server. There is no Serverless Buckets-hosted backend in the data path.
 
 ## The Architecture, With Real Code
 
-Below are sanitized excerpts from S3Console's production `urlUploadService.ts` — the same module that ships in the desktop app.
+Below are sanitized excerpts from Serverless Buckets's production `urlUploadService.ts` — the same module that ships in the desktop app.
 
 ### 1. Streaming, Never Staging
 
@@ -82,7 +82,7 @@ A few things worth calling out:
 
 ### 2. Adaptive Multipart Sizing
 
-S3's multipart upload has two hard limits: parts must be at least 5 MB (except the last), and an object can have at most 10,000 parts. That gives a theoretical max of ~50 GB per object at the minimum part size — but in practice, large files want larger parts so you're not making 10,000 small HTTP requests. S3Console picks a part size adaptively:
+S3's multipart upload has two hard limits: parts must be at least 5 MB (except the last), and an object can have at most 10,000 parts. That gives a theoretical max of ~50 GB per object at the minimum part size — but in practice, large files want larger parts so you're not making 10,000 small HTTP requests. Serverless Buckets picks a part size adaptively:
 
 ```ts
 function determinePartSize(totalBytes: number | undefined): number {
@@ -130,7 +130,7 @@ if (status >= 300 && status < 400 && res.headers.location) {
 
 This is the same rule modern browsers enforce: if you hand us an `Authorization` header for `api.example.com`, we will not silently forward that bearer token to `cdn.attacker.example` after a redirect. The redirect is followed; the credential is dropped.
 
-If the actual destination is S3 in the wrong region, S3 returns a 301 with a `PermanentRedirect` error code and the correct region in the response. S3Console's upper layer catches that, swaps the underlying `S3Client` to the right region, and retries once — so cross-region uploads "just work" without you fishing for the right AWS endpoint.
+If the actual destination is S3 in the wrong region, S3 returns a 301 with a `PermanentRedirect` error code and the correct region in the response. Serverless Buckets's upper layer catches that, swaps the underlying `S3Client` to the right region, and retries once — so cross-region uploads "just work" without you fishing for the right AWS endpoint.
 
 ## Common Pitfalls We Solved For You
 
@@ -157,9 +157,9 @@ Building this right took longer than the streaming wiring would suggest. A few t
 - **The byte counter has to be a Transform, not a `data` listener.** Attaching a `data` listener to the source stream flips it into flowing mode and starves the downstream `Upload` consumer (you'll see the upload hang at 0%). Counting inside `transform()` keeps the stream in paused mode, where `Upload` can pull at its own pace.
 - **Leaving parts on error is a real cost.** `lib-storage` defaults to keeping incomplete multipart parts around if an upload fails — and S3 charges storage for them until you abort. We pass `leavePartsOnError: false` so cancellations clean up after themselves.
 
-## Console vs. S3Console vs. Custom Lambda
+## Console vs. Serverless Buckets vs. Custom Lambda
 
-| | AWS Web Console | Custom Lambda | **S3Console** |
+| | AWS Web Console | Custom Lambda | **Serverless Buckets** |
 |---|---|---|---|
 | Paste a URL, hit upload | ❌ No URL field | ⚠️ You write the API | ✅ Native UI |
 | Pull arbitrary HTTPS source | ❌ | ✅ | ✅ |
@@ -175,31 +175,31 @@ Building this right took longer than the streaming wiring would suggest. A few t
 
 ### Can I upload a file from URL in the AWS S3 Console?
 
-Not directly. The AWS web console's *Upload* dialog only accepts files from your local filesystem — there is no field to paste an HTTPS URL. You either need to download the file locally first and re-upload it, or build a small piece of infrastructure (a Lambda function, a Step Functions workflow, or a third-party desktop client like [S3Console](/downloads)) that does the URL-to-S3 transfer for you.
+Not directly. The AWS web console's *Upload* dialog only accepts files from your local filesystem — there is no field to paste an HTTPS URL. You either need to download the file locally first and re-upload it, or build a small piece of infrastructure (a Lambda function, a Step Functions workflow, or a third-party desktop client like [Serverless Buckets](/downloads)) that does the URL-to-S3 transfer for you.
 
 ### What's the maximum file size for an S3 upload from URL?
 
-S3's hard ceiling is 5 TB per object, achieved via multipart upload with up to 10,000 parts. S3Console's Upload from URL uses multipart end-to-end, so you get the full 5 TB ceiling. The browser-based AWS Console caps at 5 GB for single-PUT uploads, which is why streaming directly from a desktop client matters once your files are big.
+S3's hard ceiling is 5 TB per object, achieved via multipart upload with up to 10,000 parts. Serverless Buckets's Upload from URL uses multipart end-to-end, so you get the full 5 TB ceiling. The browser-based AWS Console caps at 5 GB for single-PUT uploads, which is why streaming directly from a desktop client matters once your files are big.
 
 ### Do I need a Lambda to copy files between S3 buckets?
 
-No. If both buckets are in your AWS profile, S3Console can do a cross-bucket, cross-region, and even cross-account copy by treating one bucket's object as a URL source (via presigned URL) and streaming it into the destination. You skip the deploy step entirely.
+No. If both buckets are in your AWS profile, Serverless Buckets can do a cross-bucket, cross-region, and even cross-account copy by treating one bucket's object as a URL source (via presigned URL) and streaming it into the destination. You skip the deploy step entirely.
 
-### Does S3Console store my files or credentials on its servers?
+### Does Serverless Buckets store my files or credentials on its servers?
 
-No. Uploads go directly from your machine to S3 using your local AWS credentials. There is no S3Console-hosted backend in the data path, and credentials are kept in your OS keychain — the same way the AWS CLI handles them. See the [security details on the AWS S3 client page](/aws-s3-client).
+No. Uploads go directly from your machine to S3 using your local AWS credentials. There is no Serverless Buckets-hosted backend in the data path, and credentials are kept in your OS keychain — the same way the AWS CLI handles them. See the [security details on the AWS S3 client page](/aws-s3-client).
 
 ### Does Upload from URL work with private URLs?
 
-Yes — you can supply custom headers (including `Authorization`) when you start the upload, and S3Console attaches them to the outgoing request. The redirect handler strips `Authorization` only on cross-origin hops, matching browser security defaults so you don't accidentally leak a token.
+Yes — you can supply custom headers (including `Authorization`) when you start the upload, and Serverless Buckets attaches them to the outgoing request. The redirect handler strips `Authorization` only on cross-origin hops, matching browser security defaults so you don't accidentally leak a token.
 
 ## Try It Yourself
 
-The fastest way to see this end-to-end is to install S3Console, paste any HTTPS URL into the Upload from URL dialog, and watch it stream into your bucket without ever touching your disk. The 14-day trial is unrestricted and doesn't ask for a credit card.
+The fastest way to see this end-to-end is to install Serverless Buckets, paste any HTTPS URL into the Upload from URL dialog, and watch it stream into your bucket without ever touching your disk. The 14-day trial is unrestricted and doesn't ask for a credit card.
 
-- [Download S3Console](/downloads) for Mac, Windows, or Linux
+- [Download Serverless Buckets](/downloads) for Mac, Windows, or Linux
 - [See pricing](/pricing) — $9/month, $79/year, or $149 one-time lifetime
-- [How S3Console compares to other AWS S3 clients](/aws-s3-client)
+- [How Serverless Buckets compares to other AWS S3 clients](/aws-s3-client)
 - [Read the launch post](/blog/introducing-s3console) for the broader feature tour
 
 If you build something fun with it, we'd love to hear about it.

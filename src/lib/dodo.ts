@@ -16,6 +16,11 @@ export type LicenseTier = "monthly" | "yearly" | "lifetime" | "team";
 
 const TIERS = ["monthly", "yearly", "lifetime", "team"] as const;
 
+/** Canonical public origin for this product. Payment redirects must never be
+ * inferred from a shared Dodo/Amplify environment in production because that
+ * can send a Buckets buyer into the Tables authentication session. */
+export const CANONICAL_APP_ORIGIN = "https://buckets.serverlesscreed.com";
+
 export function getConfiguredProductIds(tier?: LicenseTier): string[] {
   const tiers = tier ? [tier] : TIERS;
   return tiers
@@ -67,4 +72,13 @@ export const MAX_TEAM_SEATS = 50;
 
 export function getDodoApiBaseUrl(): string {
   return process.env.DODO_API_BASE_URL || "https://live.dodopayments.com";
+}
+
+export function getProductAppOrigin(requestOrigin?: string): string {
+  if (process.env.NODE_ENV === "production") return CANONICAL_APP_ORIGIN;
+  return process.env.NEXT_PUBLIC_APP_URL || requestOrigin || CANONICAL_APP_ORIGIN;
+}
+
+export function getCheckoutReturnUrl(requestOrigin?: string): string {
+  return new URL("/payment-status", getProductAppOrigin(requestOrigin)).toString();
 }

@@ -7,7 +7,7 @@ const data = [
     id: 1,
     title: "1. Launch & Authenticate",
     content:
-      "Open S3Console and securely connect using your AWS credentials. The application establishes a secure connection to your AWS account with industry-standard authentication protocols.",
+      "Open Serverless Buckets and securely connect using your AWS credentials. The application establishes a secure connection to your AWS account with industry-standard authentication protocols.",
     image: "/1-profile.png",
     icon: <LogIn className="w-6 h-6 text-primary" />,
   },
@@ -15,7 +15,7 @@ const data = [
     id: 2,
     title: "2. Auto-Discover Profiles",
     content:
-      "S3Console automatically detects and loads all your existing AWS profiles and regions. Switch between different accounts and environments with a single click—no manual configuration required.",
+      "Serverless Buckets automatically detects and loads all your existing AWS profiles and regions. Switch between different accounts and environments with a single click—no manual configuration required.",
     image: "/2-create-bucket.png",
     icon: <Users className="w-6 h-6 text-primary" />,
   },

@@ -174,7 +174,7 @@ export default function PricingPage() {
             Pick a plan that fits
           </h1>
           <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-            Same powerful S3Console — solo or with your whole team. Every plan
+            Same powerful Serverless Buckets — solo or with your whole team. Every plan
             includes every feature on up to 2 machines per seat.
           </p>
           <p className="text-sm text-slate-500 mt-4">
