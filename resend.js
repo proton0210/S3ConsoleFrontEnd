@@ -10,7 +10,7 @@
  * DDB_TABLE_NAME        (e.g. “S3Console”)
  * CLERK_WEBHOOK_SECRET  (looks like “whsec_…”, from Clerk dashboard)
  * RESEND_API_KEY        (starts with “re_…”)
- * RESEND_FROM_EMAIL     (e.g. “S3Console <support@s3console.app>”)
+ * RESEND_FROM_EMAIL     (e.g. “Serverless Buckets <support@serverlesscreed.com>”)
 
  */
 
