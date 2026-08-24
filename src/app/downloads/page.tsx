@@ -159,7 +159,7 @@ export default function DownloadsPage() {
 
     const link = document.createElement("a");
     link.href = downloadLink;
-    link.download = "Serverless-Buckets-2.7.3-arm64.zip";
+    link.download = "Serverless-Buckets-mac-arm64.zip";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -177,7 +177,7 @@ export default function DownloadsPage() {
 
     sendGAEvent("event", "download_clicked", {
       os: 'macOS',
-      version: '2.7.3-arm64'
+      release_channel: "latest",
     });
 
     showNotification(downloadLink);
@@ -189,7 +189,7 @@ export default function DownloadsPage() {
 
     const link = document.createElement("a");
     link.href = downloadLink;
-    link.download = "Serverless-Buckets-2.7.3-x64.deb";
+    link.download = "Serverless-Buckets-linux-x64.deb";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -207,7 +207,7 @@ export default function DownloadsPage() {
 
     sendGAEvent("event", "download_clicked", {
       os: "Linux",
-      version: "2.7.3-x64",
+      release_channel: "latest",
     });
 
     showNotification(downloadLink);
@@ -224,7 +224,7 @@ export default function DownloadsPage() {
 
     const link = document.createElement("a");
     link.href = downloadLink;
-    link.download = "Serverless-Buckets-2.7.3-x64.exe";
+    link.download = "Serverless-Buckets-windows-x64.exe";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -242,7 +242,7 @@ export default function DownloadsPage() {
 
     sendGAEvent("event", "download_clicked", {
       os: 'Windows',
-      version: '2.7.3-x64'
+      release_channel: "latest",
     });
 
     showNotification(downloadLink);
