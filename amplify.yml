@@ -5,6 +5,9 @@ frontend:
       commands:
         - npm ci --legacy-peer-deps
         - npm run validate-env
+        - npm run check:payment-identity
+        - npm run check:trust-center
+        - npm run typecheck
         # Snapshot server-side env vars from the Amplify build environment into
         # .env.production so Next.js can read them at SSR runtime. Without this,
         # non-NEXT_PUBLIC_ vars set in the Amplify Console are present at build
@@ -13,7 +16,10 @@ frontend:
         # Console — keep them in sync, this one wins.
         # DynamoDB credentials are intentionally excluded. The website calls
         # the API Gateway/Lambda license service, whose execution role owns DDB.
-        - printenv | grep -E '^(NEXT_PUBLIC_|CLERK_|DODO_|BUCKETS_|S3CONSOLE_|RESEND_|LICENSE_|FOUNDER_|POSTHOG_|AWS_REGION=)' | grep -Ev '^(NEXT_PUBLIC_RAZORPAY_KEY_SECRET|NEXT_PUBLIC_DYNAMO_|DYNAMO_)=' > .env.production
+        - printenv | grep -E '^(NEXT_PUBLIC_|CLERK_|DODO_|BUCKETS_|S3CONSOLE_|RESEND_|LICENSE_|FOUNDER_|POSTHOG_|MAINTENANCE_|AWS_REGION=)' | grep -Ev '^(NEXT_PUBLIC_RAZORPAY_KEY_SECRET|NEXT_PUBLIC_DYNAMO_|DYNAMO_)=' > .env.production
+        # Preview branches can use production-like identity configuration for
+        # verification, but they must never create or mutate real payments.
+        - 'if [ -n "${AWS_BRANCH:-}" ] && [ "$AWS_BRANCH" != "main" ]; then printf "%s\n" "MAINTENANCE_MODE=true" "MAINTENANCE_MESSAGE=Preview environment; purchases are disabled." >> .env.production; fi'
     build:
       commands:
         - npm run build

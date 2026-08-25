@@ -9,6 +9,8 @@ const publicRoutes = [
   "/privacy",
   "/terms",
   "/eula",
+  "/marketplace-eula",
+  "/trust",
   "/refund-policy",
   "/downloads(.*)",
   "/pricing",

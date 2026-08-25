@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { currentUser } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import {
   getProductId,
   getConfiguredProductIds,
@@ -33,6 +33,9 @@ type CreateCheckoutBody = {
   quantity?: number;
 };
 
+function errorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
+}
 export async function POST(req: NextRequest) {
   if (isMaintenanceMode()) {
     return NextResponse.json(
@@ -51,25 +54,32 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Authentication required to start checkout." },
+        { status: 401 }
+      );
+    }
+
     const body: CreateCheckoutBody = await req.json();
     const { tier, seats, email, name, metadata, productId: legacyProductId, quantity } = body;
 
     // Resolve the signed-in Clerk user ONCE — used for name fallback, email
     // fallback, and (critically) the authoritative accountEmail stamped into
     // checkout metadata below.
-    let clerkUser: Awaited<ReturnType<typeof currentUser>> = null;
-    try {
-      clerkUser = await currentUser();
-    } catch {
-      // Unauthenticated checkout (magic-link flow) — fall through.
-    }
+    const clerkUser = await currentUser();
     const clerkEmail =
       clerkUser?.primaryEmailAddress?.emailAddress || undefined;
+    if (!clerkEmail) {
+      return NextResponse.json(
+        { error: "A verified account email is required to start checkout." },
+        { status: 400 }
+      );
+    }
 
-    // Effective email: explicit body email (magic links pre-select the row the
-    // license belongs to) → Clerk session email for signed-in buyers. A
-    // malformed body email (whitespace, missing @, etc.) is treated as absent
-    // rather than forwarded to Dodo, which would 422 the checkout.
+    // The body email controls only the Dodo receipt/customer prefill. Account
+    // ownership always comes from the authenticated Clerk subject/email below.
     const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const bodyEmail = email?.trim();
     const effectiveEmail =
@@ -143,8 +153,11 @@ export async function POST(req: NextRequest) {
       resolvedTier = tier;
       try {
         productId = getProductId(tier);
-      } catch (err: any) {
-        return NextResponse.json({ error: err.message }, { status: 500 });
+      } catch (error: unknown) {
+        return NextResponse.json(
+          { error: errorMessage(error, "Product is not configured") },
+          { status: 500 }
+        );
       }
     } else if (legacyProductId) {
       // Legacy seat-add flow (will be removed in Phase 11). Must be one of OUR
@@ -172,31 +185,34 @@ export async function POST(req: NextRequest) {
     // We always include the tier so that webhook handlers can distinguish lifetime
     // vs subscription regardless of which endpoint Dodo emitted from.
     //
-    // accountEmail is the AUTHORITATIVE row key: Dodo's hosted checkout lets
+    // accountEmail is the legacy compatibility row key: Dodo's hosted checkout lets
     // the buyer edit the pre-filled email, and the webhook must not key the
     // license by whatever they typed there (it would orphan the license from
     // their dashboard/Clerk identity). Metadata survives onto the
     // subscription and all its payment events, so the webhook prefers it
     // over customer.email. For team, the Clerk session email wins outright —
     // it's the identity /account/team will query with.
-    const accountEmail =
-      resolvedTier === "team"
-        ? clerkEmail || effectiveEmail
-        : effectiveEmail;
+    const accountEmail = clerkEmail;
     // The routing keys (app/tier/accountEmail) are derived server-side and
     // must never come from the client: a spoofed tier:"team" would mint a
     // phantom team row in the webhook, and a spoofed accountEmail would key
     // someone else's row. Strip them from client metadata before merging.
-    const {
-      app: _app,
-      tier: _tier,
-      accountEmail: _accountEmail,
-      ...clientMetadata
-    } = metadata || {};
+    const protectedMetadataKeys = new Set([
+      "app",
+      "tier",
+      "accountEmail",
+      "accountSubject",
+    ]);
+    const clientMetadata = Object.fromEntries(
+      Object.entries(metadata || {}).filter(
+        ([key]) => !protectedMetadataKeys.has(key)
+      )
+    );
     const checkoutMetadata: Record<string, string> = {
       ...clientMetadata,
       ...(resolvedTier ? { tier: resolvedTier } : {}),
       ...(accountEmail ? { accountEmail } : {}),
+      accountSubject: userId,
       // Product marker — the Dodo account is shared across products and every
       // webhook endpoint receives every event; webhooks use this to drop the
       // other products' events. Keep last so client metadata can't spoof it.
@@ -246,10 +262,6 @@ export async function POST(req: NextRequest) {
       // back to the client beyond a high-level message.
       console.error("[create-checkout] Dodo error", {
         status: resp.status,
-        endpoint,
-        productId,
-        tier: resolvedTier,
-        message: data?.message,
       });
       return NextResponse.json(
         {
@@ -266,10 +278,10 @@ export async function POST(req: NextRequest) {
       subscription_id: data?.subscription_id,
       tier: resolvedTier,
     });
-  } catch (err: any) {
-    console.error("[create-checkout] unexpected error", err);
+  } catch (error: unknown) {
+    console.error("[create-checkout] Unexpected request failure.");
     return NextResponse.json(
-      { error: err?.message || "Unexpected error creating checkout" },
+      { error: errorMessage(error, "Unexpected error creating checkout") },
       { status: 500 }
     );
   }

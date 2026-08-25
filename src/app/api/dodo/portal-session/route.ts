@@ -16,10 +16,13 @@
  *            Bearer DODO_API_KEY → returns { link: "https://..." }
  */
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { getDodoApiBaseUrl, getProductAppOrigin } from "@/lib/dodo";
 import { getLicenseByEmail } from "@/lib/license-api";
 
+function errorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
+}
 export async function POST(req: NextRequest) {
   try {
     // 1. Auth — only the user themselves can mint a portal link for their account.
@@ -28,10 +31,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await req.json().catch(() => ({}));
-    const email = typeof body?.email === "string" ? body.email.trim() : "";
+    // The existing browser body may still contain an email, but it is never an
+    // authorization input. Select the billing row from the Clerk account.
+    const user = await currentUser();
+    const email = user?.primaryEmailAddress?.emailAddress?.trim() || "";
     if (!email) {
-      return NextResponse.json({ error: "Missing email" }, { status: 400 });
+      return NextResponse.json(
+        { error: "No primary email on authenticated account" },
+        { status: 400 }
+      );
     }
 
     // 2. Look up dodoCustomerId for this license row.
@@ -109,8 +117,6 @@ export async function POST(req: NextRequest) {
     if (!resp.ok || !data?.link) {
       console.error("[portal-session] Dodo error", {
         status: resp.status,
-        message: data?.message,
-        dodoCustomerId,
       });
       return NextResponse.json(
         {
@@ -121,10 +127,10 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ success: true, link: data.link });
-  } catch (err: any) {
-    console.error("[portal-session] unexpected", err);
+  } catch (error: unknown) {
+    console.error("[portal-session] Unexpected request failure.");
     return NextResponse.json(
-      { error: err?.message || "Unexpected error" },
+      { error: errorMessage(error, "Unexpected error") },
       { status: 500 }
     );
   }

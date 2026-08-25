@@ -28,6 +28,12 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
           <Link href="/eula" className="hover:text-primary transition-colors">
             EULA
           </Link>
+          <Link href="/marketplace-eula" className="hover:text-primary transition-colors">
+            Marketplace EULA
+          </Link>
+          <Link href="/trust" className="hover:text-primary transition-colors">
+            Trust Center
+          </Link>
           <span className="ml-auto">
             <Link href="/" className="hover:text-primary transition-colors">
               Home
