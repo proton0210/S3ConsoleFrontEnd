@@ -20,7 +20,7 @@ jobs:
       LICENSE_API_URL: https://example.invalid
       LICENSE_API_KEY: ci-placeholder
       NEXT_PUBLIC_APP_URL: https://buckets.serverlesscreed.com
-      NEXT_PUBLIC_PRODUCT_NAME: Buckets by Serverless Creed
+      NEXT_PUBLIC_PRODUCT_NAME: Buckets by ServerlessCreed
       NEXT_PUBLIC_PRODUCT_DESCRIPTION: Secure S3 desktop client
       BUCKETS_DODO_PRODUCT_ID_MONTHLY: ci-monthly
       BUCKETS_DODO_PRODUCT_ID_YEARLY: ci-yearly
