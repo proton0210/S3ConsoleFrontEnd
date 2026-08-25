@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = constructMetadata({
   title: "Download Buckets by ServerlessCreed — AWS S3 Client for Mac, Windows & Linux",
   description:
-    "Get Buckets by ServerlessCreed for macOS and Linux, or install the Windows edition through Microsoft Store. Native AWS S3 desktop client with a 14-day full-feature trial.",
+    "Get Buckets by ServerlessCreed for macOS and Linux, or install the Windows edition through Microsoft Store. Cross-platform AWS S3 desktop client with a 14-day full-feature trial.",
   canonical: "/downloads",
 });
 

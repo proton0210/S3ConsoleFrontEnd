@@ -7,6 +7,7 @@
  * become eligible for video rich results.
  */
 import Script from "next/script";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import Header from "@/components/sections/header";
 import Footer from "@/components/sections/footer";
@@ -121,12 +122,12 @@ export default async function BlogPostPage({ params }: RouteProps) {
       <article className="max-w-3xl mx-auto px-5 sm:px-8 pt-12 pb-20">
         <header className="mb-10">
           <p className="text-sm text-muted-foreground mb-3">
-            <a
+            <Link
               href="/blog"
               className="hover:text-primary transition-colors"
             >
               ← All posts
-            </a>
+            </Link>
           </p>
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground mb-4 leading-tight">
             {metadata.title}
@@ -168,7 +169,7 @@ export default async function BlogPostPage({ params }: RouteProps) {
             Try Buckets by ServerlessCreed free for 14 days
           </h2>
           <p className="text-sm text-muted-foreground mb-5 max-w-md mx-auto">
-            Native AWS S3 client for Mac, Windows, and Linux. Upload from URL,
+            Cross-platform AWS S3 client for Mac, Windows, and Linux. Upload from URL,
             presigned links, multi-profile SSO, visual policies — all in one app.
           </p>
           <div className="flex flex-wrap justify-center gap-3">

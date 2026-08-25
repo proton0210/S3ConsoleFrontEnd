@@ -30,7 +30,7 @@ const FAQS = [
   },
   {
     q: "Does AWS provide an official S3 GUI?",
-    a: "AWS provides the S3 console, a web-based GUI in the AWS Management Console. It supports common bucket and object-management tasks. A native desktop client such as Buckets by ServerlessCreed adds local desktop workflows, multi-profile switching, and file previews.",
+    a: "AWS provides the S3 console, a web-based GUI in the AWS Management Console. It supports common bucket and object-management tasks. A desktop client such as Buckets by ServerlessCreed adds local desktop workflows, multi-profile switching, and file previews.",
   },
   {
     q: "Can I preview files in Buckets by ServerlessCreed without downloading them?",
@@ -95,13 +95,13 @@ export default function AwsS3GuiPage() {
           </nav>
 
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-slate-900 mb-4">
-            A native AWS S3 GUI for Mac, Windows, and Linux
+            A cross-platform AWS S3 GUI for Mac, Windows, and Linux
           </h1>
           <p className="text-lg text-slate-600 max-w-3xl mb-8">
             Buckets by ServerlessCreed is a desktop S3 GUI for engineers who&apos;d rather click
             than memorize CLI flags. Browse, preview, upload, and manage S3
             objects with the keyboard shortcuts and drag-and-drop you expect
-            from a native app — on macOS, Windows, and Linux.
+            from an installed desktop app — on macOS, Windows, and Linux.
           </p>
 
           <div className="flex flex-wrap gap-3 mb-6">

@@ -35,7 +35,7 @@ import {
 const FAQS = [
   {
     q: "What is an AWS S3 client?",
-    a: "An AWS S3 client is a desktop application that lets you browse, upload, download, and manage files in Amazon S3 buckets without writing CLI commands or using the AWS web console. A good S3 client gives you a native GUI, drag-and-drop file transfer, multi-profile support for several AWS accounts, and tools like presigned URL generation and bucket policy editing.",
+    a: "An AWS S3 client is a desktop application that lets you browse, upload, download, and manage files in Amazon S3 buckets without writing CLI commands or using the AWS web console. A good S3 client gives you a desktop GUI, drag-and-drop file transfer, multi-profile support for several AWS accounts, and tools like presigned URL generation and bucket policy editing.",
   },
   {
     q: "Is Buckets by ServerlessCreed better than Cyberduck for S3?",
@@ -43,7 +43,7 @@ const FAQS = [
   },
   {
     q: "Does Buckets by ServerlessCreed work on Mac, Windows, and Linux?",
-    a: "Yes — Buckets by ServerlessCreed supports macOS, Windows 10/11, and Linux. The Windows edition is installed and updated through Microsoft Store; macOS and Linux use their native packages. All platforms share the same product features and license.",
+    a: "Yes — Buckets by ServerlessCreed supports macOS, Windows 10/11, and Linux. The Windows edition is installed and updated through Microsoft Store; macOS and Linux use platform-specific packages. All platforms share the same product features and license.",
   },
   {
     q: "Do I need AWS credentials to use Buckets by ServerlessCreed?",
@@ -108,10 +108,10 @@ export default function AwsS3ClientPage() {
           </nav>
 
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-slate-900 mb-4">
-            A native AWS S3 client for Mac, Windows, and Linux
+            A cross-platform AWS S3 client for Mac, Windows, and Linux
           </h1>
           <p className="text-lg text-slate-600 max-w-3xl mb-8">
-            Buckets by ServerlessCreed is a native desktop S3 client built for engineers who live
+            Buckets by ServerlessCreed is a cross-platform desktop S3 client built for engineers who live
             in AWS. Browse buckets, generate presigned URLs, edit policies, and
             switch profiles in one place — without the AWS web console&apos;s lag
             or the CLI&apos;s ceremony.
@@ -223,9 +223,9 @@ export default function AwsS3ClientPage() {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {[
-                  ["Native macOS app", "yes", "no", "yes", "no"],
-                  ["Native Windows app", "yes", "no", "yes", "yes"],
-                  ["Native Linux app", "yes", "no", "yes", "no"],
+                  ["macOS desktop app", "yes", "no", "yes", "no"],
+                  ["Windows desktop app", "yes", "no", "yes", "yes"],
+                  ["Linux desktop app", "yes", "no", "yes", "no"],
                   ["AWS SSO / IAM Identity Center", "yes", "yes", "no", "no"],
                   ["Visual bucket policy editor", "yes", "json", "no", "no"],
                   ["AI code generation", "yes", "no", "no", "no"],

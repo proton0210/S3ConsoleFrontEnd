@@ -11,7 +11,7 @@ const features = [
   {
     title: "Intuitive Desktop Interface",
     description:
-      "Say goodbye to complex web consoles. Our native desktop app provides a clean, familiar interface that makes S3 management feel like working with your local file system.",
+      "Say goodbye to complex web consoles. Our cross-platform desktop app provides a clean, familiar interface that makes S3 management feel like working with your local file system.",
     className: "hover:bg-blue-500/10 transition-all duration-500 ease-out",
     content: (
       <>

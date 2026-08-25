@@ -38,7 +38,7 @@ const FAQS = [
   },
   {
     q: "Does Buckets by ServerlessCreed run on Mac, Windows, and Linux like Cyberduck?",
-    a: "Yes — Buckets by ServerlessCreed supports macOS, Windows 10/11, and Linux. Windows installation and updates are delivered through Microsoft Store; macOS and Linux use their native packages.",
+    a: "Yes — Buckets by ServerlessCreed supports macOS, Windows 10/11, and Linux. Windows installation and updates are delivered through Microsoft Store; macOS and Linux use platform-specific packages.",
   },
 ];
 
@@ -68,9 +68,9 @@ const breadcrumbSchema = {
 
 const COMPARISON_ROWS: { feature: string; ours: string; cd: string; note?: string }[] = [
   { feature: "Built specifically for AWS S3", ours: "yes", cd: "no", note: "Cyberduck supports 10+ protocols; S3 is one of them" },
-  { feature: "Native macOS app", ours: "yes", cd: "yes" },
-  { feature: "Native Windows app", ours: "yes", cd: "yes" },
-  { feature: "Native Linux app", ours: "yes", cd: "yes" },
+  { feature: "macOS desktop app", ours: "yes", cd: "yes" },
+  { feature: "Windows desktop app", ours: "yes", cd: "yes" },
+  { feature: "Linux desktop app", ours: "yes", cd: "yes" },
   { feature: "AWS SSO / IAM Identity Center login", ours: "yes", cd: "no" },
   { feature: "Multi-profile session manager", ours: "yes", cd: "limited" },
   { feature: "AI code generation (SDK snippets)", ours: "yes", cd: "no" },

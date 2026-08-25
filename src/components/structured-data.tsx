@@ -107,7 +107,7 @@ export function StructuredData({ type = "website", data }: StructuredDataProps) 
     operatingSystem: ["macOS", "Windows", "Linux"],
     offers,
     featureList: [
-      "Amazon S3 bucket management with a native desktop GUI",
+      "Amazon S3 bucket management with a cross-platform desktop GUI",
       "AI-powered code generation for S3 operations",
       "Secure presigned URL generation with custom expiration",
       "Multi-profile AWS account support with SSO",

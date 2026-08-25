@@ -19,7 +19,7 @@ The friction this creates is real:
 
 - **The browser has a 5 GB upload cap.** Any single object the AWS Console uploads from the web has to fit through a single PUT — and the browser flow caps at 5 GB. Multipart uploads with the web console exist, but only for files already on your machine.
 - **You pay for bandwidth twice.** Download from the source (incoming bytes) and upload to S3 (outgoing bytes). If you're on a metered connection — or roaming, or on hotel Wi-Fi — that's two trips for no good reason.
-- **No native S3-to-S3 copy in the UI** for arbitrary cross-region or cross-account moves. The web console's "copy" only works for objects already in a bucket you have console access to.
+- **No built-in S3-to-S3 copy in the UI** for arbitrary cross-region or cross-account moves. The web console's "copy" only works for objects already in a bucket you have console access to.
 - **No way to pull from an arbitrary HTTPS endpoint.** Public CDN URL, signed Dropbox link, GitHub release tarball — the web console can't fetch any of it.
 
 The escape hatch most teams reach for is a Lambda: write a function that does `fetch(url)` and `s3:PutObject`, wire it to an API Gateway or an EventBridge schedule, deploy it, manage the IAM. That works, but it's a chunk of infrastructure to write and own for what should be a single button click.
@@ -35,7 +35,7 @@ In Buckets by ServerlessCreed you paste a URL, choose a destination key, and cli
 3. Pipes that stream straight into an AWS SDK [`@aws-sdk/lib-storage`](https://github.com/aws/aws-sdk-js-v3/tree/main/lib/lib-storage) `Upload`, which transparently handles S3 multipart for you.
 4. Reports progress to the same UI that drag-and-drop file uploads use, with the same cancel button.
 
-The whole pipeline is native: it runs in the Electron main process on your machine, talks directly to S3 with your local AWS credentials, and never proxies your data through any Buckets by ServerlessCreed server. There is no Buckets by ServerlessCreed-hosted backend in the data path.
+The whole pipeline runs locally in the Electron main process on your machine, talks directly to S3 with your local AWS credentials, and never proxies your data through any Buckets by ServerlessCreed server. There is no Buckets by ServerlessCreed-hosted backend in the data path.
 
 ## The Architecture, With Real Code
 
@@ -161,7 +161,7 @@ Building this right took longer than the streaming wiring would suggest. A few t
 
 | | AWS Web Console | Custom Lambda | **Buckets by ServerlessCreed** |
 |---|---|---|---|
-| Paste a URL, hit upload | ❌ No URL field | ⚠️ You write the API | ✅ Native UI |
+| Paste a URL, hit upload | ❌ No URL field | ⚠️ You write the API | ✅ Built-in UI |
 | Pull arbitrary HTTPS source | ❌ | ✅ | ✅ |
 | Files >5 GB | ⚠️ Multipart only with local files | ✅ | ✅ |
 | Cross-region S3-to-S3 | ⚠️ Manual region juggling | ✅ | ✅ Auto-retry |

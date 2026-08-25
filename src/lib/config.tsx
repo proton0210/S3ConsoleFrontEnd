@@ -1,4 +1,3 @@
-import { Icons } from "@/components/icons";
 import { FaLinkedinIn, FaXTwitter } from "react-icons/fa6";
 import { RiInstagramFill } from "react-icons/ri";
 import { TEAM_SEAT_PRICE_USD } from "@/lib/reddit";
@@ -18,7 +17,7 @@ const productName =
     : configuredProductName.trim();
 const productDescription =
   process.env.NEXT_PUBLIC_PRODUCT_DESCRIPTION ||
-  "Buckets by ServerlessCreed is a native desktop client for Amazon S3 and compatible object storage on Mac, Windows, and Linux, with AI code generation, presigned URLs, multi-profile SSO, and a visual bucket policy editor. Free 14-day trial, no credit card.";
+  "Buckets by ServerlessCreed is a cross-platform desktop client for Amazon S3 and compatible object storage on Mac, Windows, and Linux, with AI code generation, presigned URLs, multi-profile SSO, and a visual bucket policy editor. Free 14-day trial, no credit card.";
 
 export const siteConfig = {
   name: productName,
@@ -85,7 +84,7 @@ export const siteConfig = {
       period: "per month",
       yearlyPrice: null,
       features: [
-        "Native Mac, Windows & Linux App",
+        "Desktop app for Mac, Windows & Linux",
         "Use on 2 machines",
         "All features included",
         "Auto-renews monthly",
@@ -104,7 +103,7 @@ export const siteConfig = {
       period: "per year",
       yearlyPrice: null,
       features: [
-        "Native Mac, Windows & Linux App",
+        "Desktop app for Mac, Windows & Linux",
         "Use on 2 machines",
         "All features included",
         "Auto-renews yearly",
@@ -123,7 +122,7 @@ export const siteConfig = {
       period: "one-time",
       yearlyPrice: null,
       features: [
-        "Native Mac, Windows & Linux App",
+        "Desktop app for Mac, Windows & Linux",
         "Use on 2 machines",
         "All features included",
         "No recurring billing",

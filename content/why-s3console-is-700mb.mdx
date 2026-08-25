@@ -32,7 +32,7 @@ You're right — it is big, and we don't want to wave that away. So here's the h
 It's roughly three things:
 
 - **The bundled AWS CLI (~230MB).** This is the part we *chose* to add, and we'll explain why below. It's the official AWS CLI v2, which ships with its own embedded Python runtime — that's what makes a command-line tool weigh as much as it does.
-- **The app framework.** Buckets by ServerlessCreed is a desktop app built on a Chromium-based framework (the same engine that renders the interface you actually use). A native, cross-platform desktop app carries that engine with it. This is most of the rest of the size, and it's true of essentially every app in this category.
+- **The app framework.** Buckets by ServerlessCreed is an Electron desktop app built on Chromium (the same engine that renders the interface you actually use). A cross-platform Electron app carries that engine with it. This is most of the rest of the size, and it is typical of apps built with this framework.
 - **The AWS SDKs and the app itself.** Buckets by ServerlessCreed talks to a lot of AWS — S3, STS, SSO, CloudFront, and more — so it bundles the relevant AWS SDK clients, plus our own code and assets.
 
 So the honest summary is: the bundled AWS CLI is the slice *we* added on purpose. The framework is the cost of being a real desktop app rather than a browser tab. We're not going to pretend the whole 700MB is some clever optimization — most of it is just what a cross-platform desktop app weighs. The interesting decision is the CLI, so let's talk about that.
