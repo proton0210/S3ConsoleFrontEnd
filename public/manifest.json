@@ -1,7 +1,7 @@
 {
-  "name": "Serverless Buckets - AWS S3 Desktop App",
-  "short_name": "Serverless Buckets",
-  "description": "Native AWS S3 Desktop App for Mac, Windows & Linux. Manage S3 buckets with an intuitive GUI. Features AI Code Generation, Presigned URLs, Multi-Profile Support, and Advanced Access Control.",
+  "name": "Buckets by Serverless Creed — Desktop Client for Amazon S3",
+  "short_name": "Buckets",
+  "description": "A focused desktop client for Amazon S3 and compatible object storage on Mac, Windows, and Linux.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

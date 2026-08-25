@@ -1,0 +1,31 @@
+title = "ServerlessCreed strict secret scanning"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Generated artifacts, bundled AWS CLI reference data, and dedicated secret-detector fixtures"
+paths = [
+  '''(^|/)cdk\.out/''',
+  '''(^|/)\.next/''',
+  '''(^|/)dist/''',
+  '''(^|/)dist_electron/''',
+  '''(^|/)build-tests/''',
+  '''(^|/)bundled-runtimes/''',
+  '''(^|/)aws/dist/''',
+  '''(^|/)packages/main/dist/''',
+  '''(^|/)coverage/''',
+  '''(^|/)node_modules/''',
+  '''(^|/)tests/appsyncAI\.test\.ts$''',
+  '''(^|/)tests/itemOps-crud\.test\.ts$''',
+  '''(^|/)packages/main/src/__tests__/codeExecutorService\.test\.ts$''',
+  '''(^|/)packages/main/src/__tests__/piiDetectors\.test\.ts$''',
+]
+
+[[allowlists]]
+description = "Known non-secret CI placeholder and s3Key comparison false positive"
+regexTarget = "match"
+regexes = [
+  '''pk_test_ZHVtbXkuY2xlcmsuYWNjb3VudHMuZGV2JA''',
+  '''s3Key\s*===\s*itemToCancel\.s3Key''',
+]

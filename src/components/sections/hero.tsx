@@ -24,7 +24,7 @@ function HeroPill() {
         className="flex w-auto items-center space-x-2 rounded-full bg-gradient-to-r from-primary/20 to-primary/5 px-4 py-1.5 ring-1 ring-primary/20 whitespace-pre transition-all hover:from-primary/30 hover:to-primary/10"
       >
         <p className="text-xs font-medium text-primary sm:text-sm">
-          Serverless Buckets vs Rest
+          Buckets vs The Rest
         </p>
         <svg
           width="12"
@@ -87,7 +87,7 @@ function HeroTitles() {
           ease,
         }}
       >
-        Move faster with a professional desktop app for AWS S3.
+        A focused desktop client for Amazon S3 and S3-compatible storage.
       </motion.p>
     </div>
   );
@@ -111,7 +111,7 @@ function HeroCTA() {
             "w-full sm:w-auto text-background flex gap-2"
           )}
         >
-          Try Free — Download Now
+          Try Free — Download Buckets
         </Link>
       </motion.div>
     </>

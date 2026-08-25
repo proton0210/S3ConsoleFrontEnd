@@ -11,7 +11,7 @@
  * the change and returns immediately.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import {
   getDodoApiBaseUrl,
   getProductId,
@@ -21,6 +21,9 @@ import {
 } from "@/lib/dodo";
 import { getLicenseByEmail } from "@/lib/license-api";
 
+function errorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
+}
 export async function POST(req: NextRequest) {
   try {
     const { userId } = await auth();
@@ -29,11 +32,15 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json().catch(() => ({}));
-    const email = typeof body?.email === "string" ? body.email.trim() : "";
+    const user = await currentUser();
+    const email = user?.primaryEmailAddress?.emailAddress?.trim() || "";
     const tier = body?.tier as LicenseTier | undefined;
 
     if (!email) {
-      return NextResponse.json({ error: "Missing email" }, { status: 400 });
+      return NextResponse.json(
+        { error: "No primary email on authenticated account" },
+        { status: 400 }
+      );
     }
     // Team is a subscription tier but is per-seat — seat changes go through
     // /api/team/seats, and solo↔team conversions are a new checkout, never an
@@ -98,8 +105,11 @@ export async function POST(req: NextRequest) {
     let newProductId: string;
     try {
       newProductId = getProductId(tier);
-    } catch (err: any) {
-      return NextResponse.json({ error: err.message }, { status: 500 });
+    } catch (error: unknown) {
+      return NextResponse.json(
+        { error: errorMessage(error, "Product is not configured") },
+        { status: 500 }
+      );
     }
 
     const baseUrl = getDodoApiBaseUrl();
@@ -128,6 +138,8 @@ export async function POST(req: NextRequest) {
         metadata: {
           tier,
           plan_change_from: license.tier || "unknown",
+          accountEmail: email,
+          accountSubject: userId,
           // Product marker — webhooks drop events that aren't ours (the Dodo
           // account is shared across products).
           app: "serverless-buckets",
@@ -140,9 +152,6 @@ export async function POST(req: NextRequest) {
     if (!dodoResp.ok) {
       console.error("[change-plan] Dodo error", {
         status: dodoResp.status,
-        message: data?.message,
-        subscriptionId: license.subscriptionId,
-        tier,
       });
       return NextResponse.json(
         { error: data?.message || "Failed to change plan." },
@@ -156,10 +165,10 @@ export async function POST(req: NextRequest) {
       message:
         "Plan change submitted. Your dashboard will reflect the new plan within a few seconds.",
     });
-  } catch (err: any) {
-    console.error("[change-plan] unexpected", err);
+  } catch (error: unknown) {
+    console.error("[change-plan] Unexpected request failure.");
     return NextResponse.json(
-      { error: err?.message || "Unexpected error" },
+      { error: errorMessage(error, "Unexpected error") },
       { status: 500 }
     );
   }

@@ -6,7 +6,7 @@ type LogoProps = Omit<React.ComponentProps<typeof Image>, "src" | "alt"> & {
 };
 
 export const Icons = {
-  logo: ({ alt = "Serverless Buckets", width = 40, height = 40, ...props }: LogoProps) => (
+  logo: ({ alt = "Buckets by Serverless Creed", width = 40, height = 40, ...props }: LogoProps) => (
     <Image src="/serverless-buckets.png" alt={alt} width={width} height={height} {...props} />
   ),
   twitter: (props: IconProps) => (

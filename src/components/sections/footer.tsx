@@ -62,8 +62,11 @@ export default function Footer() {
       <div className="max-w-6xl mx-auto px-5 sm:px-10 py-12">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
           <div className="col-span-2 md:col-span-1">
-            <Link href="/" className="font-bold text-lg text-foreground">
-              {siteConfig.name}
+            <Link href="/" className="inline-flex flex-col leading-none text-foreground">
+              <span className="text-lg font-bold">{siteConfig.shortName}</span>
+              <span className="mt-1 text-[9px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+                by {siteConfig.publisherName}
+              </span>
             </Link>
             <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
               The fastest AWS S3 client for Mac, Windows, and Linux.

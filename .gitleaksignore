@@ -1,0 +1,7 @@
+# Exact historical findings verified revoked or invalid on 2026-08-23.
+03fee235ebc4a305d62531a39986e92b93318297:.env.example:stripe-access-token:3
+365326df0745a3195ba4fa100dc7e9cf4762f0b0:.env.example:generic-api-key:2
+365326df0745a3195ba4fa100dc7e9cf4762f0b0:.env.example:stripe-access-token:3
+d51be868e461493b3ee2da27b36eb02ba2700456:resend.js:generic-api-key:25
+d51be868e461493b3ee2da27b36eb02ba2700456:src/app/downloads/page.tsx:aws-access-token:12
+d51be868e461493b3ee2da27b36eb02ba2700456:src/app/downloads/page.tsx:generic-api-key:13

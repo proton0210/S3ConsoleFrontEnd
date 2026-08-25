@@ -82,9 +82,9 @@ if (
 
 if (
   process.env.NODE_ENV === 'production' &&
-  process.env.NEXT_PUBLIC_PRODUCT_NAME !== 'Serverless Buckets'
+  !['Buckets by Serverless Creed', 'Serverless Buckets'].includes(process.env.NEXT_PUBLIC_PRODUCT_NAME)
 ) {
-  missing.push('NEXT_PUBLIC_PRODUCT_NAME - production must be Serverless Buckets');
+  missing.push('NEXT_PUBLIC_PRODUCT_NAME - production must be Buckets by Serverless Creed (legacy Serverless Buckets is accepted during migration)');
 }
 
 // Security warnings
