@@ -73,6 +73,12 @@ const OS_LABELS: Record<DetectedOS, string> = {
   unknown: "your computer",
 };
 
+const windowsStoreProductId =
+  process.env.NEXT_PUBLIC_WINDOWS_STORE_PRODUCT_ID?.trim() ?? "";
+const windowsStoreUrl = /^[a-z0-9]{12}$/i.test(windowsStoreProductId)
+  ? `https://apps.microsoft.com/detail/${windowsStoreProductId}`
+  : null;
+
 //checking
 export default function DownloadsPage() {
   const { userId, isLoaded } = useAuth();
@@ -86,7 +92,7 @@ export default function DownloadsPage() {
   const [warningMessage, setWarningMessage] = useState<string | null>(null);
   const [requiresActivation, setRequiresActivation] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [showWindowsModal, setShowWindowsModal] = useState(false);
+  const [showWindowsStorePending, setShowWindowsStorePending] = useState(false);
   const [detectedOS, setDetectedOS] = useState<DetectedOS>("unknown");
 
   // Run OS detection once on mount. Avoids SSR mismatch — server renders
@@ -213,39 +219,25 @@ export default function DownloadsPage() {
     showNotification(downloadLink);
   };
 
-  const handleWindowsDownload = () => {
-    setShowWindowsModal(true);
-  };
-
-  const proceedWithWindowsDownload = () => {
-    setShowWindowsModal(false);
-    const downloadLink =
-      "https://s3consolewindows.s3.ap-south-1.amazonaws.com/latest/Serverless-Buckets-windows-x64.exe";
-
-    const link = document.createElement("a");
-    link.href = downloadLink;
-    link.download = "Serverless-Buckets-windows-x64.exe";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleWindowsStore = () => {
+    if (!windowsStoreUrl) {
+      setShowWindowsStorePending(true);
+      return;
+    }
 
     if (typeof window !== "undefined" && window.twq) {
       window.twq("event", "tw-pyshe-pyshf", {
         email_address: userData?.email || null,
-        conversion_type: "windows_download",
+        conversion_type: "windows_store",
       });
     }
-
-    // Reddit activation signal — a download is the key intent event for a
-    // desktop product.
-    trackReddit("Lead", { conversionId: "windows_download" });
+    trackReddit("Lead", { conversionId: "windows_store" });
 
     sendGAEvent("event", "download_clicked", {
       os: 'Windows',
-      release_channel: "latest",
+      release_channel: "microsoft-store",
     });
-
-    showNotification(downloadLink);
+    window.open(windowsStoreUrl, "_blank", "noopener,noreferrer");
   };
 
   const showNotification = (downloadLink: string) => {
@@ -356,50 +348,34 @@ export default function DownloadsPage() {
     <>
       <Header />
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-        {/* Windows Safety Modal */}
-        <Dialog open={showWindowsModal} onOpenChange={setShowWindowsModal}>
+        {/* Microsoft Store link is enabled only after Partner Center publishes it. */}
+        <Dialog open={showWindowsStorePending} onOpenChange={setShowWindowsStorePending}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-xl">
                 <FaWindows className="h-6 w-6 text-blue-600" />
-                Windows Download Safety
+                Microsoft Store availability
               </DialogTitle>
-              <DialogDescription className="pt-4 text-base space-y-4 text-left">
-                <p className="text-slate-700">
-                  You may see a warning from Windows SmartScreen saying this file isn't commonly downloaded.
-                </p>
-                <div className="bg-blue-50 border border-blue-100 p-4 rounded-lg">
-                  <p className="font-semibold text-blue-800 mb-1 flex items-center gap-2">
-                    <FaCheck className="h-4 w-4" />
-                    Serverless Buckets is 100% Safe
+              <DialogDescription asChild>
+                <div className="pt-4 text-base space-y-4 text-left">
+                  <p className="text-slate-700">
+                    Serverless Buckets for Windows is moving exclusively to Microsoft Store. The Store listing is not public yet.
                   </p>
-                  <p className="text-sm text-blue-700">
-                    We are a new verified publisher, so Microsoft is still building trust with our certificate. This warning is a standard security check for new software.
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <p className="font-medium text-slate-900">If you see a warning:</p>
-                  <ol className="list-decimal pl-5 space-y-1 text-sm text-slate-600">
-                    <li>Click <span className="font-semibold">Keep</span> or the <span className="font-semibold">...</span> menu on the download</li>
-                    <li>Select <span className="font-semibold">Keep anyway</span> if prompted</li>
-                    <li>When opening the installer, click <span className="font-semibold">More info</span> &rarr; <span className="font-semibold">Run anyway</span></li>
-                  </ol>
+                  <div className="bg-blue-50 border border-blue-100 p-4 rounded-lg">
+                    <p className="font-semibold text-blue-800 mb-1 flex items-center gap-2">
+                      <FaCheck className="h-4 w-4" />
+                      Store-managed installation and automatic updates
+                    </p>
+                  </div>
                 </div>
               </DialogDescription>
             </DialogHeader>
-            <DialogFooter className="sm:justify-between gap-2 mt-2">
+            <DialogFooter className="mt-2">
               <Button
-                variant="ghost"
-                onClick={() => setShowWindowsModal(false)}
-                className="mt-2 sm:mt-0"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={proceedWithWindowsDownload}
+                onClick={() => setShowWindowsStorePending(false)}
                 className="bg-primary hover:bg-primary/90 text-white"
               >
-                I Understand, Download
+                Close
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -453,7 +429,7 @@ export default function DownloadsPage() {
               <Button
                 size="lg"
                 onClick={() => {
-                  if (detectedOS === "windows") handleWindowsDownload();
+                  if (detectedOS === "windows") handleWindowsStore();
                   else if (detectedOS === "linux") handleLinuxDownload();
                   else handleMacDownload(); // default to mac for "unknown"
                 }}
@@ -466,8 +442,14 @@ export default function DownloadsPage() {
                 ) : (
                   <FaApple className="mr-3 h-5 w-5" />
                 )}
-                Download for {OS_LABELS[detectedOS] === "your computer" ? "macOS" : OS_LABELS[detectedOS]}
-                <FaDownload className="ml-3 h-4 w-4" />
+                {detectedOS === "windows" ? (
+                  windowsStoreUrl ? "Get from Microsoft Store" : "Microsoft Store availability"
+                ) : (
+                  <>
+                    Download for {OS_LABELS[detectedOS] === "your computer" ? "macOS" : OS_LABELS[detectedOS]}
+                    <FaDownload className="ml-3 h-4 w-4" />
+                  </>
+                )}
               </Button>
 
               <p className="text-xs text-slate-500 mt-1">
@@ -492,12 +474,12 @@ export default function DownloadsPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={handleWindowsDownload}
+                  onClick={handleWindowsStore}
                   className="inline-flex items-center gap-2 text-slate-700 hover:text-primary transition-colors"
                 >
                   <FaWindows className="h-4 w-4" />
                   Windows
-                  <span className="text-xs text-slate-400">(.exe, 10/11)</span>
+                  <span className="text-xs text-slate-400">(Microsoft Store)</span>
                 </button>
                 <button
                   type="button"

@@ -38,7 +38,7 @@ const FAQS = [
   },
   {
     q: "Does Serverless Buckets run on Mac, Windows, and Linux like Cyberduck?",
-    a: "Yes — Serverless Buckets ships native installers for macOS (Apple Silicon and Intel), Windows 10/11, and Linux (.deb, ARM64). All three platforms get the same feature set and update cycle.",
+    a: "Yes — Serverless Buckets supports macOS, Windows 10/11, and Linux. Windows installation and updates are delivered through Microsoft Store; macOS and Linux use their native packages.",
   },
 ];
 

@@ -43,7 +43,7 @@ const FAQS = [
   },
   {
     q: "Does Serverless Buckets work on Mac, Windows, and Linux?",
-    a: "Yes — Serverless Buckets ships native installers for macOS (Intel and Apple Silicon), Windows 10/11, and Linux (Debian/Ubuntu .deb). All three builds share the same feature set, license key, and update cycle.",
+    a: "Yes — Serverless Buckets supports macOS, Windows 10/11, and Linux. The Windows edition is installed and updated through Microsoft Store; macOS and Linux use their native packages. All platforms share the same product features and license.",
   },
   {
     q: "Do I need AWS credentials to use Serverless Buckets?",

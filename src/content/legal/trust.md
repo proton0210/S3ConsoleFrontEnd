@@ -56,7 +56,7 @@ Send vulnerability reports to [vidit@serverlesscreed.com](mailto:vidit@serverles
 
 ## Desktop updates and code signing
 
-Release checks verify dependency and secret scanning, build integrity, checksums, and platform-specific signing evidence. macOS releases are intended to be Developer ID signed and notarized. Windows Authenticode and Linux package-signing status must be stated accurately for each release; an unsigned artifact is never represented as signed. Customers should install supported releases and verify the publisher signature and published SHA-256 checksum when available.
+Release checks verify dependency and secret scanning, build integrity, checksums, and platform-specific signing evidence. macOS releases are intended to be Developer ID signed and notarized. Windows is distributed only as a Microsoft Store-certified MSIX, signed and updated through the Store. Linux package-signing status must be stated accurately for each release; an unsigned artifact is never represented as signed. Customers should install supported releases and verify published integrity evidence when available.
 
 ## Support and uptime commitment
 
@@ -69,4 +69,3 @@ Current providers include AWS (control-plane infrastructure), Clerk (authenticat
 ## Data requests and deletion
 
 Requests for access, correction, export, or deletion may be sent to [vidit@serverlesscreed.com](mailto:vidit@serverlesscreed.com). Deletion is completed within the period stated in the Privacy Policy, except where legal, tax, fraud-prevention, security, or active-contract obligations require limited retention. Deleting ServerlessCreed account data does not delete resources in the customer's AWS account.
-

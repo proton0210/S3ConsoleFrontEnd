@@ -261,7 +261,7 @@ Generate and execute AWS CLI commands.
 | Platform    | Formats                         |
 | ----------- | ------------------------------- |
 | **macOS**   | DMG, ZIP (Universal, notarized) |
-| **Windows** | NSIS Installer, ZIP             |
+| **Windows** | Microsoft Store MSIX            |
 | **Linux**   | AppImage, DEB, RPM, ZIP         |
 
 ---
