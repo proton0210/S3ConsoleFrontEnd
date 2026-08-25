@@ -10,7 +10,7 @@ This EULA is a binding legal agreement between **Serverless Creed** ("**Serverle
 
 For the avoidance of doubt and for purposes of statutory disclosure under Indian law, Serverless Creed is the registered trade name of a sole proprietorship of which Mr. Vidit Jinesh Shah is the proprietor.
 
-This EULA governs the **use of the Software itself**. The commercial relationship (Subscription, billing, refunds, support, dispute resolution, governing law) is governed by the [Buckets by ServerlessCreed Terms and Conditions](terms-and-conditions.md) ("**Terms**"). The handling of personal information is governed by the [Buckets by ServerlessCreed Privacy Policy](privacy-policy.md). Together, these three documents form the complete agreement between you and ServerlessCreed.
+This EULA governs the **use of the Software itself**. The commercial relationship (Subscription, billing, refunds, support, dispute resolution, governing law) is governed by the [Buckets by ServerlessCreed Terms and Conditions](/terms) ("**Terms**"). The handling of personal information is governed by the [Buckets by ServerlessCreed Privacy Policy](/privacy). Together, these three documents form the complete agreement between you and ServerlessCreed.
 
 ---
 
@@ -94,7 +94,7 @@ in each case for the Authorized User's internal business or personal use.
 
 ## 5. Activation, License Keys, and Anti-Tampering
 
-5.1 **Activation Required.** Activation of the Software with a valid License Key is required for use beyond the Trial period. The Software may periodically validate your License Key by communicating with ServerlessCreed's licensing servers. Validation requests may include a one-way derived device fingerprint, your License Key, the email associated with your Account, and basic system metadata, as described in the [Privacy Policy](privacy-policy.md).
+5.1 **Activation Required.** Activation of the Software with a valid License Key is required for use beyond the Trial period. The Software may periodically validate your License Key by communicating with ServerlessCreed's licensing servers. Validation requests may include a one-way derived device fingerprint, your License Key, the email associated with your Account, and basic system metadata, as described in the [Privacy Policy](/privacy).
 
 5.2 **License Key Confidentiality.** License Keys are confidential and uniquely tied to your Account or Authorized User. You shall keep your License Keys secure and shall not share, publish, or disclose them to any third party. ServerlessCreed is not liable for any loss or unauthorized use arising from your failure to protect a License Key.
 
@@ -284,9 +284,9 @@ SOME JURISDICTIONS DO NOT ALLOW THE EXCLUSION OF CERTAIN WARRANTIES, SO THE EXCL
 
 ## 18. Relationship to Other Agreements
 
-18.1 **Commercial Terms.** Commercial matters between you and ServerlessCreed (including Subscription, pricing, taxes, billing, refunds, support commitments, and dispute resolution) are governed by the [Terms and Conditions](terms-and-conditions.md).
+18.1 **Commercial Terms.** Commercial matters between you and ServerlessCreed (including Subscription, pricing, taxes, billing, refunds, support commitments, and dispute resolution) are governed by the [Terms and Conditions](/terms).
 
-18.2 **Privacy.** ServerlessCreed's handling of personal information is described in the [Privacy Policy](privacy-policy.md).
+18.2 **Privacy.** ServerlessCreed's handling of personal information is described in the [Privacy Policy](/privacy).
 
 18.3 **Order of Precedence.** In the event of a direct conflict between this EULA and the Terms with respect to the **rights to install, run, and use the Software**, this EULA controls. In the event of a conflict with respect to **commercial matters** (Subscription, billing, refunds, support, dispute resolution), the Terms control. With respect to the **handling of personal information**, the Privacy Policy controls. In all other cases, the documents are to be read together as a single, coherent agreement.
 
@@ -308,7 +308,7 @@ SOME JURISDICTIONS DO NOT ALLOW THE EXCLUSION OF CERTAIN WARRANTIES, SO THE EXCL
 
 ## 20. General Provisions
 
-20.1 **Entire Agreement.** This EULA, together with the [Terms](terms-and-conditions.md), the [Privacy Policy](privacy-policy.md), and any separately executed agreement that expressly references this EULA, constitutes the entire agreement between you and ServerlessCreed with respect to the licensing and use of the Software, and supersedes all prior or contemporaneous communications, representations, warranties, and agreements, whether oral or written, on the same subject matter.
+20.1 **Entire Agreement.** This EULA, together with the [Terms](/terms), the [Privacy Policy](/privacy), and any separately executed agreement that expressly references this EULA, constitutes the entire agreement between you and ServerlessCreed with respect to the licensing and use of the Software, and supersedes all prior or contemporaneous communications, representations, warranties, and agreements, whether oral or written, on the same subject matter.
 
 20.2 **Severability.** If any provision of this EULA is held invalid, illegal, or unenforceable by a court of competent jurisdiction, that provision shall be modified to the minimum extent necessary to make it enforceable, or, if not possible, severed, and the remaining provisions shall remain in full force and effect.
 

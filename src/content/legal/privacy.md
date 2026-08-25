@@ -8,7 +8,7 @@ This Privacy Policy describes how **Serverless Creed** ("**ServerlessCreed**", "
 
 For the avoidance of doubt and for purposes of statutory disclosure under Indian law, Serverless Creed is the registered trade name of a sole proprietorship of which Mr. Vidit Jinesh Shah is the proprietor. The proprietor is the natural person who is the Data Fiduciary under the Digital Personal Data Protection Act, 2023, acting through the business known as Serverless Creed.
 
-This Policy is intended to comply with the **Digital Personal Data Protection Act, 2023** ("**DPDP Act**") and the **Information Technology Act, 2000** of India, and to provide additional rights commonly granted to users in other jurisdictions (such as the EU/UK GDPR). It is incorporated by reference into the [Terms and Conditions](terms-and-conditions.md).
+This Policy is intended to comply with the **Digital Personal Data Protection Act, 2023** ("**DPDP Act**") and the **Information Technology Act, 2000** of India, and to provide additional rights commonly granted to users in other jurisdictions (such as the EU/UK GDPR). It is incorporated by reference into the [Terms and Conditions](/terms).
 
 By using the Services, you acknowledge that you have read and understood this Policy. If you do not agree with this Policy, please do not use the Services.
 
@@ -145,7 +145,7 @@ For each purpose below, the **DPDP basis** column identifies whether we rely on 
 | Notify you about Software updates, security advisories, and material changes to the Services or to legal documents | Email | §7(a) — voluntarily provided for the purpose of receiving the Services; transactional communications inherent to the License relationship |
 | Improve product quality through diagnostics and usage analytics (only if you have **not opted out**) | Crash data, anonymous usage events, OS, Software version | Consent (§6) — opt-out architecture; consent is deemed withdrawn upon disabling in Settings |
 | Comply with legal obligations (e.g., tax, accounting, anti-money-laundering, court orders, regulatory requests) | Email, billing details, transaction history | §7(g) — compliance with any law in force in India |
-| Defend, investigate, and resolve disputes; enforce our [Terms and Conditions](terms-and-conditions.md) and [EULA](eula.md) | All categories as relevant | §7(i) — purposes connected with employment, or the exercise or defence of legal claims (read with the residual statutory power to process for lawful purposes) |
+| Defend, investigate, and resolve disputes; enforce our [Terms and Conditions](/terms) and [EULA](/eula) | All categories as relevant | §7(i) — purposes connected with employment, or the exercise or defence of legal claims (read with the residual statutory power to process for lawful purposes) |
 
 We do **not**:
 
@@ -182,7 +182,7 @@ We periodically review service providers for compliance with applicable data-pro
 We may disclose Personal Information when we believe in good faith that disclosure is required to:
 
 (a) comply with applicable law, regulation, legal process, or governmental request (including from authorities in India under the DPDP Act, the IT Act, or court orders);
-(b) enforce our [Terms and Conditions](terms-and-conditions.md) or other agreements;
+(b) enforce our [Terms and Conditions](/terms) or other agreements;
 (c) detect, prevent, or address fraud, security incidents, or technical issues; or
 (d) protect the rights, property, or safety of ServerlessCreed, our users, or the public.
 

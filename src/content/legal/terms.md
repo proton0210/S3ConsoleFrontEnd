@@ -8,7 +8,7 @@ These Terms and Conditions ("**Terms**") form a binding legal agreement between 
 
 For the avoidance of doubt and for purposes of statutory disclosure under Indian law, Serverless Creed is the registered trade name of a sole proprietorship of which Mr. Vidit Jinesh Shah is the proprietor. All rights and obligations of Serverless Creed under these Terms are exercisable through and binding upon the proprietorship.
 
-Your access to and use of the Software is **also** subject to the [Buckets by ServerlessCreed End-User License Agreement (EULA)](eula.md) and the [Buckets by ServerlessCreed Privacy Policy](privacy-policy.md), each of which is incorporated by reference into these Terms and forms part of the agreement between you and ServerlessCreed. By accepting these Terms, you also accept the EULA and the Privacy Policy.
+Your access to and use of the Software is **also** subject to the [Buckets by ServerlessCreed End-User License Agreement (EULA)](/eula) and the [Buckets by ServerlessCreed Privacy Policy](/privacy), each of which is incorporated by reference into these Terms and forms part of the agreement between you and ServerlessCreed. By accepting these Terms, you also accept the EULA and the Privacy Policy.
 
 By downloading, installing, activating, accessing, or using the Software, you acknowledge that you have read, understood, and agree to be bound by these Terms. If you do not agree, do not download, install, or use the Software. If you are entering into these Terms on behalf of an organization, you represent that you have the authority to bind that organization, and "you" refers to that organization.
 
@@ -411,7 +411,7 @@ Neither party shall be liable for any failure or delay in performance (other tha
 
 ## 30A. Relationship to the EULA and Privacy Policy
 
-30A.1 **Three documents, one agreement.** These Terms, the [EULA](eula.md), and the [Privacy Policy](privacy-policy.md) together govern your relationship with ServerlessCreed. Each document is enforceable in its own right; together they form a single, integrated agreement.
+30A.1 **Three documents, one agreement.** These Terms, the [EULA](/eula), and the [Privacy Policy](/privacy) together govern your relationship with ServerlessCreed. Each document is enforceable in its own right; together they form a single, integrated agreement.
 
 30A.2 **Order of precedence.** In the event of a direct conflict between these documents:
 
@@ -427,7 +427,7 @@ Neither party shall be liable for any failure or delay in performance (other tha
 
 ## 31. Entire Agreement
 
-These Terms — together with the [EULA](eula.md), the [Privacy Policy](privacy-policy.md), any order form, Subscription confirmation, and any separately executed support or master agreement referenced herein — constitute the entire agreement between you and ServerlessCreed with respect to the Software and supersede all prior or contemporaneous communications, representations, warranties, and agreements, whether oral or written, relating to the same subject matter. Pre-printed terms on any purchase order or similar document issued by you are expressly rejected and have no effect.
+These Terms — together with the [EULA](/eula), the [Privacy Policy](/privacy), any order form, Subscription confirmation, and any separately executed support or master agreement referenced herein — constitute the entire agreement between you and ServerlessCreed with respect to the Software and supersede all prior or contemporaneous communications, representations, warranties, and agreements, whether oral or written, relating to the same subject matter. Pre-printed terms on any purchase order or similar document issued by you are expressly rejected and have no effect.
 
 This Agreement is drafted in the English language. If a translation is provided for convenience, the English version controls in the event of any conflict.
 
