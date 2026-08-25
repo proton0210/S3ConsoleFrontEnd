@@ -74,13 +74,6 @@ productVars.forEach(({ label, options }) => {
 });
 
 if (
-  process.env.NEXT_PUBLIC_WINDOWS_STORE_PRODUCT_ID &&
-  !/^[a-z0-9]{12}$/i.test(process.env.NEXT_PUBLIC_WINDOWS_STORE_PRODUCT_ID)
-) {
-  missing.push('NEXT_PUBLIC_WINDOWS_STORE_PRODUCT_ID - must be the 12-character Store ID from Partner Center');
-}
-
-if (
   process.env.NODE_ENV === 'production' &&
   process.env.NEXT_PUBLIC_APP_URL !== 'https://buckets.serverlesscreed.com'
 ) {

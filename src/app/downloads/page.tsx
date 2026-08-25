@@ -28,14 +28,6 @@ import {
 } from "react-icons/fa";
 import { HiSparkles } from "react-icons/hi";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { useState, useEffect, useRef } from "react";
 import confetti from "canvas-confetti";
 import CheckoutButton from "@/components/checkout-button";
@@ -73,11 +65,10 @@ const OS_LABELS: Record<DetectedOS, string> = {
   unknown: "your computer",
 };
 
-const windowsStoreProductId =
-  process.env.NEXT_PUBLIC_WINDOWS_STORE_PRODUCT_ID?.trim() ?? "";
-const windowsStoreUrl = /^[a-z0-9]{12}$/i.test(windowsStoreProductId)
-  ? `https://apps.microsoft.com/detail/${windowsStoreProductId}`
-  : null;
+// Partner Center product identities are permanent and public. Keeping the
+// canonical URL in source prevents a missing deployment variable from sending
+// Windows customers to a stale "coming soon" state after Store publication.
+const windowsStoreUrl = "https://apps.microsoft.com/detail/9N62S7QSHBDN";
 
 //checking
 export default function DownloadsPage() {
@@ -92,7 +83,6 @@ export default function DownloadsPage() {
   const [warningMessage, setWarningMessage] = useState<string | null>(null);
   const [requiresActivation, setRequiresActivation] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [showWindowsStorePending, setShowWindowsStorePending] = useState(false);
   const [detectedOS, setDetectedOS] = useState<DetectedOS>("unknown");
 
   // Run OS detection once on mount. Avoids SSR mismatch — server renders
@@ -220,11 +210,6 @@ export default function DownloadsPage() {
   };
 
   const handleWindowsStore = () => {
-    if (!windowsStoreUrl) {
-      setShowWindowsStorePending(true);
-      return;
-    }
-
     if (typeof window !== "undefined" && window.twq) {
       window.twq("event", "tw-pyshe-pyshf", {
         email_address: userData?.email || null,
@@ -348,39 +333,6 @@ export default function DownloadsPage() {
     <>
       <Header />
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-        {/* Microsoft Store link is enabled only after Partner Center publishes it. */}
-        <Dialog open={showWindowsStorePending} onOpenChange={setShowWindowsStorePending}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 text-xl">
-                <FaWindows className="h-6 w-6 text-blue-600" />
-                Microsoft Store availability
-              </DialogTitle>
-              <DialogDescription asChild>
-                <div className="pt-4 text-base space-y-4 text-left">
-                  <p className="text-slate-700">
-                    Serverless Buckets for Windows is moving exclusively to Microsoft Store. The Store listing is not public yet.
-                  </p>
-                  <div className="bg-blue-50 border border-blue-100 p-4 rounded-lg">
-                    <p className="font-semibold text-blue-800 mb-1 flex items-center gap-2">
-                      <FaCheck className="h-4 w-4" />
-                      Store-managed installation and automatic updates
-                    </p>
-                  </div>
-                </div>
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter className="mt-2">
-              <Button
-                onClick={() => setShowWindowsStorePending(false)}
-                className="bg-primary hover:bg-primary/90 text-white"
-              >
-                Close
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
         {/* Payment Success Modal */}
         {paymentSuccess && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
@@ -443,7 +395,7 @@ export default function DownloadsPage() {
                   <FaApple className="mr-3 h-5 w-5" />
                 )}
                 {detectedOS === "windows" ? (
-                  windowsStoreUrl ? "Get from Microsoft Store" : "Microsoft Store availability"
+                  "Get from Microsoft Store"
                 ) : (
                   <>
                     Download for {OS_LABELS[detectedOS] === "your computer" ? "macOS" : OS_LABELS[detectedOS]}
