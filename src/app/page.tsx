@@ -12,7 +12,7 @@ import { constructMetadata } from "@/lib/utils";
 import { Metadata } from "next";
 
 export const metadata: Metadata = constructMetadata({
-  // Keep the ServerlessCreed product identity first and use the AWS mark only
+  // Keep the Serverless Creed product identity first and use the AWS mark only
   // in the factual relational phrase permitted by the AWS trademark guidance.
   title: `${siteConfig.name} — Desktop Client for Amazon S3`,
   description: siteConfig.description,

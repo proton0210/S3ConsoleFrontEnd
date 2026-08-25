@@ -29,7 +29,7 @@ interface CheckoutButtonProps {
 }
 
 export default function CheckoutButton({
-  text = "Purchase Serverless Buckets",
+  text = "Purchase Buckets",
   className,
   quantity = 1,
   tier,

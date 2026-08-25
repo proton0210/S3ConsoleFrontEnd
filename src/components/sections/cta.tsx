@@ -42,7 +42,7 @@ export default function CtaSection() {
               "w-full sm:w-auto text-background"
             )}
           >
-            Download Serverless Buckets
+            Download Buckets
           </Link>
           <Link
             href="/pricing"

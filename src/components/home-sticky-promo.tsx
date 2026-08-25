@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 const HERO_ID = "hero";
 
 const promo = {
-  badge: "Serverless Tables",
+  badge: "Tables by Serverless Creed",
   description: "Manage your Amazon DynamoDB tables like a pro.",
   href: "https://tables.serverlesscreed.com/",
   cta: "Explore Tables",

@@ -37,7 +37,12 @@ export default function DrawerMenu() {
               <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-xl border border-amber-200/80 bg-gradient-to-br from-white via-amber-50 to-orange-100 shadow-[0_8px_24px_-14px_rgba(194,65,12,0.8)] transition duration-300 group-hover:-translate-y-0.5">
                 <Icons.logo className="h-10 w-10 object-contain" />
               </span>
-              <span className="text-xl font-semibold tracking-[-0.02em]">{siteConfig.name}</span>
+              <span className="flex flex-col leading-none">
+                <span className="text-xl font-semibold tracking-[-0.025em]">{siteConfig.shortName}</span>
+                <span className="mt-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                  by {siteConfig.publisherName}
+                </span>
+              </span>
             </Link>
           </div>
           {!isDownloadsPage && (
@@ -104,7 +109,7 @@ export default function DrawerMenu() {
                   "w-full sm:w-auto text-background"
                 )}
               >
-                Download Serverless Buckets
+                Download Buckets
               </Link>
             )}
             <div className="flex justify-center">

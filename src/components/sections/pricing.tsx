@@ -16,7 +16,7 @@ export default function PricingSection() {
   // mount (home-page section or the dedicated /pricing route).
   useEffect(() => {
     trackReddit("ViewContent", {
-      products: [{ id: "pricing", name: "Serverless Buckets pricing", category: "pricing" }],
+      products: [{ id: "pricing", name: "Buckets pricing", category: "pricing" }],
     });
   }, []);
 
@@ -27,7 +27,7 @@ export default function PricingSection() {
         free trial — no credit card required.
       </p>
       <p className="text-xs text-muted-foreground text-center mb-10">
-        Depending on your country's tax rules, VAT/GST may be added at checkout.
+        Depending on your country&apos;s tax rules, VAT/GST may be added at checkout.
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">

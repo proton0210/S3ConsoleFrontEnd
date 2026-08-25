@@ -5,13 +5,19 @@ import { TEAM_SEAT_PRICE_USD } from "@/lib/reddit";
 
 export const BLUR_FADE_DELAY = 0.15;
 
-const productName = process.env.NEXT_PUBLIC_PRODUCT_NAME || "Serverless Buckets";
+const configuredProductName = process.env.NEXT_PUBLIC_PRODUCT_NAME;
+const productName =
+  !configuredProductName || configuredProductName === "Serverless Buckets"
+    ? "Buckets by Serverless Creed"
+    : configuredProductName;
 const productDescription =
   process.env.NEXT_PUBLIC_PRODUCT_DESCRIPTION ||
-  "Serverless Buckets is a native desktop client for Amazon S3 on Mac, Windows, and Linux, with AI code generation, presigned URLs, multi-profile SSO, and a visual bucket policy editor. Free 14-day trial, no credit card.";
+  "Buckets by Serverless Creed is a native desktop client for Amazon S3 and compatible object storage on Mac, Windows, and Linux, with AI code generation, presigned URLs, multi-profile SSO, and a visual bucket policy editor. Free 14-day trial, no credit card.";
 
 export const siteConfig = {
   name: productName,
+  shortName: "Buckets",
+  publisherName: "Serverless Creed",
   description: productDescription,
   url: process.env.NEXT_PUBLIC_APP_URL || "https://buckets.serverlesscreed.com",
   keywords: [
@@ -144,20 +150,20 @@ export const siteConfig = {
   ],
   faqs: [
     {
-      question: "What is Serverless Buckets?",
+      question: "What is Buckets by Serverless Creed?",
       answer: (
         <span>
-          Serverless Buckets is a platform that helps you build and manage your AWS S3
-          storage. It provides tools and services to streamline the management
-          and monitoring of S3 buckets and objects.
+          Buckets by Serverless Creed is a focused desktop client for Amazon S3
+          and compatible object storage. It streamlines everyday bucket and
+          object workflows without positioning itself as an AWS service.
         </span>
       ),
     },
     {
-      question: "How can I get started with Serverless Buckets?",
+      question: "How can I get started with Buckets?",
       answer: (
         <span>
-          You can get started with Serverless Buckets by downloading the app from our
+          You can get started with Buckets by downloading the app from our
           website, connecting your AWS credentials, and following our
           quick-start guide. We also offer tutorials and documentation to help
           you along the way.
@@ -165,10 +171,10 @@ export const siteConfig = {
       ),
     },
     {
-      question: "What S3 features does Serverless Buckets support?",
+      question: "What S3 features does Buckets support?",
       answer: (
         <span>
-          Serverless Buckets supports a wide range of S3 features, including but not
+          Buckets supports a wide range of S3 features, including but not
           limited to bucket management, object operations, versioning, and
           lifecycle policies. We continuously update our platform to support the
           latest S3 capabilities.
@@ -176,10 +182,10 @@ export const siteConfig = {
       ),
     },
     {
-      question: "Is Serverless Buckets suitable for beginners in AWS S3?",
+      question: "Is Buckets suitable for beginners using Amazon S3?",
       answer: (
         <span>
-          Yes, Serverless Buckets is designed to be user-friendly for both beginners and
+          Yes, Buckets is designed to be user-friendly for both beginners and
           experienced AWS users. We offer intuitive interfaces, pre-built
           templates, and extensive learning resources to help users of all skill
           levels manage their S3 storage effectively.
@@ -201,7 +207,7 @@ export const siteConfig = {
       answer: (
         <span>
           All plans (Monthly $9, Yearly $79, Lifetime $149, Team $99/seat/yr)
-          include identical features and let each license holder use Serverless Buckets
+          include identical features and let each license holder use Buckets
           on up to 2 machines. The difference is how you pay: monthly
           auto-renews each month, yearly saves 27% vs monthly, lifetime is a
           one-time payment with no recurring billing, and Team gives every
