@@ -222,7 +222,6 @@ export default function DownloadsPage() {
       os: 'Windows',
       release_channel: "microsoft-store",
     });
-    window.open(windowsStoreUrl, "_blank", "noopener,noreferrer");
   };
 
   const showNotification = (downloadLink: string) => {
@@ -238,7 +237,7 @@ export default function DownloadsPage() {
         </div>
         <div class="flex-1">
           <p class="font-semibold mb-1">Download Started!</p>
-          <p class="text-sm text-slate-300 mb-2">Your Serverless Buckets download should begin shortly.</p>
+          <p class="text-sm text-slate-300 mb-2">Your Buckets by ServerlessCreed download should begin shortly.</p>
           <p class="text-xs text-slate-400">If the download doesn't start automatically, <a href="${downloadLink}" class="text-primary hover:underline">click here</a>.</p>
         </div>
       </div>
@@ -344,7 +343,7 @@ export default function DownloadsPage() {
                 Payment Successful!
               </h3>
               <p className="text-slate-600 mb-6">
-                Your Serverless Buckets Pro license is now active
+                Your Buckets by ServerlessCreed Pro license is now active
               </p>
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
                 <p className="text-sm text-amber-800">
@@ -366,7 +365,7 @@ export default function DownloadsPage() {
           {/* HERO — centered single download CTA, OS auto-detected */}
           <div className="max-w-3xl mx-auto text-center mb-16">
             <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-slate-900 mb-4">
-              Download Serverless Buckets
+              Download Buckets by ServerlessCreed
             </h1>
             <p className="text-base md:text-lg text-slate-600 mb-2">
               Your 14-day free trial starts the moment you launch the app. No
@@ -378,31 +377,39 @@ export default function DownloadsPage() {
 
             {/* Primary download — big, centered */}
             <div className="flex flex-col items-center gap-3">
-              <Button
-                size="lg"
-                onClick={() => {
-                  if (detectedOS === "windows") handleWindowsStore();
-                  else if (detectedOS === "linux") handleLinuxDownload();
-                  else handleMacDownload(); // default to mac for "unknown"
-                }}
-                className="h-14 px-10 text-base font-semibold bg-primary hover:bg-primary/90 text-white shadow-lg hover:shadow-xl transition-all"
-              >
-                {detectedOS === "windows" ? (
-                  <FaWindows className="mr-3 h-5 w-5" />
-                ) : detectedOS === "linux" ? (
-                  <FaLinux className="mr-3 h-5 w-5" />
-                ) : (
-                  <FaApple className="mr-3 h-5 w-5" />
-                )}
-                {detectedOS === "windows" ? (
-                  "Get from Microsoft Store"
-                ) : (
+              {detectedOS === "windows" ? (
+                <Button
+                  asChild
+                  size="lg"
+                  className="h-14 px-10 text-base font-semibold bg-primary hover:bg-primary/90 text-white shadow-lg hover:shadow-xl transition-all"
+                >
+                  <a
+                    href={windowsStoreUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={handleWindowsStore}
+                  >
+                    <FaWindows className="mr-3 h-5 w-5" />
+                    Get from Microsoft Store
+                  </a>
+                </Button>
+              ) : (
+                <Button
+                  size="lg"
+                  onClick={detectedOS === "linux" ? handleLinuxDownload : handleMacDownload}
+                  className="h-14 px-10 text-base font-semibold bg-primary hover:bg-primary/90 text-white shadow-lg hover:shadow-xl transition-all"
+                >
+                  {detectedOS === "linux" ? (
+                    <FaLinux className="mr-3 h-5 w-5" />
+                  ) : (
+                    <FaApple className="mr-3 h-5 w-5" />
+                  )}
                   <>
                     Download for {OS_LABELS[detectedOS] === "your computer" ? "macOS" : OS_LABELS[detectedOS]}
                     <FaDownload className="ml-3 h-4 w-4" />
                   </>
-                )}
-              </Button>
+                </Button>
+              )}
 
               <p className="text-xs text-slate-500 mt-1">
                 Free · 14-day trial · macOS, Windows, Linux
@@ -424,15 +431,17 @@ export default function DownloadsPage() {
                   macOS
                   <span className="text-xs text-slate-400">(.zip, ARM64)</span>
                 </button>
-                <button
-                  type="button"
+                <a
+                  href={windowsStoreUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   onClick={handleWindowsStore}
                   className="inline-flex items-center gap-2 text-slate-700 hover:text-primary transition-colors"
                 >
                   <FaWindows className="h-4 w-4" />
                   Windows
                   <span className="text-xs text-slate-400">(Microsoft Store)</span>
-                </button>
+                </a>
                 <button
                   type="button"
                   onClick={handleLinuxDownload}
@@ -522,7 +531,7 @@ export default function DownloadsPage() {
                       </p>
                       {requiresActivation && (
                         <p className="text-xs text-amber-700 mt-1">
-                          Open the Serverless Buckets desktop app and activate your license with your email and license key to register this machine.
+                          Open the Buckets by ServerlessCreed desktop app and activate your license with your email and license key to register this machine.
                         </p>
                       )}
                     </div>
@@ -759,7 +768,7 @@ export default function DownloadsPage() {
                 <div className="bg-gradient-to-r from-primary to-primary/80 p-6 text-white text-center">
                   <FaCrown className="h-10 w-10 mx-auto mb-3" />
                   <h3 className="text-2xl font-bold mb-1">
-                    Unlock Serverless Buckets Pro
+                    Unlock Buckets by ServerlessCreed Pro
                   </h3>
                   <p className="text-base opacity-90">
                     One-time payment, lifetime access

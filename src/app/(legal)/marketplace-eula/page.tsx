@@ -4,7 +4,7 @@ import LegalDocPage from "@/components/legal/LegalDocPage";
 export const metadata: Metadata = {
   title: "AWS Marketplace EULA Addendum",
   description:
-    "Serverless Buckets addendum for future orders placed through an AWS Marketplace listing.",
+    "Buckets by ServerlessCreed addendum for future orders placed through an AWS Marketplace listing.",
   alternates: { canonical: "/marketplace-eula" },
 };
 

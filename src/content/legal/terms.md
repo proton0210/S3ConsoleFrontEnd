@@ -1,14 +1,14 @@
-# Serverless Buckets — Terms and Conditions
+# Buckets by ServerlessCreed — Terms and Conditions
 
 **Effective Date:** 22 May 2026
 **Last Updated:** 22 August 2026
 **Version:** 1.1
 
-These Terms and Conditions ("**Terms**") form a binding legal agreement between **Serverless Creed** ("**ServerlessCreed**", "**we**", "**us**", or "**our**") — a sole proprietorship organized under the laws of India, operating under GSTIN 27FZZPS3310E1ZX, with principal place of business at Khetwadi-11, Mumbai, India — and you, either an individual or the legal entity you represent ("**you**", "**your**", or "**Customer**"), governing your access to and use of the Serverless Buckets desktop application, its associated services, documentation, and any related materials (collectively, the "**Software**").
+These Terms and Conditions ("**Terms**") form a binding legal agreement between **Serverless Creed** ("**ServerlessCreed**", "**we**", "**us**", or "**our**") — a sole proprietorship organized under the laws of India, operating under GSTIN 27FZZPS3310E1ZX, with principal place of business at Khetwadi-11, Mumbai, India — and you, either an individual or the legal entity you represent ("**you**", "**your**", or "**Customer**"), governing your access to and use of the Buckets by ServerlessCreed desktop application, its associated services, documentation, and any related materials (collectively, the "**Software**").
 
 For the avoidance of doubt and for purposes of statutory disclosure under Indian law, Serverless Creed is the registered trade name of a sole proprietorship of which Mr. Vidit Jinesh Shah is the proprietor. All rights and obligations of Serverless Creed under these Terms are exercisable through and binding upon the proprietorship.
 
-Your access to and use of the Software is **also** subject to the [Serverless Buckets End-User License Agreement (EULA)](eula.md) and the [Serverless Buckets Privacy Policy](privacy-policy.md), each of which is incorporated by reference into these Terms and forms part of the agreement between you and ServerlessCreed. By accepting these Terms, you also accept the EULA and the Privacy Policy.
+Your access to and use of the Software is **also** subject to the [Buckets by ServerlessCreed End-User License Agreement (EULA)](eula.md) and the [Buckets by ServerlessCreed Privacy Policy](privacy-policy.md), each of which is incorporated by reference into these Terms and forms part of the agreement between you and ServerlessCreed. By accepting these Terms, you also accept the EULA and the Privacy Policy.
 
 By downloading, installing, activating, accessing, or using the Software, you acknowledge that you have read, understood, and agree to be bound by these Terms. If you do not agree, do not download, install, or use the Software. If you are entering into these Terms on behalf of an organization, you represent that you have the authority to bind that organization, and "you" refers to that organization.
 
@@ -176,7 +176,7 @@ In these Terms, the following capitalized terms have the meanings set forth belo
 
 11.2 **Feedback.** If you provide ServerlessCreed with any suggestions, feedback, ideas, or proposals regarding the Software ("**Feedback**"), you hereby grant ServerlessCreed a worldwide, perpetual, irrevocable, royalty-free, fully paid-up, transferable, sublicensable license to use, reproduce, modify, distribute, and otherwise exploit such Feedback for any purpose, without restriction or compensation to you.
 
-11.3 **Trademarks.** "Serverless Buckets", "ServerlessCreed", and any associated logos are trademarks of ServerlessCreed. You shall not use these marks without prior written permission, except for nominative fair use to truthfully identify the Software.
+11.3 **Trademarks.** "Buckets by ServerlessCreed", "ServerlessCreed", and any associated logos are trademarks of ServerlessCreed. You shall not use these marks without prior written permission, except for nominative fair use to truthfully identify the Software.
 
 11.4 **Third-Party Marks.** "Amazon Web Services", "AWS", "Amazon S3", and related marks are trademarks of Amazon.com, Inc. or its affiliates. Their appearance in the Software is for identification only and does not imply endorsement.
 

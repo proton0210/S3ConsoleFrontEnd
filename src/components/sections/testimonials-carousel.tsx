@@ -13,7 +13,7 @@ import { MdOutlineFormatQuote } from "react-icons/md";
 const testimonials = [
   {
     quote:
-      "Serverless Buckets has completely transformed how our team manages S3 storage. The intuitive interface and one-click presigned URLs have saved us countless hours. It's now an essential tool in our  workflow.",
+      "Buckets by ServerlessCreed has completely transformed how our team manages S3 storage. The intuitive interface and one-click presigned URLs have saved us countless hours. It's now an essential tool in our  workflow.",
     name: "Ajinkya Hungund",
     role: "Solution Architect",
     company: "Amazon",

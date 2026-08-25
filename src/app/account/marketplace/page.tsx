@@ -46,7 +46,7 @@ export default async function MarketplaceAccountPage() {
     <main className="mx-auto min-h-screen max-w-3xl px-6 py-16 space-y-6">
       <div>
         <p className="text-sm font-medium text-primary">AWS Marketplace</p>
-        <h1 className="mt-2 text-3xl font-bold">Serverless Buckets subscription</h1>
+        <h1 className="mt-2 text-3xl font-bold">Buckets by ServerlessCreed subscription</h1>
         <p className="mt-3 text-muted-foreground">
           View the Marketplace entitlement linked to your signed-in ServerlessCreed account.
         </p>

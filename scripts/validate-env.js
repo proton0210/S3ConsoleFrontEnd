@@ -28,7 +28,7 @@ const eitherOr = [
 ];
 
 const productVars = ['MONTHLY', 'YEARLY', 'LIFETIME', 'TEAM'].map((tier) => ({
-  label: `Serverless Buckets ${tier.toLowerCase()} Dodo product`,
+  label: `Buckets by ServerlessCreed ${tier.toLowerCase()} Dodo product`,
   options: [`BUCKETS_DODO_PRODUCT_ID_${tier}`, `S3CONSOLE_DODO_PRODUCT_ID_${tier}`],
 }));
 
@@ -82,9 +82,13 @@ if (
 
 if (
   process.env.NODE_ENV === 'production' &&
-  !['Buckets by Serverless Creed', 'Serverless Buckets'].includes(process.env.NEXT_PUBLIC_PRODUCT_NAME)
+  ![
+    'Buckets by ServerlessCreed',
+    'Buckets by Serverless Creed',
+    'Serverless Buckets',
+  ].includes(process.env.NEXT_PUBLIC_PRODUCT_NAME)
 ) {
-  missing.push('NEXT_PUBLIC_PRODUCT_NAME - production must be Buckets by Serverless Creed (legacy Serverless Buckets is accepted during migration)');
+  missing.push('NEXT_PUBLIC_PRODUCT_NAME - production must be Buckets by ServerlessCreed (legacy names are accepted during migration)');
 }
 
 // Security warnings

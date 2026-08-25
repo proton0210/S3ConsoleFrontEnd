@@ -6,18 +6,24 @@ import { TEAM_SEAT_PRICE_USD } from "@/lib/reddit";
 export const BLUR_FADE_DELAY = 0.15;
 
 const configuredProductName = process.env.NEXT_PUBLIC_PRODUCT_NAME;
+const canonicalProductName = "Buckets by ServerlessCreed";
+const legacyProductNames = new Set([
+  "Serverless Buckets",
+  "Buckets By Serverless Creed",
+  "Buckets by Serverless Creed",
+]);
 const productName =
-  !configuredProductName || configuredProductName === "Serverless Buckets"
-    ? "Buckets by Serverless Creed"
-    : configuredProductName;
+  !configuredProductName || legacyProductNames.has(configuredProductName.trim())
+    ? canonicalProductName
+    : configuredProductName.trim();
 const productDescription =
   process.env.NEXT_PUBLIC_PRODUCT_DESCRIPTION ||
-  "Buckets by Serverless Creed is a native desktop client for Amazon S3 and compatible object storage on Mac, Windows, and Linux, with AI code generation, presigned URLs, multi-profile SSO, and a visual bucket policy editor. Free 14-day trial, no credit card.";
+  "Buckets by ServerlessCreed is a native desktop client for Amazon S3 and compatible object storage on Mac, Windows, and Linux, with AI code generation, presigned URLs, multi-profile SSO, and a visual bucket policy editor. Free 14-day trial, no credit card.";
 
 export const siteConfig = {
   name: productName,
   shortName: "Buckets",
-  publisherName: "Serverless Creed",
+  publisherName: "ServerlessCreed",
   description: productDescription,
   url: process.env.NEXT_PUBLIC_APP_URL || "https://buckets.serverlesscreed.com",
   keywords: [
@@ -150,10 +156,10 @@ export const siteConfig = {
   ],
   faqs: [
     {
-      question: "What is Buckets by Serverless Creed?",
+      question: "What is Buckets by ServerlessCreed?",
       answer: (
         <span>
-          Buckets by Serverless Creed is a focused desktop client for Amazon S3
+          Buckets by ServerlessCreed is a focused desktop client for Amazon S3
           and compatible object storage. It streamlines everyday bucket and
           object workflows without positioning itself as an AWS service.
         </span>

@@ -1,7 +1,7 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { InternshipAuthGate } from "./internship-auth-gate";
 
-export const metadata = { title: "Internship Application | Serverless Buckets" };
+export const metadata = { title: "Internship Application | Buckets by ServerlessCreed" };
 
 export default async function InternshipPage() {
   const { userId } = await auth();

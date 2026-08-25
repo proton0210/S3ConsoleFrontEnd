@@ -32,9 +32,9 @@ export function constructMetadata({
   const ogImage = image || absoluteUrl("/og");
   
   // Per-page titles use { absolute } so they replace (not append to) the
-  // root layout's template. Without this, the root sets a "%s | Serverless Buckets"
-  // template and every per-page title would double up to "X | Serverless Buckets |
-  // Serverless Buckets". When no explicit title is passed, fall through to the
+  // root layout's template. Without this, the root sets a "%s | Buckets by ServerlessCreed"
+  // template and every per-page title would double up to "X | Buckets by ServerlessCreed |
+  // Buckets by ServerlessCreed". When no explicit title is passed, fall through to the
   // template so the root layout's brand still applies on shared shells.
   const titleField =
     title && title !== siteConfig.name

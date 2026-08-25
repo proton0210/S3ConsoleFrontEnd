@@ -3,7 +3,7 @@ import { Metadata } from "next";
 
 // Magic-link checkout redirect — no SEO value. Block from index.
 export const metadata: Metadata = constructMetadata({
-  title: "Checkout — Serverless Buckets",
+  title: "Checkout — Buckets by ServerlessCreed",
   canonical: "/buy",
   noindex: true,
   nofollow: true,

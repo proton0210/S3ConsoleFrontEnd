@@ -1,20 +1,20 @@
-# Serverless Buckets Trust Center
+# Buckets by ServerlessCreed Trust Center
 
 **Last reviewed:** 25 August 2026  
 **Security contact:** [vidit@serverlesscreed.com](mailto:vidit@serverlesscreed.com)
 
-This page describes the current architecture and assurance posture of Serverless Buckets. It is a factual disclosure, not a claim that AWS has approved the product.
+This page describes the current architecture and assurance posture of Buckets by ServerlessCreed. It is a factual disclosure, not a claim that AWS has approved the product.
 
 ## Current assurance status
 
-- Serverless Buckets has **not yet passed an AWS Foundational Technical Review (FTR)** and does not currently claim the AWS Qualified Software badge.
+- Buckets by ServerlessCreed has **not yet passed an AWS Foundational Technical Review (FTR)** and does not currently claim the AWS Qualified Software badge.
 - An AWS Marketplace listing is in preparation. No Marketplace availability, AWS certification, sponsorship, or endorsement is claimed until AWS makes it active.
 - We do not currently claim the AWS Marketplace **“deployed on AWS”** designation. Because the product is an Electron desktop client, qualification under AWS's customer-side agent exception requires written confirmation from AWS Marketplace.
 - An independent penetration test has **not yet been completed**. It is planned, but is not represented as an existing assurance.
 
 ## Architecture and customer-data path
 
-Serverless Buckets is a desktop Amazon S3 client. S3 API requests travel directly from the customer workstation to the customer's AWS account. ServerlessCreed does not proxy or store S3 objects, object contents, bucket listings, metadata, or transfer payloads through its control plane.
+Buckets by ServerlessCreed is a desktop Amazon S3 client. S3 API requests travel directly from the customer workstation to the customer's AWS account. ServerlessCreed does not proxy or store S3 objects, object contents, bucket listings, metadata, or transfer payloads through its control plane.
 
 The ServerlessCreed control plane handles sign-in, subscription and entitlement state, registered-device state, and operational security events. Its infrastructure is implemented with AWS services including API Gateway, Lambda, DynamoDB, SQS, AWS Backup, WAF, CloudWatch, Secrets Manager, and EventBridge.
 

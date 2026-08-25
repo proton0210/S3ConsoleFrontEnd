@@ -8,8 +8,8 @@ import { Metadata } from "next";
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = constructMetadata({
-  title: "Payment Canceled - Serverless Buckets",
-  description: "Your payment was canceled. You can try purchasing Serverless Buckets again anytime.",
+  title: "Payment Canceled - Buckets by ServerlessCreed",
+  description: "Your payment was canceled. You can try purchasing Buckets by ServerlessCreed again anytime.",
   canonical: "/downloads/cancel",
   noindex: true,
 });

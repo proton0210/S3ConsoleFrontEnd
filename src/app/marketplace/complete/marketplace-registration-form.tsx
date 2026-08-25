@@ -39,7 +39,7 @@ export default function MarketplaceRegistrationForm({ initialError }: { initialE
         <p>Subscription status: <strong>{state.status}</strong>{state.plan ? ` · ${state.plan}` : ""}</p>
         <p className="text-sm text-muted-foreground">
           {active
-            ? "You can now download Serverless Buckets and sign in with this account."
+            ? "You can now download Buckets by ServerlessCreed and sign in with this account."
             : "AWS has not reported an active entitlement yet. The account is linked; retry from the desktop shortly or contact support if the status does not update."}
         </p>
         <div className="flex gap-3">

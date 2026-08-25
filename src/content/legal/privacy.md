@@ -1,10 +1,10 @@
-# Serverless Buckets — Privacy Policy
+# Buckets by ServerlessCreed — Privacy Policy
 
 **Effective Date:** 22 May 2026
 **Last Updated:** 25 August 2026
 **Version:** 1.2
 
-This Privacy Policy describes how **Serverless Creed** ("**ServerlessCreed**", "**we**", "**us**", or "**our**") — a sole proprietorship organized under the laws of India, operating under GSTIN 27FZZPS3310E1ZX, with principal place of business at Khetwadi-11, Mumbai, India — collects, uses, shares, and protects personal information in connection with the Serverless Buckets desktop application, the website at https://buckets.serverlesscreed.com, and related services (collectively, the "**Services**").
+This Privacy Policy describes how **Serverless Creed** ("**ServerlessCreed**", "**we**", "**us**", or "**our**") — a sole proprietorship organized under the laws of India, operating under GSTIN 27FZZPS3310E1ZX, with principal place of business at Khetwadi-11, Mumbai, India — collects, uses, shares, and protects personal information in connection with the Buckets by ServerlessCreed desktop application, the website at https://buckets.serverlesscreed.com, and related services (collectively, the "**Services**").
 
 For the avoidance of doubt and for purposes of statutory disclosure under Indian law, Serverless Creed is the registered trade name of a sole proprietorship of which Mr. Vidit Jinesh Shah is the proprietor. The proprietor is the natural person who is the Data Fiduciary under the Digital Personal Data Protection Act, 2023, acting through the business known as Serverless Creed.
 
@@ -18,7 +18,7 @@ By using the Services, you acknowledge that you have read and understood this Po
 
 Before the legal detail, here is what matters most:
 
-- **Serverless Buckets runs locally on your computer.** Your AWS credentials, S3 object contents, bucket listings, and other AWS data are sent **directly from your machine to AWS** using credentials you provide. They are **not routed through, stored on, or accessible to ServerlessCreed's servers**.
+- **Buckets by ServerlessCreed runs locally on your computer.** Your AWS credentials, S3 object contents, bucket listings, and other AWS data are sent **directly from your machine to AWS** using credentials you provide. They are **not routed through, stored on, or accessible to ServerlessCreed's servers**.
 - We collect only the personal information needed to operate the Services: your **email and authentication identity** (through Clerk), a **device fingerprint** (to prevent license abuse), **payment information** (handled by Dodo Payments — we do not store card numbers), and **optional diagnostics**.
 - Our website uses **Google Analytics** for traffic measurement and **Reddit and Twitter (X) conversion pixels** for marketing attribution. These providers may set or read cookies and similar identifiers as described below.
 - We do not sell your personal information.
@@ -42,7 +42,7 @@ For purposes of this Policy:
 
 2.5 **"Processing"** means any operation performed on Personal Information, including collection, storage, use, disclosure, alteration, and erasure.
 
-2.6 **"Customer Content"** means data accessed, viewed, modified, uploaded, or downloaded by you using Serverless Buckets in connection with your own AWS account (including S3 object contents, bucket listings, metadata, and AWS credentials). Customer Content is **not** Personal Information of ServerlessCreed for purposes of this Policy; you are the data fiduciary/controller of Customer Content.
+2.6 **"Customer Content"** means data accessed, viewed, modified, uploaded, or downloaded by you using Buckets by ServerlessCreed in connection with your own AWS account (including S3 object contents, bucket listings, metadata, and AWS credentials). Customer Content is **not** Personal Information of ServerlessCreed for purposes of this Policy; you are the data fiduciary/controller of Customer Content.
 
 ---
 
@@ -50,7 +50,7 @@ For purposes of this Policy:
 
 3.1 This Policy applies to:
 
-(a) the **Serverless Buckets desktop application** distributed by ServerlessCreed;
+(a) the **Buckets by ServerlessCreed desktop application** distributed by ServerlessCreed;
 (b) the **website at https://buckets.serverlesscreed.com** and any subdomains; and
 (c) related sales, billing, licensing, and support interactions you have with us.
 
@@ -283,7 +283,7 @@ We will not discriminate against you for exercising any of your privacy rights. 
 
 ## 11. Cookies and Similar Technologies
 
-11.1 **Desktop application.** Serverless Buckets is a desktop application and does not use HTTP cookies in the conventional web sense. The Software stores configuration data and preferences in local files, writes deliberately saved static AWS profiles to the owner-only shared AWS credentials file, and protects other persisted secrets with operating-system secure storage. When secure OS storage is unavailable, new secrets are not persistently stored.
+11.1 **Desktop application.** Buckets by ServerlessCreed is a desktop application and does not use HTTP cookies in the conventional web sense. The Software stores configuration data and preferences in local files, writes deliberately saved static AWS profiles to the owner-only shared AWS credentials file, and protects other persisted secrets with operating-system secure storage. When secure OS storage is unavailable, new secrets are not persistently stored.
 
 11.2 **Website.** The website https://buckets.serverlesscreed.com may use a minimal set of cookies, local storage, and similar technologies, including:
 

@@ -97,8 +97,7 @@ export function StructuredData({ type = "website", data }: StructuredDataProps) 
       "Cross-platform: macOS, Windows, Linux",
     ],
     screenshot: `${baseUrl}/dashboard.png`,
-    softwareVersion: "2.3.5",
-    fileSize: "120MB",
+    softwareVersion: "2.7.4",
     downloadUrl: `${baseUrl}/downloads`,
     publisher: {
       "@type": "Organization",

@@ -26,23 +26,23 @@ import {
 const FAQS = [
   {
     q: "What is the best AWS S3 GUI for Mac?",
-    a: "Serverless Buckets is a native macOS S3 GUI built for both Apple Silicon and Intel Macs. It supports drag-and-drop uploads, side-by-side bucket browsing, AWS SSO login, multi-profile switching, and a visual bucket policy editor. Cyberduck and Transmit also have S3 support, but they're general-purpose file transfer apps; Serverless Buckets is purpose-built for S3.",
+    a: "Buckets by ServerlessCreed is a macOS S3 desktop client built for Apple Silicon Macs. It supports drag-and-drop uploads, side-by-side bucket browsing, AWS SSO login, multi-profile switching, and a visual bucket policy editor. Cyberduck and Transmit also have S3 support, but they're general-purpose file transfer apps; Buckets by ServerlessCreed is purpose-built for S3.",
   },
   {
     q: "Does AWS provide an official S3 GUI?",
-    a: "AWS provides the S3 console — a web-based GUI in the AWS Management Console. It works for occasional tasks but has noticeable lag, no offline capability, and no support for desktop conveniences like drag-and-drop, multiple windows, or local file previews. A native desktop S3 GUI like Serverless Buckets is significantly faster for day-to-day work.",
+    a: "AWS provides the S3 console — a web-based GUI in the AWS Management Console. It works for occasional tasks but has noticeable lag, no offline capability, and no support for desktop conveniences like drag-and-drop, multiple windows, or local file previews. A native desktop S3 GUI like Buckets by ServerlessCreed is significantly faster for day-to-day work.",
   },
   {
-    q: "Can I preview files in Serverless Buckets without downloading them?",
-    a: "Yes. Serverless Buckets renders previews of common file types (images, PDFs, JSON, CSV, log files, code files) directly in the app using S3 ranged GETs — only the bytes needed for the preview are downloaded, so it's fast even for large files.",
+    q: "Can I preview files in Buckets by ServerlessCreed without downloading them?",
+    a: "Yes. Buckets by ServerlessCreed renders previews of common file types (images, PDFs, JSON, CSV, log files, code files) directly in the app using S3 ranged GETs — only the bytes needed for the preview are downloaded, so it's fast even for large files.",
   },
   {
-    q: "Does Serverless Buckets support drag-and-drop?",
-    a: "Yes — drag files from Finder/Explorer/Nautilus straight into a bucket to upload, drag from Serverless Buckets to your desktop to download, or drag between buckets to copy across accounts and regions.",
+    q: "Does Buckets by ServerlessCreed support drag-and-drop?",
+    a: "Yes — drag files from Finder/Explorer/Nautilus straight into a bucket to upload, drag from Buckets by ServerlessCreed to your desktop to download, or drag between buckets to copy across accounts and regions.",
   },
   {
-    q: "Is Serverless Buckets free?",
-    a: "Serverless Buckets offers a 14-day free trial with full feature access on every platform. After the trial, plans start at $9/month or $149 one-time for lifetime access.",
+    q: "Is Buckets by ServerlessCreed free?",
+    a: "Buckets by ServerlessCreed offers a 14-day free trial with full feature access on every platform. After the trial, plans start at $9/month or $149 one-time for lifetime access.",
   },
 ];
 
@@ -98,7 +98,7 @@ export default function AwsS3GuiPage() {
             A real AWS S3 GUI — fast, native, cross-platform
           </h1>
           <p className="text-lg text-slate-600 max-w-3xl mb-8">
-            Serverless Buckets is a desktop S3 GUI for engineers who&apos;d rather click
+            Buckets by ServerlessCreed is a desktop S3 GUI for engineers who&apos;d rather click
             than memorize CLI flags. Browse, preview, upload, and manage S3
             objects with the keyboard shortcuts and drag-and-drop you expect
             from a native app — on macOS, Windows, and Linux.
@@ -193,7 +193,7 @@ export default function AwsS3GuiPage() {
               Looking for the developer-focused angle?
             </h2>
             <p className="text-slate-700 mb-4">
-              Serverless Buckets doubles as a full{" "}
+              Buckets by ServerlessCreed doubles as a full{" "}
               <Link href="/aws-s3-client" className="text-primary hover:underline font-medium">
                 AWS S3 client
               </Link>{" "}
@@ -243,7 +243,7 @@ export default function AwsS3GuiPage() {
             <Link href="/downloads">
               <Button size="lg" className="bg-primary hover:bg-primary/90 text-white">
                 <FaDownload className="mr-2 h-4 w-4" />
-                Download Serverless Buckets
+                Download Buckets by ServerlessCreed
               </Button>
             </Link>
             <Link href="/pricing">

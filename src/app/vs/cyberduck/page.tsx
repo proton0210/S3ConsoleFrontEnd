@@ -1,10 +1,10 @@
 /**
- * Comparison / alternative page targeting "Cyberduck alternative" + "Serverless Buckets
+ * Comparison / alternative page targeting "Cyberduck alternative" + "Buckets by ServerlessCreed
  * vs Cyberduck" search intent. These are very high-buyer-intent queries —
  * someone typing "Cyberduck alternative" is actively shopping.
  *
  * Tone: factual and respectful. Don't trash Cyberduck — it's a perfectly fine
- * general-purpose tool. We just position Serverless Buckets as the better fit when AWS
+ * general-purpose tool. We just position Buckets by ServerlessCreed as the better fit when AWS
  * S3 is your daily driver.
  */
 import Link from "next/link";
@@ -17,28 +17,28 @@ import { FaCheck, FaTimes, FaDownload, FaArrowRight } from "react-icons/fa";
 
 const FAQS = [
   {
-    q: "Is Serverless Buckets a good Cyberduck alternative?",
-    a: "Yes — if AWS S3 is your primary use case. Cyberduck is a great general-purpose file transfer client (FTP, SFTP, WebDAV, S3, B2, GCS, OneDrive, etc.), but its S3 support is one tab among many. Serverless Buckets is purpose-built for S3 and includes features Cyberduck doesn't: AWS SSO/IAM Identity Center login, AI code generation for the AWS SDK, a visual bucket policy editor, S3 cost estimation, and multi-profile session management.",
+    q: "Is Buckets by ServerlessCreed a good Cyberduck alternative?",
+    a: "Yes — if AWS S3 is your primary use case. Cyberduck is a great general-purpose file transfer client (FTP, SFTP, WebDAV, S3, B2, GCS, OneDrive, etc.), but its S3 support is one tab among many. Buckets by ServerlessCreed is purpose-built for S3 and includes features Cyberduck doesn't: AWS SSO/IAM Identity Center login, AI code generation for the AWS SDK, a visual bucket policy editor, S3 cost estimation, and multi-profile session management.",
   },
   {
-    q: "What does Serverless Buckets have that Cyberduck doesn't?",
+    q: "What does Buckets by ServerlessCreed have that Cyberduck doesn't?",
     a: "AWS SSO and IAM Identity Center login (no copy-pasting access keys), AI code generation for the AWS SDK in JavaScript/Python/Go/Java, a visual bucket policy and CORS editor, an S3 cost estimator, multi-account profile pinning, and an inline preview that uses range requests so you don't download whole files. Cyberduck has none of these — it's a transfer client, not an S3 admin tool.",
   },
   {
     q: "Is Cyberduck still better for non-S3 cloud storage?",
-    a: "Yes. If you regularly use FTP, SFTP, WebDAV, Backblaze B2, Google Cloud Storage, OneDrive, or Dropbox alongside S3, Cyberduck's broader protocol support is genuinely useful. We'd recommend keeping Cyberduck for those cases and using Serverless Buckets as your dedicated S3 tool. Many engineers run both.",
+    a: "Yes. If you regularly use FTP, SFTP, WebDAV, Backblaze B2, Google Cloud Storage, OneDrive, or Dropbox alongside S3, Cyberduck's broader protocol support is genuinely useful. We'd recommend keeping Cyberduck for those cases and using Buckets by ServerlessCreed as your dedicated S3 tool. Many engineers run both.",
   },
   {
-    q: "Is Serverless Buckets free like Cyberduck?",
-    a: "Cyberduck is donationware — free to use with a nag screen. Serverless Buckets offers a 14-day free trial with full feature access, then $9/month, $79/year, or $149 one-time for lifetime access. The trial doesn't require a credit card.",
+    q: "Is Buckets by ServerlessCreed free like Cyberduck?",
+    a: "Cyberduck is donationware — free to use with a nag screen. Buckets by ServerlessCreed offers a 14-day free trial with full feature access, then $9/month, $79/year, or $149 one-time for lifetime access. The trial doesn't require a credit card.",
   },
   {
-    q: "How do I migrate from Cyberduck to Serverless Buckets?",
-    a: "There's no migration step needed. Serverless Buckets reads your existing AWS CLI credentials, AWS SSO config, and IAM Identity Center sessions automatically. Install Serverless Buckets, sign in with the same AWS profile you used in Cyberduck, and your buckets show up immediately.",
+    q: "How do I migrate from Cyberduck to Buckets by ServerlessCreed?",
+    a: "There's no migration step needed. Buckets by ServerlessCreed reads your existing AWS CLI credentials, AWS SSO config, and IAM Identity Center sessions automatically. Install Buckets by ServerlessCreed, sign in with the same AWS profile you used in Cyberduck, and your buckets show up immediately.",
   },
   {
-    q: "Does Serverless Buckets run on Mac, Windows, and Linux like Cyberduck?",
-    a: "Yes — Serverless Buckets supports macOS, Windows 10/11, and Linux. Windows installation and updates are delivered through Microsoft Store; macOS and Linux use their native packages.",
+    q: "Does Buckets by ServerlessCreed run on Mac, Windows, and Linux like Cyberduck?",
+    a: "Yes — Buckets by ServerlessCreed supports macOS, Windows 10/11, and Linux. Windows installation and updates are delivered through Microsoft Store; macOS and Linux use their native packages.",
   },
 ];
 
@@ -60,7 +60,7 @@ const breadcrumbSchema = {
     {
       "@type": "ListItem",
       position: 2,
-      name: "Serverless Buckets vs Cyberduck",
+      name: "Buckets by ServerlessCreed vs Cyberduck",
       item: `${siteConfig.url}/vs/cyberduck`,
     },
   ],
@@ -106,11 +106,11 @@ export default function VsCyberduckPage() {
           <nav className="text-xs text-slate-500 mb-4" aria-label="Breadcrumb">
             <Link href="/" className="hover:text-primary">Home</Link>
             <span className="mx-2">/</span>
-            <span className="text-slate-700">Serverless Buckets vs Cyberduck</span>
+            <span className="text-slate-700">Buckets by ServerlessCreed vs Cyberduck</span>
           </nav>
 
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-slate-900 mb-4">
-            Serverless Buckets vs. Cyberduck
+            Buckets by ServerlessCreed vs. Cyberduck
           </h1>
           <p className="text-xl text-slate-700 mb-2">
             The best Cyberduck alternative for AWS S3 power users.
@@ -119,14 +119,14 @@ export default function VsCyberduckPage() {
             Cyberduck is a great general-purpose file transfer client. But if
             AWS S3 is where you spend most of your day, you&apos;ll quickly hit
             its limits — no SSO, no policy editor, no SDK code generation, no
-            cost view. Serverless Buckets picks up exactly where Cyberduck stops.
+            cost view. Buckets by ServerlessCreed picks up exactly where Cyberduck stops.
           </p>
 
           <div className="flex flex-wrap gap-3">
             <Link href="/downloads">
               <Button size="lg" className="bg-primary hover:bg-primary/90 text-white">
                 <FaDownload className="mr-2 h-4 w-4" />
-                Try Serverless Buckets free
+                Try Buckets by ServerlessCreed free
               </Button>
             </Link>
             <Link href="/pricing">
@@ -142,7 +142,7 @@ export default function VsCyberduckPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="rounded-2xl border-2 border-primary/30 bg-primary/5 p-6">
               <p className="text-xs font-semibold uppercase tracking-wider text-primary mb-2">
-                Pick Serverless Buckets if…
+                Pick Buckets by ServerlessCreed if…
               </p>
               <ul className="space-y-2 text-sm text-slate-800">
                 {[
@@ -178,7 +178,7 @@ export default function VsCyberduckPage() {
                 ))}
               </ul>
               <p className="text-xs text-slate-500 mt-4 italic">
-                Many teams run both — Cyberduck for breadth, Serverless Buckets for S3.
+                Many teams run both — Cyberduck for breadth, Buckets by ServerlessCreed for S3.
               </p>
             </div>
           </div>
@@ -187,7 +187,7 @@ export default function VsCyberduckPage() {
         {/* Detailed comparison table */}
         <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <h2 className="text-3xl font-bold text-slate-900 mb-3">
-            Feature-by-feature: Serverless Buckets vs Cyberduck
+            Feature-by-feature: Buckets by ServerlessCreed vs Cyberduck
           </h2>
           <p className="text-slate-600 mb-8 max-w-3xl">
             Compared as of {new Date().getFullYear()}. Both apps ship updates
@@ -199,7 +199,7 @@ export default function VsCyberduckPage() {
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
                   <th className="text-left px-4 py-3 font-semibold text-slate-700">Feature</th>
-                  <th className="px-4 py-3 font-semibold text-primary text-center">Serverless Buckets</th>
+                  <th className="px-4 py-3 font-semibold text-primary text-center">Buckets by ServerlessCreed</th>
                   <th className="px-4 py-3 font-semibold text-slate-700 text-center">Cyberduck</th>
                 </tr>
               </thead>
@@ -236,7 +236,7 @@ export default function VsCyberduckPage() {
             <li className="flex gap-3">
               <span className="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-white text-sm font-semibold flex items-center justify-center">1</span>
               <span>
-                <strong className="text-slate-900">Install Serverless Buckets.</strong>{" "}
+                <strong className="text-slate-900">Install Buckets by ServerlessCreed.</strong>{" "}
                 <Link href="/downloads" className="text-primary hover:underline">
                   Download
                 </Link>{" "}
@@ -248,7 +248,7 @@ export default function VsCyberduckPage() {
               <span className="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-white text-sm font-semibold flex items-center justify-center">2</span>
               <span>
                 <strong className="text-slate-900">Sign in to AWS.</strong>{" "}
-                Serverless Buckets reads your existing <code className="text-xs bg-slate-100 px-1 rounded">~/.aws/credentials</code>{" "}
+                Buckets by ServerlessCreed reads your existing <code className="text-xs bg-slate-100 px-1 rounded">~/.aws/credentials</code>{" "}
                 and AWS SSO config. If you used access keys in Cyberduck, paste
                 them once and save the profile.
               </span>
@@ -257,7 +257,7 @@ export default function VsCyberduckPage() {
               <span className="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-white text-sm font-semibold flex items-center justify-center">3</span>
               <span>
                 <strong className="text-slate-900">That&apos;s it.</strong> Your
-                buckets show up immediately. No data migration — Serverless Buckets
+                buckets show up immediately. No data migration — Buckets by ServerlessCreed
                 doesn&apos;t move or copy anything; it&apos;s just a new
                 interface to the same S3 buckets you already have.
               </span>
@@ -272,7 +272,7 @@ export default function VsCyberduckPage() {
               Looking at other S3 clients too?
             </h2>
             <p className="text-slate-700 mb-4">
-              We compare Serverless Buckets to AWS Console, S3 Browser, and others on the{" "}
+              We compare Buckets by ServerlessCreed to AWS Console, S3 Browser, and others on the{" "}
               <Link href="/aws-s3-client" className="text-primary hover:underline font-medium">
                 AWS S3 client overview page
               </Link>
@@ -311,7 +311,7 @@ export default function VsCyberduckPage() {
         {/* CTA */}
         <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
           <h2 className="text-3xl font-bold text-slate-900 mb-3">
-            Try Serverless Buckets alongside Cyberduck for two weeks
+            Try Buckets by ServerlessCreed alongside Cyberduck for two weeks
           </h2>
           <p className="text-slate-600 mb-8 max-w-2xl mx-auto">
             14 days, full features, no card. Run both apps and see which one
@@ -321,7 +321,7 @@ export default function VsCyberduckPage() {
             <Link href="/downloads">
               <Button size="lg" className="bg-primary hover:bg-primary/90 text-white">
                 <FaDownload className="mr-2 h-4 w-4" />
-                Download Serverless Buckets
+                Download Buckets by ServerlessCreed
               </Button>
             </Link>
             <Link href="/pricing">

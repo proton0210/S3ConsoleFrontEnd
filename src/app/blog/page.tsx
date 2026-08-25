@@ -14,9 +14,9 @@ import { constructMetadata } from "@/lib/utils";
 import { Metadata } from "next";
 
 export const metadata: Metadata = constructMetadata({
-  title: "Serverless Buckets Blog — AWS S3 Guides, Tips & Product Updates",
+  title: "Buckets by ServerlessCreed Blog — AWS S3 Guides, Tips & Product Updates",
   description:
-    "Practical guides for working with Amazon S3: streaming uploads, presigned URLs, multi-profile workflows, performance, and the inside scoop on Serverless Buckets releases.",
+    "Practical guides for working with Amazon S3: streaming uploads, presigned URLs, multi-profile workflows, performance, and the inside scoop on Buckets by ServerlessCreed releases.",
   canonical: `${siteConfig.url}/blog`,
 });
 
@@ -33,7 +33,7 @@ export default async function BlogIndexPage() {
     name: `${siteConfig.name} Blog`,
     url: `${siteConfig.url}/blog`,
     description:
-      "Guides and product updates from the team behind Serverless Buckets — the fastest AWS S3 client for Mac, Windows, and Linux.",
+      "Guides and product updates from the team behind Buckets by ServerlessCreed — the fastest AWS S3 client for Mac, Windows, and Linux.",
     publisher: {
       "@type": "Organization",
       name: siteConfig.name,
@@ -59,7 +59,7 @@ export default async function BlogIndexPage() {
       />
       <section className="max-w-5xl mx-auto px-5 sm:px-8 pt-12 pb-6">
         <p className="text-sm font-semibold uppercase tracking-wider text-primary mb-3">
-          The Serverless Buckets Blog
+          The Buckets by ServerlessCreed Blog
         </p>
         <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground mb-4">
           Guides, deep-dives, and product updates
@@ -67,7 +67,7 @@ export default async function BlogIndexPage() {
         <p className="text-lg text-muted-foreground max-w-2xl">
           Hands-on writing for developers who live in AWS — streaming uploads,
           presigned URLs, multi-profile workflows, and the engineering behind
-          Serverless Buckets.
+          Buckets by ServerlessCreed.
         </p>
       </section>
 

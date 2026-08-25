@@ -94,7 +94,7 @@ export default function Component() {
   return (
     <Section
       subtitle="A Desktop App That Actually Gets S3 Management Right"
-      description="No more wrestling with web consoles or wrestling with CLI commands. Serverless Buckets brings the simplicity of modern desktop apps to AWS S3 management."
+      description="No more wrestling with web consoles or wrestling with CLI commands. Buckets by ServerlessCreed brings the simplicity of modern desktop apps to AWS S3 management."
       className="bg-neutral-100"
     >
       <div className="mx-auto mt-16 grid max-w-sm grid-cols-1 gap-6 text-gray-500 md:max-w-3xl md:grid-cols-2 xl:grid-rows-2 md:grid-rows-3 xl:max-w-6xl xl:auto-rows-fr xl:grid-cols-3">

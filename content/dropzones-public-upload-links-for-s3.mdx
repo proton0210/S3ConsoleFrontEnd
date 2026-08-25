@@ -2,8 +2,8 @@
 title: "S3 Drop Zones: Create a Public Upload Link for an S3 Bucket in 30 Seconds (No Lambda, No API Gateway)"
 publishedAt: "2026-05-19"
 lastModified: "2026-05-19"
-summary: "How to create a public upload link for an AWS S3 bucket without writing a Lambda, an API Gateway endpoint, or a custom upload portal. Serverless Buckets Drop Zones generate a signed POST policy and a self-contained HTML upload page in one click — vendors, customers, and contractors can drag-and-drop files straight into your bucket, with size, type, and expiry limits enforced server-side by S3."
-author: "Serverless Buckets Team"
+summary: "How to create a public upload link for an AWS S3 bucket without writing a Lambda, an API Gateway endpoint, or a custom upload portal. Buckets by ServerlessCreed Drop Zones generate a signed POST policy and a self-contained HTML upload page in one click — vendors, customers, and contractors can drag-and-drop files straight into your bucket, with size, type, and expiry limits enforced server-side by S3."
+author: "Buckets by ServerlessCreed Team"
 image: "/4-presign.png"
 videoId: "jP3jpbjgXac"
 keywords:
@@ -20,14 +20,14 @@ keywords:
   - "S3 bucket upload page"
   - "presigned POST URL generator"
 seo:
-  title: "S3 Drop Zones — Public Upload Links for S3 Buckets | Serverless Buckets"
-  description: "Create a public upload link for any S3 bucket in 30 seconds. No Lambda, no API Gateway, no custom portal. Serverless Buckets Drop Zones generate a signed POST policy and HTML upload page with size, type, and expiry limits enforced by S3."
+  title: "S3 Drop Zones — Public Upload Links for S3 Buckets | Buckets by ServerlessCreed"
+  description: "Create a public upload link for any S3 bucket in 30 seconds. No Lambda, no API Gateway, no custom portal. Buckets by ServerlessCreed Drop Zones generate a signed POST policy and HTML upload page with size, type, and expiry limits enforced by S3."
   canonical: "https://buckets.serverlesscreed.com/blog/dropzones-public-upload-links-for-s3"
 ---
 
 Need a quick way for vendors, customers, or contractors to **upload files into your S3 bucket** — without giving them AWS credentials, an IAM user, or access to your console?
 
-The AWS web console doesn't have a "share an upload link" button. The DIY alternative is a small infrastructure project: a Lambda, an API Gateway endpoint, CORS, monitoring, a deploy pipeline — sometimes a whole custom portal. **Serverless Buckets Drop Zones** replace all of that with a one-click flow. Pick a bucket and a prefix, set a size and expiry limit, and Serverless Buckets generates a public **S3 upload link** backed by a signed [S3 presigned POST policy](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-post-example.html). Share it as a URL, email the standalone HTML file, or host it on S3 itself. Your recipient drags files onto the page; the bytes go directly into your bucket, and S3 enforces every rule.
+The AWS web console doesn't have a "share an upload link" button. The DIY alternative is a small infrastructure project: a Lambda, an API Gateway endpoint, CORS, monitoring, a deploy pipeline — sometimes a whole custom portal. **Buckets by ServerlessCreed Drop Zones** replace all of that with a one-click flow. Pick a bucket and a prefix, set a size and expiry limit, and Buckets by ServerlessCreed generates a public **S3 upload link** backed by a signed [S3 presigned POST policy](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-post-example.html). Share it as a URL, email the standalone HTML file, or host it on S3 itself. Your recipient drags files onto the page; the bytes go directly into your bucket, and S3 enforces every rule.
 
 If you'd rather watch than read, the [Drop Zones demo is on YouTube](https://youtu.be/jP3jpbjgXac).
 
@@ -50,7 +50,7 @@ An **S3 drop zone** is a public, time-limited upload link tied to a specific buc
 
 ## How S3 Drop Zones Work Under the Hood
 
-A drop zone is a saved `(bucket, prefix, expiry, size limit, allowed types)` tuple. From that tuple, Serverless Buckets generates an **S3 [presigned POST policy](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-post-example.html)** — a base64-encoded JSON document, signed with your AWS credentials, that S3 will accept as authorization for a multipart/form-data POST. The policy is embedded in a self-contained HTML page, which becomes your upload link.
+A drop zone is a saved `(bucket, prefix, expiry, size limit, allowed types)` tuple. From that tuple, Buckets by ServerlessCreed generates an **S3 [presigned POST policy](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-post-example.html)** — a base64-encoded JSON document, signed with your AWS credentials, that S3 will accept as authorization for a multipart/form-data POST. The policy is embedded in a self-contained HTML page, which becomes your upload link.
 
 The policy pins the upload to:
 
@@ -125,21 +125,21 @@ Two design notes worth pulling out:
 
 ## Hosting the S3 Upload Page Publicly Without Opening Up Your Bucket
 
-When you click *Host on S3*, Serverless Buckets uploads the generated HTML to the same bucket under a fixed prefix: `dropzones/<zone-id>.html`. The hard part isn't the `PutObject` — it's making the page publicly readable without making your *uploads* publicly readable.
+When you click *Host on S3*, Buckets by ServerlessCreed uploads the generated HTML to the same bucket under a fixed prefix: `dropzones/<zone-id>.html`. The hard part isn't the `PutObject` — it's making the page publicly readable without making your *uploads* publicly readable.
 
 Two pieces solve that:
 
-1. **A scoped bucket-policy statement.** Serverless Buckets writes (or merges into) a statement with a fixed `Sid` — `DropZonesPublicRead` — that grants `s3:GetObject` to `*` only on `arn:aws:s3:::your-bucket/dropzones/*`. Vendor uploads under each zone's user-defined prefix stay private. Matching by `Sid` lets us detect, replace, and revoke our own statement without touching user-authored statements that may sit alongside it.
+1. **A scoped bucket-policy statement.** Buckets by ServerlessCreed writes (or merges into) a statement with a fixed `Sid` — `DropZonesPublicRead` — that grants `s3:GetObject` to `*` only on `arn:aws:s3:::your-bucket/dropzones/*`. Vendor uploads under each zone's user-defined prefix stay private. Matching by `Sid` lets us detect, replace, and revoke our own statement without touching user-authored statements that may sit alongside it.
 
-2. **Forced SSE-S3 on the hosted page.** On buckets whose default encryption is SSE-KMS, anonymous GETs of KMS-encrypted objects fail with *"Requests specifying Server Side Encryption with AWS KMS managed keys require AWS Signature Version 4."* The hosted page is intentionally public HTML with no secrets in it, so Serverless Buckets overrides the encryption to AES256. If a bucket policy forces KMS-only encryption, the host attempt fails with a clear error rather than a broken public URL.
+2. **Forced SSE-S3 on the hosted page.** On buckets whose default encryption is SSE-KMS, anonymous GETs of KMS-encrypted objects fail with *"Requests specifying Server Side Encryption with AWS KMS managed keys require AWS Signature Version 4."* The hosted page is intentionally public HTML with no secrets in it, so Buckets by ServerlessCreed overrides the encryption to AES256. If a bucket policy forces KMS-only encryption, the host attempt fails with a clear error rather than a broken public URL.
 
-The bucket's [Public Access Block](https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html) settings also have to allow the policy. If they don't, Serverless Buckets opens a confirmation dialog that explains exactly which bits need to flip (`BlockPublicPolicy` and/or `RestrictPublicBuckets`) before the host can proceed — and *only* those bits, leaving the `BlockPublicAcls` / `IgnorePublicAcls` settings untouched. Your bucket is not "opened up" globally; only the `dropzones/*` prefix becomes anonymously readable.
+The bucket's [Public Access Block](https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html) settings also have to allow the policy. If they don't, Buckets by ServerlessCreed opens a confirmation dialog that explains exactly which bits need to flip (`BlockPublicPolicy` and/or `RestrictPublicBuckets`) before the host can proceed — and *only* those bits, leaving the `BlockPublicAcls` / `IgnorePublicAcls` settings untouched. Your bucket is not "opened up" globally; only the `dropzones/*` prefix becomes anonymously readable.
 
 ## S3 Bucket CORS: Merged, Not Overwritten
 
 The recipient's browser POSTs from `file://`, the bucket's own S3 domain, or a random emailed link's domain — there's no single origin we can pin a rule to. The only CORS config that works universally is `AllowedOrigins: ["*"]` on `POST`.
 
-Serverless Buckets adds exactly one CORS rule, identified by `ID: "s3console-dropzones"`, and **merges it with whatever rules you already have**:
+Buckets by ServerlessCreed adds exactly one CORS rule, identified by `ID: "s3console-dropzones"`, and **merges it with whatever rules you already have**:
 
 ```ts
 const filtered = existing.filter((r) => r.ID !== "s3console-dropzones");
@@ -152,7 +152,7 @@ await client.send(
 );
 ```
 
-Removing a drop zone strips only its own CORS rule by ID. If that was the only rule on the bucket, Serverless Buckets runs `DeleteBucketCors` (S3 doesn't allow an empty `CORSRules` array on `PutBucketCors`). Other zones on the same bucket will stop accepting browser POSTs — that's the intended effect.
+Removing a drop zone strips only its own CORS rule by ID. If that was the only rule on the bucket, Buckets by ServerlessCreed runs `DeleteBucketCors` (S3 doesn't allow an empty `CORSRules` array on `PutBucketCors`). Other zones on the same bucket will stop accepting browser POSTs — that's the intended effect.
 
 ## How to Revoke an S3 Upload Link (and What "Delete" Really Does)
 
@@ -163,7 +163,7 @@ Deleting a zone has to do two things in order:
 1. Remove the zone from local storage so it stops showing up in the modal.
 2. Best-effort delete any **hosted HTML pages** the zone created on S3.
 
-Step 2 matters because the policy is embedded in the page. If a vendor saved their copy of the URL, the still-valid signed policy inside the HTML would let them keep uploading — for up to 7 days — even after you deleted the zone. So Serverless Buckets tracks every hosted key under `zone.hostedKeys` and runs `DeleteObjects` on the entire set during a delete:
+Step 2 matters because the policy is embedded in the page. If a vendor saved their copy of the URL, the still-valid signed policy inside the HTML would let them keep uploading — for up to 7 days — even after you deleted the zone. So Buckets by ServerlessCreed tracks every hosted key under `zone.hostedKeys` and runs `DeleteObjects` on the entire set during a delete:
 
 ```ts
 if (zone.hostedKeys && zone.hostedKeys.length > 0) {
@@ -187,7 +187,7 @@ Two honest caveats baked into the comment for `disabled` in the source:
 
 > Saved-locally HTML still works until natural expiry — the signing key isn't something we can revoke remotely.
 
-If you handed someone a downloaded `.html` file or they saved the page source from their browser, the policy in that page remains valid until its `expiration` timestamp. There is no way for Serverless Buckets — or AWS itself, short of rotating the IAM key that signed the policy — to invalidate an already-issued POST policy mid-flight. This is the same constraint that applies to every presigned URL or POST policy AWS produces. The right mental model: a drop zone is **time-limited**, not revocable in real time.
+If you handed someone a downloaded `.html` file or they saved the page source from their browser, the policy in that page remains valid until its `expiration` timestamp. There is no way for Buckets by ServerlessCreed — or AWS itself, short of rotating the IAM key that signed the policy — to invalidate an already-issued POST policy mid-flight. This is the same constraint that applies to every presigned URL or POST policy AWS produces. The right mental model: a drop zone is **time-limited**, not revocable in real time.
 
 Pausing a zone (the *Disable* toggle) is the same operation as delete for the hosted pages: it deletes any S3-hosted copies so the public URL stops serving the form, while keeping the zone metadata so you can re-enable later without losing config.
 
@@ -195,7 +195,7 @@ Pausing a zone (the *Disable* toggle) is the same operation as delete for the ho
 
 The first version of this feature shipped in an afternoon. Getting it to a place where I'd trust it with vendor invoices took weeks. A few details:
 
-- **Account-scoped storage.** Drop zones are stored locally in `electron-store`, keyed by AWS account identifier. Switching to another profile in Serverless Buckets can't surface another seat's zones — even if both seats share the same Mac user.
+- **Account-scoped storage.** Drop zones are stored locally in `electron-store`, keyed by AWS account identifier. Switching to another profile in Buckets by ServerlessCreed can't surface another seat's zones — even if both seats share the same Mac user.
 - **Per-account cap of 50 zones.** Prevents the local store from growing unbounded. Delete an old zone before creating a 51st.
 - **Authorization stripped on cross-origin redirects.** When the upload page POSTs into S3, if S3 returns a 30x redirect to a different host (the wrong-region 301 case), any `Authorization` header gets dropped — same rule modern browsers enforce on `fetch`. We will not silently forward a bearer token across origins.
 - **Hosted pages are SSE-S3, no-cache, and use `robots: noindex,nofollow`.** A vendor upload page should not be cached by intermediaries and should not show up in Google.
@@ -203,7 +203,7 @@ The first version of this feature shipped in an afternoon. Getting it to a place
 
 ## S3 Drop Zones vs. Lambda + API Gateway vs. Cognito: Which Should You Pick?
 
-| | **Serverless Buckets Drop Zones** | Custom Lambda + API Gateway | Cognito Identity Pool |
+| | **Buckets by ServerlessCreed Drop Zones** | Custom Lambda + API Gateway | Cognito Identity Pool |
 |---|---|---|---|
 | Time to first link | ~30 seconds | Days to weeks | Days |
 | Infrastructure to maintain | None | Function, API, IAM, monitoring | Identity pool, federation, roles |
@@ -212,18 +212,18 @@ The first version of this feature shipped in an afternoon. Getting it to a place
 | Server-side type allow-list | ✅ Enforced by S3 | You build it | You build it |
 | Hard expiry | ✅ Up to 7 days | You build it | Session-based |
 | Drag-and-drop UI | ✅ 3 themes | You build it | You build it |
-| Cost | Included in Serverless Buckets | API Gateway + Lambda invocations | Cognito MAUs |
+| Cost | Included in Buckets by ServerlessCreed | API Gateway + Lambda invocations | Cognito MAUs |
 | Bytes flow recipient → S3 directly | ✅ | ⚠️ Often through Lambda | ✅ |
 
 ## Frequently Asked Questions About S3 Drop Zones
 
 ### How do I let someone upload a file to my S3 bucket without an AWS account?
 
-The standard AWS-native answer is a [presigned POST policy](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-post-example.html): you sign a JSON document with your credentials, and S3 will accept a multipart/form-data POST from anyone who presents the signature, as long as the upload matches every rule in the policy (bucket, key prefix, file size, content type, expiry). Building the form, the validation UI, and the hosting yourself is a small project. Serverless Buckets **Drop Zones** automate all of it — pick a bucket and prefix in the desktop app, click *New zone*, and you get a working public upload link with drag-and-drop, progress bars, and either a hosted S3 URL or a downloadable HTML file.
+The standard AWS-native answer is a [presigned POST policy](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-post-example.html): you sign a JSON document with your credentials, and S3 will accept a multipart/form-data POST from anyone who presents the signature, as long as the upload matches every rule in the policy (bucket, key prefix, file size, content type, expiry). Building the form, the validation UI, and the hosting yourself is a small project. Buckets by ServerlessCreed **Drop Zones** automate all of it — pick a bucket and prefix in the desktop app, click *New zone*, and you get a working public upload link with drag-and-drop, progress bars, and either a hosted S3 URL or a downloadable HTML file.
 
 ### Can I create a presigned upload link from the AWS S3 web console?
 
-Not directly. The AWS web console can generate presigned URLs for **downloads** (object → reader) but does not have a UI for presigned **POST policies** (anonymous uploader → bucket). If you want a public upload link without building Lambda + API Gateway yourself, you either need a desktop client like Serverless Buckets or you script it against the AWS SDK.
+Not directly. The AWS web console can generate presigned URLs for **downloads** (object → reader) but does not have a UI for presigned **POST policies** (anonymous uploader → bucket). If you want a public upload link without building Lambda + API Gateway yourself, you either need a desktop client like Buckets by ServerlessCreed or you script it against the AWS SDK.
 
 ### Are drop zones secure?
 
@@ -231,7 +231,7 @@ The bucket and prefix are pinned, the file size is capped, the content type is a
 
 ### What's the maximum file size a drop zone can accept?
 
-5 GB. That's the S3 single-PUT ceiling — browser-based form POSTs cannot multipart, so the practical max per upload is 5 GB regardless of any policy. If you need bigger, use [Upload from URL](/blog/upload-from-url-to-s3) or the regular Serverless Buckets upload flow from the sender's machine.
+5 GB. That's the S3 single-PUT ceiling — browser-based form POSTs cannot multipart, so the practical max per upload is 5 GB regardless of any policy. If you need bigger, use [Upload from URL](/blog/upload-from-url-to-s3) or the regular Buckets by ServerlessCreed upload flow from the sender's machine.
 
 ### Can recipients upload multiple files?
 
@@ -239,9 +239,9 @@ Yes. The hosted page accepts multi-file drag-and-drop and parallel uploads. You 
 
 ### What happens to a drop zone link if I delete the zone?
 
-Serverless Buckets best-effort deletes any S3-hosted copies of the upload page so the public URL stops working immediately. Locally saved `.html` files or browser-cached copies will continue to work until the zone's natural expiry — there's no way to remotely revoke an issued POST policy. To force-revoke a zone before its expiry, delete it AND rotate the IAM credentials used to sign it.
+Buckets by ServerlessCreed best-effort deletes any S3-hosted copies of the upload page so the public URL stops working immediately. Locally saved `.html` files or browser-cached copies will continue to work until the zone's natural expiry — there's no way to remotely revoke an issued POST policy. To force-revoke a zone before its expiry, delete it AND rotate the IAM credentials used to sign it.
 
-### Does Serverless Buckets store the signed policy anywhere?
+### Does Buckets by ServerlessCreed store the signed policy anywhere?
 
 No. Only the *inputs* (bucket, prefix, expiry, size limit, allowed types) are stored in your local `electron-store`. The policy and its signature are re-derived on demand every time you open the zone, view the HTML, or click *Host on S3*. The signing key never leaves your machine.
 
@@ -255,10 +255,10 @@ Yes. Pick one of three templates (Minimal, Branded, Friendly). Override the head
 
 ## Try It Yourself
 
-The fastest way to see this end-to-end is to install Serverless Buckets, pick a bucket, click *Drop Zones → New zone*, and have a working public upload page in under a minute. The 14-day trial is unrestricted and doesn't ask for a credit card.
+The fastest way to see this end-to-end is to install Buckets by ServerlessCreed, pick a bucket, click *Drop Zones → New zone*, and have a working public upload page in under a minute. The 14-day trial is unrestricted and doesn't ask for a credit card.
 
-- [Download Serverless Buckets](/downloads) for Mac, Windows, or Linux
+- [Download Buckets by ServerlessCreed](/downloads) for Mac, Windows, or Linux
 - [See pricing](/pricing) — $9/month, $79/year, or $149 one-time lifetime
-- [How Serverless Buckets compares to other AWS S3 clients](/aws-s3-client)
+- [How Buckets by ServerlessCreed compares to other AWS S3 clients](/aws-s3-client)
 - [Read the launch post](/blog/introducing-s3console) for the broader feature tour
 - [Upload from URL](/blog/upload-from-url-to-s3) — the companion feature for pulling files INTO your bucket

@@ -38,24 +38,24 @@ const FAQS = [
     a: "An AWS S3 client is a desktop application that lets you browse, upload, download, and manage files in Amazon S3 buckets without writing CLI commands or using the AWS web console. A good S3 client gives you a native GUI, drag-and-drop file transfer, multi-profile support for several AWS accounts, and tools like presigned URL generation and bucket policy editing.",
   },
   {
-    q: "Is Serverless Buckets better than Cyberduck for S3?",
-    a: "Serverless Buckets is purpose-built for AWS S3, while Cyberduck is a general-purpose FTP/SFTP/cloud client. That focus means Serverless Buckets has features Cyberduck doesn't — AWS SSO and IAM Identity Center login, AI code generation for the AWS SDK, an S3 cost estimator, and a visual bucket policy editor. If S3 is your daily driver, the workflow is faster on Serverless Buckets.",
+    q: "Is Buckets by ServerlessCreed better than Cyberduck for S3?",
+    a: "Buckets by ServerlessCreed is purpose-built for AWS S3, while Cyberduck is a general-purpose FTP/SFTP/cloud client. That focus means Buckets by ServerlessCreed has features Cyberduck doesn't — AWS SSO and IAM Identity Center login, AI code generation for the AWS SDK, an S3 cost estimator, and a visual bucket policy editor. If S3 is your daily driver, the workflow is faster on Buckets by ServerlessCreed.",
   },
   {
-    q: "Does Serverless Buckets work on Mac, Windows, and Linux?",
-    a: "Yes — Serverless Buckets supports macOS, Windows 10/11, and Linux. The Windows edition is installed and updated through Microsoft Store; macOS and Linux use their native packages. All platforms share the same product features and license.",
+    q: "Does Buckets by ServerlessCreed work on Mac, Windows, and Linux?",
+    a: "Yes — Buckets by ServerlessCreed supports macOS, Windows 10/11, and Linux. The Windows edition is installed and updated through Microsoft Store; macOS and Linux use their native packages. All platforms share the same product features and license.",
   },
   {
-    q: "Do I need AWS credentials to use Serverless Buckets?",
-    a: "Yes, you need AWS credentials to connect to your S3 buckets — either an access key/secret pair, an AWS SSO session, or an existing AWS CLI profile. Credentials are stored locally on your machine and never sent to Serverless Buckets's servers. All S3 traffic goes directly between your computer and AWS.",
+    q: "Do I need AWS credentials to use Buckets by ServerlessCreed?",
+    a: "Yes, you need AWS credentials to connect to your S3 buckets — either an access key/secret pair, an AWS SSO session, or an existing AWS CLI profile. Credentials are stored locally on your machine and never sent to Buckets by ServerlessCreed's servers. All S3 traffic goes directly between your computer and AWS.",
   },
   {
     q: "Is there a free trial?",
     a: "Yes — every new install gets a fully-featured 14-day trial with no credit card required. The trial unlocks every feature on every supported platform. After the trial, you can subscribe ($9/month or $79/year) or buy a lifetime license ($149 one-time).",
   },
   {
-    q: "Can I generate presigned S3 URLs with Serverless Buckets?",
-    a: "Yes. Serverless Buckets has a built-in presigned URL generator — pick the object, set the expiration, optionally restrict to specific HTTP methods or IP ranges, and copy the URL. The generated URLs are standard AWS-signed URLs you can share with anyone, including users without AWS accounts.",
+    q: "Can I generate presigned S3 URLs with Buckets by ServerlessCreed?",
+    a: "Yes. Buckets by ServerlessCreed has a built-in presigned URL generator — pick the object, set the expiration, optionally restrict to specific HTTP methods or IP ranges, and copy the URL. The generated URLs are standard AWS-signed URLs you can share with anyone, including users without AWS accounts.",
   },
 ];
 
@@ -111,7 +111,7 @@ export default function AwsS3ClientPage() {
             The fastest AWS S3 client for Mac, Windows, and Linux
           </h1>
           <p className="text-lg text-slate-600 max-w-3xl mb-8">
-            Serverless Buckets is a native desktop S3 client built for engineers who live
+            Buckets by ServerlessCreed is a native desktop S3 client built for engineers who live
             in AWS. Browse buckets, generate presigned URLs, edit policies, and
             switch profiles in one place — without the AWS web console&apos;s lag
             or the CLI&apos;s ceremony.
@@ -132,7 +132,7 @@ export default function AwsS3ClientPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-600">
-            <span className="inline-flex items-center gap-1.5"><FaApple className="h-4 w-4" /> macOS (ARM &amp; Intel)</span>
+            <span className="inline-flex items-center gap-1.5"><FaApple className="h-4 w-4" /> macOS (Apple Silicon)</span>
             <span className="inline-flex items-center gap-1.5"><FaWindows className="h-4 w-4" /> Windows 10 &amp; 11</span>
             <span className="inline-flex items-center gap-1.5"><FaLinux className="h-4 w-4" /> Linux (.deb)</span>
             <span className="text-slate-400">·</span>
@@ -143,10 +143,10 @@ export default function AwsS3ClientPage() {
         {/* Features */}
         <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <h2 className="text-3xl font-bold text-slate-900 mb-3">
-            Why developers pick Serverless Buckets as their S3 client
+            Why developers pick Buckets by ServerlessCreed as their S3 client
           </h2>
           <p className="text-slate-600 mb-10 max-w-3xl">
-            Most S3 clients are FTP apps with an S3 backend bolted on. Serverless Buckets
+            Most S3 clients are FTP apps with an S3 backend bolted on. Buckets by ServerlessCreed
             is built around how engineers actually work with AWS — multi-account
             SSO, real IAM understanding, and the small things that save you ten
             seconds, fifty times a day.
@@ -181,7 +181,7 @@ export default function AwsS3ClientPage() {
               {
                 icon: FaShieldAlt,
                 title: "Local-only credentials",
-                body: "Your AWS keys stay on your machine. Serverless Buckets never proxies traffic — every API call goes directly from your computer to AWS over TLS.",
+                body: "Your AWS keys stay on your machine. Buckets by ServerlessCreed never proxies traffic — every API call goes directly from your computer to AWS over TLS.",
               },
             ].map(({ icon: Icon, title, body }) => (
               <div
@@ -205,10 +205,10 @@ export default function AwsS3ClientPage() {
         {/* Comparison */}
         <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <h2 className="text-3xl font-bold text-slate-900 mb-3">
-            Serverless Buckets vs. other AWS S3 clients
+            Buckets by ServerlessCreed vs. other AWS S3 clients
           </h2>
           <p className="text-slate-600 mb-8 max-w-3xl">
-            Here&apos;s how Serverless Buckets stacks up against the most popular S3 clients
+            Here&apos;s how Buckets by ServerlessCreed stacks up against the most popular S3 clients
             and the AWS web console for daily use.
           </p>
           <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
@@ -216,7 +216,7 @@ export default function AwsS3ClientPage() {
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
                   <th className="text-left px-4 py-3 font-semibold text-slate-700">Feature</th>
-                  <th className="px-4 py-3 font-semibold text-primary">Serverless Buckets</th>
+                  <th className="px-4 py-3 font-semibold text-primary">Buckets by ServerlessCreed</th>
                   <th className="px-4 py-3 font-semibold text-slate-700">AWS Console</th>
                   <th className="px-4 py-3 font-semibold text-slate-700">Cyberduck</th>
                   <th className="px-4 py-3 font-semibold text-slate-700">S3 Browser</th>
@@ -284,18 +284,18 @@ export default function AwsS3ClientPage() {
         {/* CTA */}
         <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
           <h2 className="text-3xl font-bold text-slate-900 mb-3">
-            Try Serverless Buckets free for 14 days
+            Try Buckets by ServerlessCreed free for 14 days
           </h2>
           <p className="text-slate-600 mb-8 max-w-2xl mx-auto">
             Full feature access on macOS, Windows, and Linux. No credit card.
-            If Serverless Buckets doesn&apos;t replace whatever you&apos;re using today,
+            If Buckets by ServerlessCreed doesn&apos;t replace whatever you&apos;re using today,
             uninstall it — we won&apos;t take it personally.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <Link href="/downloads">
               <Button size="lg" className="bg-primary hover:bg-primary/90 text-white">
                 <FaDownload className="mr-2 h-4 w-4" />
-                Download Serverless Buckets
+                Download Buckets by ServerlessCreed
               </Button>
             </Link>
             <Link href="/pricing">

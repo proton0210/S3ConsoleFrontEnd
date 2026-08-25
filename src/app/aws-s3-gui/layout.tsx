@@ -2,9 +2,9 @@ import { constructMetadata } from "@/lib/utils";
 import { Metadata } from "next";
 
 export const metadata: Metadata = constructMetadata({
-  title: "AWS S3 GUI for Mac, Windows & Linux — Serverless Buckets",
+  title: "AWS S3 GUI for Mac, Windows & Linux — Buckets by ServerlessCreed",
   description:
-    "Need an AWS S3 GUI? Serverless Buckets is a native desktop S3 GUI client for macOS, Windows, and Linux — drag-and-drop uploads, multi-profile SSO, presigned URLs, and a visual policy editor. Free 14-day trial.",
+    "Need an AWS S3 GUI? Buckets by ServerlessCreed is a native desktop S3 GUI client for macOS, Windows, and Linux — drag-and-drop uploads, multi-profile SSO, presigned URLs, and a visual policy editor. Free 14-day trial.",
   canonical: "/aws-s3-gui",
 });
 

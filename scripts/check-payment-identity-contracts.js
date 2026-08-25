@@ -64,4 +64,4 @@ for (const [label, source] of [
   mustContain(source, 'app: "serverless-buckets"', `${label} product marker`);
 }
 
-console.log("Payment identity contracts passed for Serverless Buckets.");
+console.log("Payment identity contracts passed for Buckets by ServerlessCreed.");

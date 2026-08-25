@@ -2,7 +2,7 @@
 import { LEGAL_VERSIONS } from "@/lib/legalVersions";
 
 export const metadata = {
-  title: "Refund Policy — Serverless Buckets",
+  title: "Refund Policy — Buckets by ServerlessCreed",
 };
 
 export default function RefundPolicyPage() {
