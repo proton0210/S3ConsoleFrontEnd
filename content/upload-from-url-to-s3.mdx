@@ -35,7 +35,7 @@ In Buckets by ServerlessCreed you paste a URL, choose a destination key, and cli
 3. Pipes that stream straight into an AWS SDK [`@aws-sdk/lib-storage`](https://github.com/aws/aws-sdk-js-v3/tree/main/lib/lib-storage) `Upload`, which transparently handles S3 multipart for you.
 4. Reports progress to the same UI that drag-and-drop file uploads use, with the same cancel button.
 
-The whole pipeline runs locally in the Electron main process on your machine, talks directly to S3 with your local AWS credentials, and never proxies your data through any Buckets by ServerlessCreed server. There is no Buckets by ServerlessCreed-hosted backend in the data path.
+The whole pipeline runs locally in the desktop application on your machine, talks directly to S3 with your local AWS credentials, and never proxies your data through any Buckets by ServerlessCreed server. There is no Buckets by ServerlessCreed-hosted backend in the data path.
 
 ## The Architecture, With Real Code
 

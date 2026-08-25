@@ -120,7 +120,7 @@ const signature = crypto
 
 Two design notes worth pulling out:
 
-- **The policy is regenerated on demand, not stored.** Only the inputs (bucket, prefix, expiry, etc.) are persisted in `electron-store`. Every time you open the modal, the policy is re-signed from those inputs against the *remaining* lifetime of the zone — never a fresh 7-day window. So pausing a zone, deleting it, or letting it expire really does revoke access.
+- **The policy is regenerated on demand, not stored.** Only the inputs (bucket, prefix, expiry, etc.) are persisted in encrypted local application storage. Every time you open the modal, the policy is re-signed from those inputs against the *remaining* lifetime of the zone — never a fresh 7-day window. So pausing a zone, deleting it, or letting it expire really does revoke access.
 - **The bucket region is re-resolved before every sign.** If the bucket was recreated in a different region, signing against the stored region would produce a `SignatureDoesNotMatch` on the recipient's POST. `GetBucketLocation` is cheap and we make it a precondition of signing.
 
 ## Hosting the S3 Upload Page Publicly Without Opening Up Your Bucket
@@ -195,7 +195,7 @@ Pausing a zone (the *Disable* toggle) is the same operation as delete for the ho
 
 The first version of this feature shipped in an afternoon. Getting it to a place where I'd trust it with vendor invoices took weeks. A few details:
 
-- **Account-scoped storage.** Drop zones are stored locally in `electron-store`, keyed by AWS account identifier. Switching to another profile in Buckets by ServerlessCreed can't surface another seat's zones — even if both seats share the same Mac user.
+- **Account-scoped storage.** Drop zones are stored in encrypted local application storage, keyed by AWS account identifier. Switching to another profile in Buckets by ServerlessCreed can't surface another seat's zones — even if both seats share the same Mac user.
 - **Per-account cap of 50 zones.** Prevents the local store from growing unbounded. Delete an old zone before creating a 51st.
 - **Authorization stripped on cross-origin redirects.** When the upload page POSTs into S3, if S3 returns a 30x redirect to a different host (the wrong-region 301 case), any `Authorization` header gets dropped — same rule modern browsers enforce on `fetch`. We will not silently forward a bearer token across origins.
 - **Hosted pages are SSE-S3, no-cache, and use `robots: noindex,nofollow`.** A vendor upload page should not be cached by intermediaries and should not show up in Google.
@@ -243,7 +243,7 @@ Buckets by ServerlessCreed best-effort deletes any S3-hosted copies of the uploa
 
 ### Does Buckets by ServerlessCreed store the signed policy anywhere?
 
-No. Only the *inputs* (bucket, prefix, expiry, size limit, allowed types) are stored in your local `electron-store`. The policy and its signature are re-derived on demand every time you open the zone, view the HTML, or click *Host on S3*. The signing key never leaves your machine.
+No. Only the *inputs* (bucket, prefix, expiry, size limit, allowed types) are stored in encrypted local application storage. The policy and its signature are re-derived on demand every time you open the zone, view the HTML, or click *Host on S3*. The signing key never leaves your machine.
 
 ### What's the difference between an S3 presigned URL and a presigned POST policy?
 

@@ -9,7 +9,7 @@ This page describes the current architecture and assurance posture of Buckets by
 
 - Buckets by ServerlessCreed has **not yet passed an AWS Foundational Technical Review (FTR)** and does not currently claim the AWS Qualified Software badge.
 - An AWS Marketplace listing is in preparation. No Marketplace availability, AWS certification, sponsorship, or endorsement is claimed until AWS makes it active.
-- We do not currently claim the AWS Marketplace **“deployed on AWS”** designation. Because the product is an Electron desktop client, qualification under AWS's customer-side agent exception requires written confirmation from AWS Marketplace.
+- We do not currently claim the AWS Marketplace **“deployed on AWS”** designation. Because the product is a cross-platform desktop client, qualification under AWS's customer-side agent exception requires written confirmation from AWS Marketplace.
 - An independent penetration test has **not yet been completed**. It is planned, but is not represented as an existing assurance.
 
 ## Architecture and customer-data path
@@ -34,7 +34,7 @@ The ServerlessCreed control plane handles sign-in, subscription and entitlement 
 
 ## Credential storage
 
-AWS credentials are resolved locally through the standard AWS credential chain. When a user deliberately saves a static AWS profile, it is stored in the standard owner-only shared AWS credentials file. Other protected application values use Electron `safeStorage` and the operating-system keychain. When secure OS storage is unavailable, new secrets are not persistently stored by the app and the user may need to authenticate again.
+AWS credentials are resolved locally through the standard AWS credential chain. When a user deliberately saves a static AWS profile, it is stored in the standard owner-only shared AWS credentials file. Other protected application values use operating-system-backed secure storage. When secure OS storage is unavailable, new secrets are not persistently stored by the app and the user may need to authenticate again.
 
 Customers should prefer short-lived AWS SSO or role credentials, use least-privilege IAM policies, enable workstation encryption, and avoid long-lived access keys.
 

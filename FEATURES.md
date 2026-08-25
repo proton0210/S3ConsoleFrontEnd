@@ -1,6 +1,6 @@
 # Serverless Buckets - Feature Reference
 
-A powerful desktop S3 client built with Electron, React, and the AWS SDK v3.
+A powerful cross-platform desktop S3 client built with React and the AWS SDK v3.
 
 ---
 
@@ -248,7 +248,7 @@ Generate and execute AWS CLI commands.
 
 | Feature                | Description                                       |
 | ---------------------- | ------------------------------------------------- |
-| Secure Storage         | Credentials stored via electron-store (encrypted) |
+| Secure Storage         | Credentials stored in encrypted local application storage |
 | Machine ID Binding     | License tied to hardware fingerprint              |
 | Clock Tamper Detection | Prevents trial manipulation                       |
 | Credential Validation  | Auto-detect invalid/expired credentials           |
@@ -288,7 +288,7 @@ Generate and execute AWS CLI commands.
 
 ## 🛠️ Tech Stack
 
-- **Electron** 35.x
+- **Cross-platform desktop runtime**
 - **React** 19.x
 - **TypeScript** 5.x
 - **AWS SDK v3** (S3, STS, SSO, CloudFront, CloudWatch, DynamoDB)
@@ -304,7 +304,7 @@ Generate and execute AWS CLI commands.
 ```
 s3Console/
 ├── packages/
-│   ├── main/           # Electron main process
+│   ├── main/           # Desktop application process
 │   │   └── src/
 │   │       ├── index.ts              # Main entry, IPC handlers
 │   │       ├── preload.ts            # Context bridge API

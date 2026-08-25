@@ -237,7 +237,7 @@ If you request deletion of your data under Section 10 below, we will delete or a
 
 - Encryption of data in transit (HTTPS/TLS) for all communications with our servers.
 - Encryption of payment data at the payment processor's end (PCI-DSS compliant).
-- Storage of AWS credentials locally through the standard credential chain, owner-only shared credential files, and the operating-system keychain through Electron safeStorage where available. New secrets are not persisted by the app when secure OS storage is unavailable. Prefer AWS SSO or short-lived roles and full-disk encryption.
+- Storage of AWS credentials locally through the standard credential chain, owner-only shared credential files, and operating-system-backed secure storage where available. New secrets are not persisted by the app when secure OS storage is unavailable. Prefer AWS SSO or short-lived roles and full-disk encryption.
 - Access controls and least-privilege principles for ServerlessCreed staff.
 - Periodic review of third-party processors.
 
