@@ -22,11 +22,11 @@ const FAQS = [
   },
   {
     q: "What does Buckets by ServerlessCreed have that Cyberduck doesn't?",
-    a: "AWS SSO and IAM Identity Center login (no copy-pasting access keys), AI code generation for the AWS SDK in JavaScript/Python/Go/Java, a visual bucket policy and CORS editor, an S3 cost estimator, multi-account profile pinning, and an inline preview that uses range requests so you don't download whole files. Cyberduck has none of these — it's a transfer client, not an S3 admin tool.",
+    a: "Buckets by ServerlessCreed includes AWS SSO and IAM Identity Center login, AWS SDK code generation, a visual bucket policy and CORS editor, an S3 cost estimator, multi-account profile pinning, and an inline preview that uses range requests. Cyberduck is primarily a general-purpose file-transfer client.",
   },
   {
     q: "Is Cyberduck still better for non-S3 cloud storage?",
-    a: "Yes. If you regularly use FTP, SFTP, WebDAV, Backblaze B2, Google Cloud Storage, OneDrive, or Dropbox alongside S3, Cyberduck's broader protocol support is genuinely useful. We'd recommend keeping Cyberduck for those cases and using Buckets by ServerlessCreed as your dedicated S3 tool. Many engineers run both.",
+    a: "Yes. If you regularly use FTP, SFTP, WebDAV, Backblaze B2, Google Cloud Storage, OneDrive, or Dropbox alongside S3, Cyberduck's broader protocol support is useful. You can keep Cyberduck for those protocols and use Buckets by ServerlessCreed as a dedicated S3 tool.",
   },
   {
     q: "Is Buckets by ServerlessCreed free like Cyberduck?",
@@ -113,13 +113,12 @@ export default function VsCyberduckPage() {
             Buckets by ServerlessCreed vs. Cyberduck
           </h1>
           <p className="text-xl text-slate-700 mb-2">
-            The best Cyberduck alternative for AWS S3 power users.
+            A focused Cyberduck alternative for AWS S3 workflows.
           </p>
           <p className="text-base text-slate-600 max-w-3xl mb-8">
-            Cyberduck is a great general-purpose file transfer client. But if
-            AWS S3 is where you spend most of your day, you&apos;ll quickly hit
-            its limits — no SSO, no policy editor, no SDK code generation, no
-            cost view. Buckets by ServerlessCreed picks up exactly where Cyberduck stops.
+            Cyberduck is a general-purpose file transfer client. Buckets by
+            ServerlessCreed focuses on S3 administration with AWS SSO, policy
+            editing, SDK code generation, and cost-estimation workflows.
           </p>
 
           <div className="flex flex-wrap gap-3">
@@ -178,7 +177,8 @@ export default function VsCyberduckPage() {
                 ))}
               </ul>
               <p className="text-xs text-slate-500 mt-4 italic">
-                Many teams run both — Cyberduck for breadth, Buckets by ServerlessCreed for S3.
+                The two apps can also be used together: Cyberduck for protocol
+                breadth and Buckets by ServerlessCreed for S3-focused workflows.
               </p>
             </div>
           </div>
@@ -230,7 +230,7 @@ export default function VsCyberduckPage() {
         {/* Migration */}
         <section className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <h2 className="text-3xl font-bold text-slate-900 mb-4">
-            Switching from Cyberduck takes about a minute
+            No data migration is required
           </h2>
           <ol className="space-y-4 text-slate-700">
             <li className="flex gap-3">

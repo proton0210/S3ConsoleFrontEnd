@@ -340,5 +340,3 @@ For questions about this EULA, License Key activation issues, or compliance enqu
 - **GSTIN:** 27FZZPS3310E1ZX
 
 ---
-
-> **Note on legal review.** This EULA is drafted to be commercially robust and modeled on the structure of mature commercial software EULAs (e.g., JetBrains, Microsoft, Adobe). Before publication, it should be reviewed and signed off by qualified Indian legal counsel — in particular for: enforceability of the "non-curable breach" categories under Indian contract law, the interaction between the Fallback License and termination clauses, alignment of the export-control language with current Indian law, and any India-specific consumer-law protections that may override clauses limiting warranties or remedies.

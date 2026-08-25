@@ -39,7 +39,7 @@ const FAQS = [
   },
   {
     q: "Is Buckets by ServerlessCreed better than Cyberduck for S3?",
-    a: "Buckets by ServerlessCreed is purpose-built for AWS S3, while Cyberduck is a general-purpose FTP/SFTP/cloud client. That focus means Buckets by ServerlessCreed has features Cyberduck doesn't — AWS SSO and IAM Identity Center login, AI code generation for the AWS SDK, an S3 cost estimator, and a visual bucket policy editor. If S3 is your daily driver, the workflow is faster on Buckets by ServerlessCreed.",
+    a: "Buckets by ServerlessCreed is purpose-built for AWS S3, while Cyberduck is a general-purpose FTP/SFTP/cloud client. Buckets adds S3-focused workflows including AWS SSO and IAM Identity Center login, AWS SDK code generation, an S3 cost estimator, and a visual bucket policy editor.",
   },
   {
     q: "Does Buckets by ServerlessCreed work on Mac, Windows, and Linux?",
@@ -108,7 +108,7 @@ export default function AwsS3ClientPage() {
           </nav>
 
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-slate-900 mb-4">
-            The fastest AWS S3 client for Mac, Windows, and Linux
+            A native AWS S3 client for Mac, Windows, and Linux
           </h1>
           <p className="text-lg text-slate-600 max-w-3xl mb-8">
             Buckets by ServerlessCreed is a native desktop S3 client built for engineers who live
@@ -148,8 +148,7 @@ export default function AwsS3ClientPage() {
           <p className="text-slate-600 mb-10 max-w-3xl">
             Most S3 clients are FTP apps with an S3 backend bolted on. Buckets by ServerlessCreed
             is built around how engineers actually work with AWS — multi-account
-            SSO, real IAM understanding, and the small things that save you ten
-            seconds, fifty times a day.
+            SSO, IAM-aware tools, and focused desktop workflows.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {[
@@ -208,7 +207,7 @@ export default function AwsS3ClientPage() {
             Buckets by ServerlessCreed vs. other AWS S3 clients
           </h2>
           <p className="text-slate-600 mb-8 max-w-3xl">
-            Here&apos;s how Buckets by ServerlessCreed stacks up against the most popular S3 clients
+            Here&apos;s how Buckets by ServerlessCreed stacks up against several S3 clients
             and the AWS web console for daily use.
           </p>
           <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">

@@ -455,5 +455,3 @@ For questions about these Terms, billing, support, or your Subscription, please 
 - **GSTIN:** 27FZZPS3310E1ZX
 
 ---
-
-> **Note on legal review.** This document is drafted to be commercially robust and modeled on the structure of mature commercial software EULAs (e.g., JetBrains). Before publication, it should be reviewed and signed off by qualified Indian legal counsel — in particular for: GST/withholding tax language under your specific tax registration, consumer-protection compliance under the Consumer Protection Act, 2019, IT Act / DPDP Act, 2023 alignment for the companion Privacy Policy, and cross-border enforceability if you sell internationally.

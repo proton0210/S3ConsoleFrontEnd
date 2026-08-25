@@ -1,9 +1,30 @@
 import Script from "next/script";
 import { siteConfig } from "@/lib/config";
+import { isValidElement } from "react";
 
 interface StructuredDataProps {
   type?: "website" | "software" | "faq" | "article";
-  data?: any;
+  data?: unknown;
+}
+
+function serializeJsonLd(value: unknown) {
+  return JSON.stringify(value)
+    .replace(/</g, "\\u003c")
+    .replace(/\u2028/g, "\\u2028")
+    .replace(/\u2029/g, "\\u2029");
+}
+
+function getTextContent(value: unknown): string {
+  if (typeof value === "string" || typeof value === "number") {
+    return String(value);
+  }
+  if (Array.isArray(value)) {
+    return value.map(getTextContent).join("");
+  }
+  if (isValidElement<{ children?: unknown }>(value)) {
+    return getTextContent(value.props.children);
+  }
+  return "";
 }
 
 export function StructuredData({ type = "website", data }: StructuredDataProps) {
@@ -152,7 +173,7 @@ export function StructuredData({ type = "website", data }: StructuredDataProps) 
       name: faq.question,
       acceptedAnswer: {
         "@type": "Answer",
-        text: typeof faq.answer === 'string' ? faq.answer : faq.answer.props.children,
+        text: getTextContent(faq.answer).replace(/\s+/g, " ").trim(),
       },
     })),
   };
@@ -178,14 +199,14 @@ export function StructuredData({ type = "website", data }: StructuredDataProps) 
         id={`structured-data-${type}`}
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(schema),
+          __html: serializeJsonLd(schema),
         }}
       />
       <Script
         id="structured-data-organization"
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(organizationSchema),
+          __html: serializeJsonLd(organizationSchema),
         }}
       />
       <Script

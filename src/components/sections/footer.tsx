@@ -71,7 +71,7 @@ export default function Footer() {
               </span>
             </Link>
             <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
-              The fastest AWS S3 client for Mac, Windows, and Linux.
+              A native AWS S3 client for Mac, Windows, and Linux.
             </p>
             <div className="flex items-center gap-3 mt-4">
               {SOCIALS.map(({ label, href, Icon }) => (
@@ -114,7 +114,7 @@ export default function Footer() {
             <Link href="/" className="hover:text-primary transition-colors">
               {siteConfig.name}
             </Link>
-            . The fastest AWS S3 client for Mac, Windows, and Linux.
+            . A native AWS S3 client for Mac, Windows, and Linux.
           </span>
           <span>Built for developers who live in AWS.</span>
         </div>

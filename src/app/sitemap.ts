@@ -9,7 +9,7 @@ import { MetadataRoute } from "next";
  *   - Priority is relative — homepage 1.0, money pages 0.9, content 0.8,
  *     legal/policy 0.4. Auth pages excluded; they have no SEO value.
  *   - changeFrequency is a hint, not a guarantee. Daily for the homepage
- *     because hero copy + testimonials shift; monthly for stable content.
+ *     because prominent product copy can shift; monthly for stable content.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl =

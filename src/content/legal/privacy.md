@@ -388,5 +388,3 @@ For any questions, requests, or complaints regarding this Privacy Policy or our 
 - **GSTIN:** 27FZZPS3310E1ZX
 
 ---
-
-> **Note on legal review.** This Privacy Policy is drafted to align with the Digital Personal Data Protection Act, 2023, the IT Act, 2000 and rules thereunder, and common international privacy regimes (GDPR, CCPA). Before Marketplace launch, it should be reviewed and signed off by qualified Indian legal counsel — in particular for: alignment with the DPDP Rules once notified, accuracy of retention periods against actual data-handling practices, alignment with AWS, Clerk, Dodo Payments, Resend, Google, Reddit, X, Google Workspace, and GitHub processing, and accuracy of cross-border transfer language against any future Central Government restrictions.

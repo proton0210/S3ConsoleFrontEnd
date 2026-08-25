@@ -25,12 +25,12 @@ import {
 
 const FAQS = [
   {
-    q: "What is the best AWS S3 GUI for Mac?",
+    q: "What is an AWS S3 GUI for Mac?",
     a: "Buckets by ServerlessCreed is a macOS S3 desktop client built for Apple Silicon Macs. It supports drag-and-drop uploads, side-by-side bucket browsing, AWS SSO login, multi-profile switching, and a visual bucket policy editor. Cyberduck and Transmit also have S3 support, but they're general-purpose file transfer apps; Buckets by ServerlessCreed is purpose-built for S3.",
   },
   {
     q: "Does AWS provide an official S3 GUI?",
-    a: "AWS provides the S3 console — a web-based GUI in the AWS Management Console. It works for occasional tasks but has noticeable lag, no offline capability, and no support for desktop conveniences like drag-and-drop, multiple windows, or local file previews. A native desktop S3 GUI like Buckets by ServerlessCreed is significantly faster for day-to-day work.",
+    a: "AWS provides the S3 console, a web-based GUI in the AWS Management Console. It supports common bucket and object-management tasks. A native desktop client such as Buckets by ServerlessCreed adds local desktop workflows, multi-profile switching, and file previews.",
   },
   {
     q: "Can I preview files in Buckets by ServerlessCreed without downloading them?",
@@ -95,7 +95,7 @@ export default function AwsS3GuiPage() {
           </nav>
 
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-slate-900 mb-4">
-            A real AWS S3 GUI — fast, native, cross-platform
+            A native AWS S3 GUI for Mac, Windows, and Linux
           </h1>
           <p className="text-lg text-slate-600 max-w-3xl mb-8">
             Buckets by ServerlessCreed is a desktop S3 GUI for engineers who&apos;d rather click

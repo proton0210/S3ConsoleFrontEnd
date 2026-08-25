@@ -51,7 +51,7 @@ const nextConfig = {
     ];
   },
   images: {
-    remotePatterns: [{ hostname: "localhost" }, { hostname: "randomuser.me" }],
+    remotePatterns: [{ hostname: "localhost" }],
   },
   // Never put secrets in next.config `env`. Next replaces those values at
   // build time, which destroys the server/runtime boundary and can copy them

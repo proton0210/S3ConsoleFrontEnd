@@ -372,7 +372,7 @@ export default function Comparison() {
     <Section
       title="Comparison"
       subtitle="Buckets vs. Everything Else"
-      description="The only S3 desktop client with code generation, in-app execution, and native AWS Identity Center support."
+      description="Compare common S3 workflows and capabilities across desktop clients and the AWS Console."
     >
       {/* Mobile view — card list with a rival picker (hidden on md+) */}
       <motion.div
@@ -524,6 +524,11 @@ export default function Comparison() {
           </table>
         </div>
       </motion.div>
+
+      <p className="mt-4 text-center text-xs text-muted-foreground">
+        Third-party features and availability can change. Verify current details
+        with each vendor before making a purchase decision.
+      </p>
 
     </Section>
   );
