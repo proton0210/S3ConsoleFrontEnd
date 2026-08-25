@@ -52,6 +52,8 @@ const NAV = [
       { label: "Terms", href: "/terms" },
       { label: "Refunds", href: "/refund-policy" },
       { label: "EULA", href: "/eula" },
+      { label: "Trust Center", href: "/trust" },
+      { label: "Marketplace EULA", href: "/marketplace-eula" },
     ],
   },
 ];

@@ -16,7 +16,7 @@ if (configuredDynamoCredentialVars.length > 0) {
 const securityHeaders = [
   {
     key: "Strict-Transport-Security",
-    value: "max-age=31536000",
+    value: "max-age=31536000; includeSubDomains",
   },
   {
     key: "X-Content-Type-Options",
@@ -30,10 +30,15 @@ const securityHeaders = [
     key: "X-Frame-Options",
     value: "SAMEORIGIN",
   },
+  {
+    key: "Permissions-Policy",
+    value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+  },
 ];
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  poweredByHeader: false,
   turbopack: {
     root: process.cwd(),
   },
@@ -47,13 +52,6 @@ const nextConfig = {
   },
   images: {
     remotePatterns: [{ hostname: "localhost" }, { hostname: "randomuser.me" }],
-  },
-  typescript: {
-    // !! WARN !!
-    // Dangerously allow production builds to successfully complete even if
-    // your project has type errors.
-    // !! WARN !!
-    ignoreBuildErrors: true,
   },
   // Never put secrets in next.config `env`. Next replaces those values at
   // build time, which destroys the server/runtime boundary and can copy them

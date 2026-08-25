@@ -74,6 +74,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     ...blogEntries,
 
+    // Public security and Marketplace disclosures
+    {
+      url: `${baseUrl}/trust`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/marketplace-eula`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.3,
+    },
+
     // Legal / policy
     {
       url: `${baseUrl}/terms`,

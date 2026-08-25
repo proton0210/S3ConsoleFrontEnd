@@ -155,6 +155,16 @@ export default function BillingDashboardPage() {
    * doesn't re-poll.
    */
   async function initLoad() {
+    const marketplace = await fetch("/api/marketplace/status", { cache: "no-store" });
+    if (marketplace.ok) {
+      router.replace("/account/marketplace");
+      return;
+    }
+    if (marketplace.status !== 404) {
+      setError("We could not safely determine whether billing is managed by AWS Marketplace. Retry before changing a plan or payment method.");
+      setLoading(false);
+      return;
+    }
     const initial = await loadUserData();
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);

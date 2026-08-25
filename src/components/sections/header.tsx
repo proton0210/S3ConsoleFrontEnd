@@ -151,6 +151,15 @@ export default function Header() {
                 >
                   Billing
                 </Link>
+                <Link
+                  href="/account/marketplace"
+                  className={cn(
+                    buttonVariants({ variant: "ghost" }),
+                    "hidden xl:inline-flex"
+                  )}
+                >
+                  Marketplace
+                </Link>
                 {!isDownloadsPage && (
                   <Link
                     href="/downloads"
