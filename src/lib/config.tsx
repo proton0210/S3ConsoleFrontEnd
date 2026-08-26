@@ -261,7 +261,6 @@ export const siteConfig = {
       title: "Company",
       links: [
         { href: "#", text: "About Us", icon: null },
-        { href: "#", text: "Careers", icon: null },
         { href: "#", text: "Press", icon: null },
         { href: "#", text: "Partners", icon: null },
       ],

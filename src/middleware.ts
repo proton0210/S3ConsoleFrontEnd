@@ -5,7 +5,6 @@ const publicRoutes = [
   "/",
   "/sign-in(.*)",
   "/sign-up(.*)",
-  "/internship",
   "/privacy",
   "/terms",
   "/eula",
