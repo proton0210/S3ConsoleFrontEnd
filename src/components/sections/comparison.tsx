@@ -99,7 +99,7 @@ const categories: { name: string; features: ComparisonFeature[] }[] = [
         feature: "AWS SSO / IAM Identity Center",
         s3console: true,
         awsConsole: true,
-        cyberduck: "Via CLI",
+        cyberduck: "9.5+ / CLI",
         transmit: false,
         cloudberry: false,
         s3browser: true,
@@ -181,7 +181,7 @@ const categories: { name: string; features: ComparisonFeature[] }[] = [
         filezilla: false,
       },
       {
-        feature: "Real-Time Cost Estimation",
+        feature: "Storage Cost Estimate",
         s3console: true,
         awsConsole: "Separate billing",
         cyberduck: false,
@@ -207,8 +207,8 @@ const categories: { name: string; features: ComparisonFeature[] }[] = [
       },
       {
         feature: "Presigned URL Generation",
-        s3console: "2 clicks",
-        awsConsole: "8+ steps",
+        s3console: true,
+        awsConsole: true,
         cyberduck: true,
         transmit: false,
         cloudberry: "Pro only",
@@ -371,7 +371,7 @@ export default function Comparison() {
   return (
     <Section
       title="Comparison"
-      subtitle="Buckets vs. Everything Else"
+      subtitle="Compare S3 workflows"
       description="Compare common S3 workflows and capabilities across desktop clients and the AWS Console."
     >
       {/* Mobile view — card list with a rival picker (hidden on md+) */}
@@ -526,8 +526,9 @@ export default function Comparison() {
       </motion.div>
 
       <p className="mt-4 text-center text-xs text-muted-foreground">
-        Third-party features and availability can change. Verify current details
-        with each vendor before making a purchase decision.
+        Authentication details reviewed September 5, 2026. Cyberduck 9.5+ supports IAM Identity Center directly, and also supports AWS CLI credentials. See the{" "}
+        <a href="https://docs.cyberduck.io/protocols/s3/" className="underline">Cyberduck S3 docs</a>{" "}
+        and <a href="https://s3browser.com/amazon-s3-via-sso-single-sign-on.aspx" className="underline">S3 Browser SSO docs</a>. Other capabilities depend on version and configuration; check the vendor documentation for your workflow.
       </p>
 
     </Section>

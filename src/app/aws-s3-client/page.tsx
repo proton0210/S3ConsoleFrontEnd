@@ -55,7 +55,7 @@ const FAQS = [
   },
   {
     q: "Can I generate presigned S3 URLs with Buckets by ServerlessCreed?",
-    a: "Yes. Buckets by ServerlessCreed has a built-in presigned URL generator — pick the object, set the expiration, optionally restrict to specific HTTP methods or IP ranges, and copy the URL. The generated URLs are standard AWS-signed URLs you can share with anyone, including users without AWS accounts.",
+    a: "Yes. Buckets by ServerlessCreed has a built-in presigned URL generator — pick the object, set the expiration, and copy the download URL. Temporary AWS credentials can expire before the selected link lifetime. The generated URLs are standard AWS-signed URLs you can share with anyone, including users without AWS accounts.",
   },
 ];
 
@@ -160,7 +160,7 @@ export default function AwsS3ClientPage() {
               {
                 icon: FaUserSecret,
                 title: "AWS SSO &amp; IAM Identity Center",
-                body: "Sign in with your existing AWS SSO profile. Switch accounts and roles with a keystroke. No copy-pasting access keys, no expired credentials at the worst moment.",
+                body: "Sign in with your existing AWS SSO profile. Switch accounts and roles with a keystroke. Use short-lived credentials; expired sessions may require sign-in.",
               },
               {
                 icon: FaShieldAlt,
@@ -225,8 +225,8 @@ export default function AwsS3ClientPage() {
                 {[
                   ["macOS desktop app", "yes", "no", "yes", "no"],
                   ["Windows desktop app", "yes", "no", "yes", "yes"],
-                  ["Linux desktop app", "yes", "no", "yes", "no"],
-                  ["AWS SSO / IAM Identity Center", "yes", "yes", "no", "no"],
+                  ["Linux desktop app", "yes", "no", "no", "no"],
+                  ["AWS SSO / IAM Identity Center", "yes", "yes", "9.5+", "yes"],
                   ["Visual bucket policy editor", "yes", "json", "no", "no"],
                   ["AI code generation", "yes", "no", "no", "no"],
                   ["Presigned URL generator", "yes", "yes", "yes", "yes"],

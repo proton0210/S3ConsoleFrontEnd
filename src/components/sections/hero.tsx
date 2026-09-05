@@ -24,7 +24,7 @@ function HeroPill() {
         className="flex w-auto items-center space-x-2 rounded-full bg-gradient-to-r from-primary/20 to-primary/5 px-4 py-1.5 ring-1 ring-primary/20 whitespace-pre transition-all hover:from-primary/30 hover:to-primary/10"
       >
         <p className="text-xs font-medium text-primary sm:text-sm">
-          Buckets vs The Rest
+          Compare S3 workflows
         </p>
         <svg
           width="12"
@@ -87,7 +87,7 @@ function HeroTitles() {
           ease,
         }}
       >
-        A focused desktop client for Amazon S3 and S3-compatible storage.
+        Connect your AWS accounts, browse buckets, and transfer or share files from one desktop app for Mac, Windows, and Linux.
       </motion.p>
     </div>
   );

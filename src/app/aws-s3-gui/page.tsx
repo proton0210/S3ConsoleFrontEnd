@@ -33,8 +33,8 @@ const FAQS = [
     a: "AWS provides the S3 console, a web-based GUI in the AWS Management Console. It supports common bucket and object-management tasks. A desktop client such as Buckets by ServerlessCreed adds local desktop workflows, multi-profile switching, and file previews.",
   },
   {
-    q: "Can I preview files in Buckets by ServerlessCreed without downloading them?",
-    a: "Yes. Buckets by ServerlessCreed renders previews of common file types (images, PDFs, JSON, CSV, log files, code files) directly in the app using S3 ranged GETs — only the bytes needed for the preview are downloaded, so it's fast even for large files.",
+    q: "Can I preview files inside Buckets by ServerlessCreed?",
+    a: "Yes. Buckets displays supported images and text inside the app. Previewing retrieves content from S3 and can incur request, retrieval, and transfer charges. Available previews depend on file type and size.",
   },
   {
     q: "Does Buckets by ServerlessCreed support drag-and-drop?",
@@ -146,7 +146,7 @@ export default function AwsS3GuiPage() {
               {
                 icon: FaEye,
                 title: "Inline preview for objects",
-                body: "Images, PDFs, JSON, CSV, code, logs — previewed directly without a full download. Range requests fetch only the bytes you actually see.",
+                body: "Preview supported images and text inside the app. Previews retrieve content from S3; available formats and size limits depend on the viewer.",
               },
               {
                 icon: FaListUl,

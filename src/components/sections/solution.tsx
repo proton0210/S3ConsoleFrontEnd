@@ -44,7 +44,7 @@ const features = [
   {
     title: "AI Code Generation",
     description:
-      "Generate production-ready code snippets for your S3 operations using AI-powered suggestions. Support for TypeScript, JavaScript, Python, and Java with intelligent context awareness.",
+      "Generate editable S3 operation snippets in TypeScript, JavaScript, and Python. Review permissions and test generated code in your environment before running it.",
     className:
       "md:row-span-2 hover:bg-purple-500/10 transition-all duration-500 ease-out",
     content: (

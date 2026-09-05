@@ -17,7 +17,7 @@ const productName =
     : configuredProductName.trim();
 const productDescription =
   process.env.NEXT_PUBLIC_PRODUCT_DESCRIPTION ||
-  "Buckets by ServerlessCreed is a cross-platform desktop client for Amazon S3 and compatible object storage on Mac, Windows, and Linux, with AI code generation, presigned URLs, multi-profile SSO, and a visual bucket policy editor. Free 14-day trial, no credit card.";
+  "Buckets by ServerlessCreed is a cross-platform desktop client for Amazon S3 and compatible object storage on Mac, Windows, and Linux, for browsing buckets, transferring files, sharing links, and managing multiple AWS accounts. Free 14-day trial, no credit card.";
 
 export const siteConfig = {
   name: productName,
@@ -168,10 +168,10 @@ export const siteConfig = {
       question: "How can I get started with Buckets?",
       answer: (
         <span>
-          You can get started with Buckets by downloading the app from our
-          website, connecting your AWS credentials, and following our
-          quick-start guide. We also offer tutorials and documentation to help
-          you along the way.
+          Download and open Buckets, select an existing AWS CLI profile or sign in
+          through IAM Identity Center, then choose a bucket. Start by browsing
+          objects or transferring a small test file. Your AWS permissions
+          determine which actions are available.
         </span>
       ),
     },
@@ -185,6 +185,26 @@ export const siteConfig = {
           latest S3 capabilities.
         </span>
       ),
+    },
+    {
+      question: "Does Upload from URL use my computer's disk and network?",
+      answer: <span>Yes. Buckets downloads the source into a temporary local file, then uploads it to S3. Keep enough disk space for the file. Both transfer legs use your network. Interrupted source downloads resume when the source supports safe range requests; otherwise they restart.</span>,
+    },
+    {
+      question: "What can Time Travel restore?",
+      answer: <span>Time Travel reconstructs an earlier state from retained S3 versions and delete markers. Each scan is capped at 200,000 entries. If that limit is reached, narrow the prefix and scan again; bulk restore is blocked for incomplete scans. Permanently deleted versions cannot be recovered. Review the plan and per-object results before treating recovery as complete.</span>,
+    },
+    {
+      question: "Does a security scan examine every byte in my bucket?",
+      answer: <span>No. The scanner samples content. Defaults are up to 5,000 objects, up to 1 MiB per object, and skipping objects larger than 50 MiB. Findings can miss sensitive data or flag harmless content. Review findings before remediation; a clean scan does not certify that a bucket is secure.</span>,
+    },
+    {
+      question: "Are inventory search and cost estimates live AWS data?",
+      answer: <span>The local search index reflects the S3 Inventory report you last imported. Local index queries do not list objects in S3, but creating and importing reports can incur AWS charges. Storage estimates use bucket size and Standard-tier pricing; they are not a full bill. Cost Explorer data has its own reporting delay and requires permissions; bucket attribution also depends on cost-allocation tags.</span>,
+    },
+    {
+      question: "Do all features work with every S3-compatible provider?",
+      answer: <span>Support depends on the provider&apos;s API and configuration. Test the operations you need during the trial. AWS services such as Athena, CloudFront, and IAM Identity Center require the corresponding AWS setup and permissions.</span>,
     },
     {
       question: "Is Buckets suitable for beginners using Amazon S3?",

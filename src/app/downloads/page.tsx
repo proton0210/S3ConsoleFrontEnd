@@ -26,7 +26,6 @@ import {
   FaInfoCircle,
   FaPlus,
 } from "react-icons/fa";
-import { HiSparkles } from "react-icons/hi";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect, useRef } from "react";
 import confetti from "canvas-confetti";
@@ -372,7 +371,7 @@ export default function DownloadsPage() {
               credit card. No signup.
             </p>
             <p className="text-sm text-slate-500 mb-10">
-              Trial is locked to your machine — full access to every feature.
+              14 days to try your own workflows before choosing a plan.
             </p>
 
             {/* Primary download — big, centered */}
@@ -454,12 +453,18 @@ export default function DownloadsPage() {
               </div>
             </div>
 
+            <p className="mx-auto mt-6 max-w-xl text-sm text-slate-600">
+              Windows downloads on this page use Microsoft Store. For details on
+              credential storage, data handling, and current security assurance, see our{" "}
+              <Link href="/trust" className="underline hover:text-primary">Trust Center</Link>.
+            </p>
+
             {/* What happens next — three quick reassurances */}
             <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto">
               {[
-                { icon: FaDownload, title: "Download", body: "Installer for your OS" },
-                { icon: FaCheck, title: "Install & open", body: "Trial starts automatically" },
-                { icon: HiSparkles, title: "14 days free", body: "Pick a plan only if it fits" },
+                { icon: FaDownload, title: "Install & open", body: "Choose the package for your OS" },
+                { icon: FaKey, title: "Connect an account", body: "Use an AWS CLI profile or IAM Identity Center" },
+                { icon: FaCheck, title: "Browse & transfer", body: "Choose a bucket and try a small file" },
               ].map(({ icon: Icon, title, body }) => (
                 <div
                   key={title}

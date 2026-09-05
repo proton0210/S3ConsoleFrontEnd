@@ -16,9 +16,9 @@ const ITEMS: ShowcaseItem[] = [
   {
     type: "video",
     title: "Upload from URL",
-    caption: "Pull a file straight from any link into your bucket — no local download.",
+    caption: "Paste a URL. Buckets handles the download and upload to S3, with resumable transfers.",
     src: "/media/upload-from-url.mp4",
-    alt: "Buckets by ServerlessCreed uploading a file to an S3 bucket directly from a URL",
+    alt: "Buckets by ServerlessCreed uploading a file to an S3 bucket from a URL",
   },
   {
     type: "video",

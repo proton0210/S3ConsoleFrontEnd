@@ -25,8 +25,8 @@ export default function Home() {
       <StructuredData type="faq" />
       <Header />
       <Hero />
-      <Comparison />
       <Features />
+      <Comparison />
       <Pricing />
       <FAQ />
       <CTA />

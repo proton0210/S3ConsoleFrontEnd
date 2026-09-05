@@ -111,7 +111,7 @@ export function StructuredData({ type = "website", data }: StructuredDataProps) 
       "AI-powered code generation for S3 operations",
       "Secure presigned URL generation with custom expiration",
       "Multi-profile AWS account support with SSO",
-      "Smart object preview without downloads",
+      "Object previews inside the app; content is retrieved from S3",
       "Drag-and-drop and bulk file operations",
       "Bucket policy generator with visual editor",
       "S3 cost estimation and access analyzer",

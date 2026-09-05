@@ -18,11 +18,11 @@ import { FaCheck, FaTimes, FaDownload, FaArrowRight } from "react-icons/fa";
 const FAQS = [
   {
     q: "Is Buckets by ServerlessCreed a good Cyberduck alternative?",
-    a: "Yes — if AWS S3 is your primary use case. Cyberduck is a great general-purpose file transfer client (FTP, SFTP, WebDAV, S3, B2, GCS, OneDrive, etc.), but its S3 support is one tab among many. Buckets by ServerlessCreed is purpose-built for S3 and includes features Cyberduck doesn't: AWS SSO/IAM Identity Center login, AI code generation for the AWS SDK, a visual bucket policy editor, S3 cost estimation, and multi-profile session management.",
+    a: "Buckets may be a good fit if you regularly manage S3 across AWS accounts and want transfers, policies, recovery, and SDK snippets in one app. Cyberduck is a general-purpose file transfer client with S3 support, including IAM Identity Center in version 9.5 and later. Try the workflows you use most before choosing.",
   },
   {
-    q: "What does Buckets by ServerlessCreed have that Cyberduck doesn't?",
-    a: "Buckets by ServerlessCreed includes AWS SSO and IAM Identity Center login, AWS SDK code generation, a visual bucket policy and CORS editor, an S3 cost estimator, multi-account profile pinning, and an inline preview that uses range requests. Cyberduck is primarily a general-purpose file-transfer client.",
+    q: "How does the Buckets workflow differ from Cyberduck?",
+    a: "Buckets brings S3 administration, SDK code generation, cost estimation, and account switching into a desktop workspace. Both products support S3 authentication and transfers; Cyberduck also documents version recovery and CORS configuration. The difference to evaluate is how the complete workflow fits your work.",
   },
   {
     q: "Is Cyberduck still better for non-S3 cloud storage?",
@@ -30,15 +30,15 @@ const FAQS = [
   },
   {
     q: "Is Buckets by ServerlessCreed free like Cyberduck?",
-    a: "Cyberduck is donationware — free to use with a nag screen. Buckets by ServerlessCreed offers a 14-day free trial with full feature access, then $9/month, $79/year, or $149 one-time for lifetime access. The trial doesn't require a credit card.",
+    a: "Cyberduck is donationware — free to download, with donations and paid store versions. Buckets by ServerlessCreed offers a 14-day free trial with full feature access, then $9/month, $79/year, or $149 one-time for lifetime access. The trial doesn't require a credit card.",
   },
   {
     q: "How do I migrate from Cyberduck to Buckets by ServerlessCreed?",
-    a: "There's no migration step needed. Buckets by ServerlessCreed reads your existing AWS CLI credentials, AWS SSO config, and IAM Identity Center sessions automatically. Install Buckets by ServerlessCreed, sign in with the same AWS profile you used in Cyberduck, and your buckets show up immediately.",
+    a: "Your objects stay in S3. Install Buckets, select an existing AWS CLI profile or sign in through IAM Identity Center, and choose your account and region. Access depends on that profile's IAM permissions, and an expired session may require sign-in.",
   },
   {
-    q: "Does Buckets by ServerlessCreed run on Mac, Windows, and Linux like Cyberduck?",
-    a: "Yes — Buckets by ServerlessCreed supports macOS, Windows 10/11, and Linux. Windows installation and updates are delivered through Microsoft Store; macOS and Linux use platform-specific packages.",
+    q: "Which desktop platforms do Buckets and Cyberduck support?",
+    a: "Buckets offers desktop packages for macOS, Windows, and Linux. The download page directs Windows users to Microsoft Store. Cyberduck offers its desktop app on macOS and Windows; its separate command-line tool is also available on Linux.",
   },
 ];
 
@@ -70,15 +70,15 @@ const COMPARISON_ROWS: { feature: string; ours: string; cd: string; note?: strin
   { feature: "Built specifically for AWS S3", ours: "yes", cd: "no", note: "Cyberduck supports 10+ protocols; S3 is one of them" },
   { feature: "macOS desktop app", ours: "yes", cd: "yes" },
   { feature: "Windows desktop app", ours: "yes", cd: "yes" },
-  { feature: "Linux desktop app", ours: "yes", cd: "yes" },
-  { feature: "AWS SSO / IAM Identity Center login", ours: "yes", cd: "no" },
+  { feature: "Linux desktop app", ours: "yes", cd: "no", note: "Cyberduck has a separate command-line tool for Linux" },
+  { feature: "AWS SSO / IAM Identity Center login", ours: "yes", cd: "9.5+", note: "Cyberduck also supports credentials managed through the AWS CLI" },
   { feature: "Multi-profile session manager", ours: "yes", cd: "limited" },
   { feature: "AI code generation (SDK snippets)", ours: "yes", cd: "no" },
   { feature: "Visual bucket policy editor", ours: "yes", cd: "no" },
-  { feature: "Visual CORS editor", ours: "yes", cd: "no" },
+  { feature: "CORS configuration", ours: "yes", cd: "yes" },
   { feature: "S3 cost estimator", ours: "yes", cd: "no" },
   { feature: "Presigned URL generator", ours: "yes", cd: "yes" },
-  { feature: "Inline preview (range GETs)", ours: "yes", cd: "no" },
+  { feature: "File preview", ours: "In app", cd: "Quick Look" },
   { feature: "Drag-and-drop transfers", ours: "yes", cd: "yes" },
   { feature: "Versioning UI", ours: "yes", cd: "yes" },
   { feature: "Other protocols (FTP/SFTP/WebDAV)", ours: "no", cd: "yes" },
@@ -146,7 +146,7 @@ export default function VsCyberduckPage() {
               <ul className="space-y-2 text-sm text-slate-800">
                 {[
                   "AWS S3 is your daily-driver storage.",
-                  "You use AWS SSO or IAM Identity Center.",
+                  "You want S3 administration and account switching in one workspace.",
                   "You manage multiple AWS accounts/profiles.",
                   "You write AWS SDK code and want generated snippets.",
                   "You edit bucket policies and CORS rules regularly.",
@@ -167,7 +167,7 @@ export default function VsCyberduckPage() {
                 {[
                   "Most of your transfers are FTP, SFTP, or WebDAV.",
                   "You use B2, GCS, OneDrive, or Dropbox alongside S3.",
-                  "S3 is occasional and access-key auth is fine.",
+                  "Your current S3 transfer and authentication workflow already fits.",
                   "You're happy with the AWS web console for admin tasks.",
                 ].map((line) => (
                   <li key={line} className="flex items-start gap-2">
@@ -190,9 +190,9 @@ export default function VsCyberduckPage() {
             Feature-by-feature: Buckets by ServerlessCreed vs Cyberduck
           </h2>
           <p className="text-slate-600 mb-8 max-w-3xl">
-            Compared as of {new Date().getFullYear()}. Both apps ship updates
-            regularly — verify current capabilities on each vendor&apos;s site
-            before deciding.
+            Authentication and platform details reviewed September 5, 2026. See the{" "}
+            <a href="https://docs.cyberduck.io/protocols/s3/" className="underline">Cyberduck S3 documentation</a>{" "}
+            for supported authentication, versioning, and configuration workflows.
           </p>
           <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
             <table className="w-full text-sm">
