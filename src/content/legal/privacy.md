@@ -1,8 +1,8 @@
 # Buckets by ServerlessCreed — Privacy Policy
 
 **Effective Date:** 22 May 2026
-**Last Updated:** 25 August 2026
-**Version:** 1.2
+**Last Updated:** 10 September 2026
+**Version:** 1.3
 
 This Privacy Policy describes how **Serverless Creed** ("**ServerlessCreed**", "**we**", "**us**", or "**our**") — a sole proprietorship organized under the laws of India, operating under GSTIN 27FZZPS3310E1ZX, with principal place of business at Khetwadi-11, Mumbai, India — collects, uses, shares, and protects personal information in connection with the Buckets by ServerlessCreed desktop application, the website at https://buckets.serverlesscreed.com, and related services (collectively, the "**Services**").
 
@@ -18,7 +18,7 @@ By using the Services, you acknowledge that you have read and understood this Po
 
 Before the legal detail, here is what matters most:
 
-- **Buckets by ServerlessCreed runs locally on your computer.** Your AWS credentials, S3 object contents, bucket listings, and other AWS data are sent **directly from your machine to AWS** using credentials you provide. They are **not routed through, stored on, or accessible to ServerlessCreed's servers**.
+- **Buckets by ServerlessCreed runs locally on your computer.** S3 file transfers and AWS API requests go **directly from your machine to AWS** using credentials you provide. ServerlessCreed does not proxy those transfers or collect AWS secret keys or S3 file contents. **Account-connected folder-sync profile metadata is sent to our account service**, as described in Section 4.1(e).
 - We collect only the personal information needed to operate the Services: your **email and authentication identity** (through Clerk), a **device fingerprint** (to prevent license abuse), **payment information** (handled by Dodo Payments — we do not store card numbers), and **optional diagnostics**.
 - Our website uses **Google Analytics** for traffic measurement and **Reddit and Twitter (X) conversion pixels** for marketing attribution. These providers may set or read cookies and similar identifiers as described below.
 - We do not sell your personal information.
@@ -42,7 +42,7 @@ For purposes of this Policy:
 
 2.5 **"Processing"** means any operation performed on Personal Information, including collection, storage, use, disclosure, alteration, and erasure.
 
-2.6 **"Customer Content"** means data accessed, viewed, modified, uploaded, or downloaded by you using Buckets by ServerlessCreed in connection with your own AWS account (including S3 object contents, bucket listings, metadata, and AWS credentials). Customer Content is **not** Personal Information of ServerlessCreed for purposes of this Policy; you are the data fiduciary/controller of Customer Content.
+2.6 **"Customer Content"** means data accessed, viewed, modified, uploaded, or downloaded by you using Buckets by ServerlessCreed in connection with your own AWS account (including S3 object contents, bucket listings, metadata, and AWS credentials). You control Customer Content in your AWS account. The limited folder-sync metadata processed by our account service is covered by this Policy and may include Personal Information, as described in Section 4.1(e).
 
 ---
 
@@ -58,7 +58,7 @@ For purposes of this Policy:
 
 (a) **Amazon Web Services (AWS)**, which is operated independently by Amazon Web Services, Inc. Your use of AWS is governed by AWS's own privacy notices and your agreement with AWS.
 (b) **Third-party services** linked from the Services (e.g., payment processors, identity providers). These services have their own privacy policies, which you should review.
-(c) **Customer Content**, which you control and which does not pass through our infrastructure.
+(c) Processing of Customer Content within your AWS account, which you control. Our processing of the limited folder-sync metadata described in Section 4.1(e) is covered by this Policy.
 
 ---
 
@@ -83,6 +83,8 @@ We collect Personal Information in three ways: (a) you provide it directly, (b) 
 (c) **Support communications.** When you contact us by email or other channels, we receive any information you choose to provide, including your name, email, the content of your message, and any attachments.
 
 (d) **Feedback and surveys.** If you voluntarily participate in surveys, beta programs, or product feedback, we receive the responses you provide.
+
+(e) **Account-connected folder-sync metadata.** When you are signed in and create or update a folder-sync profile, the app sends profile metadata to ServerlessCreed's account service. This includes the profile and device identifiers, device name and platform, local folder path, bucket name, S3 prefix, AWS region and account/profile identifier, include/exclude patterns, sync settings, configured event-queue URL, and sync timestamps, status, and error text. Paths and error text may contain personal or project information. The service uses these records to display and maintain your sync profiles and status across signed-in devices. These records do not contain AWS secret keys or S3 file contents. Deleting a sync profile while connected also requests deletion of its account-service record; if the network is unavailable, the remote deletion may fail and you can contact support to remove the record. Account-data deletion and backup retention are described in Sections 8 and 10. Simply disabling a sync profile does not delete its stored metadata.
 
 ### 4.2 Information Collected Automatically
 
@@ -117,10 +119,10 @@ We collect Personal Information in three ways: (a) you provide it directly, (b) 
 
 ### 4.4 Information We Do **Not** Collect
 
-To be explicit, **the following Customer Content is NOT collected, transmitted to, or stored by ServerlessCreed**:
+Except for the account-connected folder-sync metadata described in Section 4.1(e) and information you deliberately send to support, ServerlessCreed does not collect the following through the desktop AWS data path:
 
 - The contents of S3 objects (files, blobs, documents) stored in your AWS account.
-- Bucket listings, prefixes, object keys, object metadata, or tags from your AWS account.
+- Full bucket listings, object contents, object metadata, and tags from ordinary AWS browsing. Bucket names, configured prefixes, local paths, and sync status/error text are included in account-connected sync-profile records.
 - AWS access keys, secret keys, session tokens, SSO tokens, or other AWS credentials.
 - IAM role names, IAM policies, or account-level AWS configuration.
 - Other AWS service data accessed through the Software (e.g., CloudFront distributions, Lambda functions, DynamoDB tables) within your account.
@@ -164,7 +166,7 @@ We share Personal Information only with the categories of recipients below, and 
 
 We engage third-party service providers to operate the Services. These providers process Personal Information for the stated purpose under their terms and our applicable agreements. Current providers include:
 
-- **Amazon Web Services (AWS)** — website, identity/licensing control plane, protected metadata stores, logs, backups, and update delivery. AWS does not receive Customer Content through ServerlessCreed; the desktop separately calls the customer's AWS account.
+- **Amazon Web Services (AWS)** — website, identity/licensing control plane, protected metadata stores, logs, backups, and update delivery. AWS hosts the account-connected sync metadata described in Section 4.1(e); S3 file contents and AWS credentials remain in the direct desktop-to-customer-AWS data path.
 - **Clerk** — account authentication, OAuth/provider linkage, session management, and profile data.
 - **Dodo Payments** — checkout, payment, subscription, tax, fraud, and refund processing. We do not receive full card numbers or CVVs.
 - **Resend** — transactional account, license, receipt, support, and security email delivery.
@@ -176,6 +178,8 @@ We engage third-party service providers to operate the Services. These providers
 We do not currently use a continuously connected third-party desktop crash-reporting service. Optional diagnostic information is processed only when an in-product diagnostic control is enabled or when you deliberately submit it to support. We will update this list before connecting an additional provider to production diagnostic data.
 
 We periodically review service providers for compliance with applicable data-protection law.
+
+Account-connected folder-sync metadata is stored by our AWS-hosted account service, associated with your authenticated account and registered device. It is not used for advertising.
 
 ### 6.2 Legal and Regulatory Disclosures
 
@@ -225,6 +229,7 @@ We retain Personal Information only for as long as necessary for the purposes se
 | Usage analytics | Anonymized at collection; aggregate analytics retained without identifiability |
 | Website analytics / advertising / conversion data | As retained by Google, Reddit, and Twitter/X under their own policies; we retain aggregate reporting and configured event history |
 | Control-plane security and access events | Four hundred (400) days; long-term records are protected in an immutable archive and direct account, IP, and user-agent identifiers are replaced with one-way digests |
+| Account-connected folder-sync profiles and status | Retained until the profile is deleted through the connected app or an account-data deletion request is fulfilled; retained backup copies follow the backup schedule below |
 | Backups | Up to ninety (90) days beyond the primary retention period |
 
 If you request deletion of your data under Section 10 below, we will delete or anonymize within thirty (30) days, except where retention is required by law (e.g., tax records, fraud-prevention obligations).

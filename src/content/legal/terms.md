@@ -1,8 +1,8 @@
 # Buckets by ServerlessCreed — Terms and Conditions
 
 **Effective Date:** 22 May 2026
-**Last Updated:** 22 August 2026
-**Version:** 1.1
+**Last Updated:** 10 September 2026
+**Version:** 1.2
 
 These Terms and Conditions ("**Terms**") form a binding legal agreement between **Serverless Creed** ("**ServerlessCreed**", "**we**", "**us**", or "**our**") — a sole proprietorship organized under the laws of India, operating under GSTIN 27FZZPS3310E1ZX, with principal place of business at Khetwadi-11, Mumbai, India — and you, either an individual or the legal entity you represent ("**you**", "**your**", or "**Customer**"), governing your access to and use of the Buckets by ServerlessCreed desktop application, its associated services, documentation, and any related materials (collectively, the "**Software**").
 
@@ -206,7 +206,7 @@ In these Terms, the following capitalized terms have the meanings set forth belo
 
 ## 14. Customer Content and Privacy
 
-14.1 **Local Operation.** The Software is designed to operate locally on your device. AWS API calls are made directly from your device to AWS using credentials you supply. Customer Content (including the contents of S3 objects, bucket listings, and AWS credentials) is **not** routed to, stored on, or accessible to ServerlessCreed's servers in the ordinary course of operation.
+14.1 **Local Operation.** The Software is designed to operate locally on your device. AWS API calls are made directly from your device to AWS using credentials you supply. S3 file contents and AWS credentials are not proxied through ServerlessCreed. Account-connected folder-sync metadata is transmitted to the account service as described below and in Privacy Policy Section 4.1(e).
 
 14.2 **Local Storage of Credentials.** AWS credentials and profile configurations you enter are stored locally on your device, using operating-system-provided secure storage (such as the OS keychain) where available. You are responsible for the security of your device and any credentials stored on it.
 
@@ -217,7 +217,9 @@ In these Terms, the following capitalized terms have the meanings set forth belo
 (c) Optional crash and error diagnostics (stack traces, system metadata), which you may disable; and
 (d) Optional anonymized usage analytics, which you may disable.
 
-14.4 **No Customer Content to ServerlessCreed.** Except as expressly described above, the Software does not transmit Customer Content (including S3 object contents, bucket data, or AWS credentials) to ServerlessCreed.
+Account-connected folder-sync profiles also transmit device/profile identifiers, device name, local path, bucket name and prefix, region/account identifier, sync settings, and status/error text to the account service. This supports your signed-in sync profile and status views. Connected profile deletion requests deletion of that record; disabling a profile alone does not delete it. See Privacy Policy Section 4.1(e) for details.
+
+14.4 **Limits on Customer Content Sent to ServerlessCreed.** Except as expressly described above, the Software does not transmit Customer Content (including S3 object contents, bucket data, or AWS credentials) to ServerlessCreed.
 
 14.5 **Privacy Policy.** The collection, use, and protection of personal information is further described in our Privacy Policy, available at https://buckets.serverlesscreed.com/privacy, which is incorporated by reference into these Terms.
 
