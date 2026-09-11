@@ -1,6 +1,6 @@
 # Buckets by ServerlessCreed Trust Center
 
-**Last reviewed:** 25 August 2026  
+**Last reviewed:** 10 September 2026
 **Security contact:** [vidit@serverlesscreed.com](mailto:vidit@serverlesscreed.com)
 
 This page describes the current architecture and assurance posture of Buckets by ServerlessCreed. It is a factual disclosure, not a claim that AWS has approved the product.
@@ -14,7 +14,7 @@ This page describes the current architecture and assurance posture of Buckets by
 
 ## Architecture and customer-data path
 
-Buckets by ServerlessCreed is a desktop Amazon S3 client. S3 API requests travel directly from the customer workstation to the customer's AWS account. ServerlessCreed does not proxy or store S3 objects, object contents, bucket listings, metadata, or transfer payloads through its control plane.
+Buckets by ServerlessCreed is a desktop Amazon S3 client. S3 API requests travel directly from the customer workstation to the customer's AWS account. ServerlessCreed does not proxy S3 file transfers or collect their contents or AWS secret keys. Account-connected folder-sync metadata is sent to and stored by the account service: profile/device identifiers, device name, local paths, bucket names and prefixes, region/account identifiers, sync settings, and status/error text.
 
 The ServerlessCreed control plane handles sign-in, subscription and entitlement state, registered-device state, and operational security events. Its infrastructure is implemented with AWS services including API Gateway, Lambda, DynamoDB, SQS, AWS Backup, WAF, CloudWatch, Secrets Manager, and EventBridge.
 
@@ -23,13 +23,14 @@ The ServerlessCreed control plane handles sign-in, subscription and entitlement 
 - Authentication subject, verified email, and limited profile data supplied by Clerk.
 - Direct-payment or AWS Marketplace agreement and entitlement references needed to grant access.
 - A one-way device fingerprint and a customer-supplied device display name for license enforcement.
+- Account-connected folder-sync profile metadata and status, as described in Privacy Policy Section 4.1(e).
 - Minimal API, security, backup, and operational audit events.
 - Diagnostics that a user explicitly enables or deliberately sends to support.
 
 ## What we do not collect
 
 - AWS access keys, secret keys, session tokens, SSO tokens, or IAM Roles Anywhere credentials.
-- S3 objects, object contents, bucket listings, bucket metadata, object metadata, or transfer payloads through the ServerlessCreed control plane.
+- S3 file contents and transfer payloads through the ServerlessCreed control plane. The sync-profile metadata exception is described above.
 - Full payment-card numbers.
 
 ## Credential storage
@@ -56,7 +57,7 @@ Send vulnerability reports to [vidit@serverlesscreed.com](mailto:vidit@serverles
 
 ## Desktop updates and code signing
 
-Release checks verify dependency and secret scanning, build integrity, checksums, and platform-specific signing evidence. macOS releases are intended to be Developer ID signed and notarized. Windows is distributed only as a Microsoft Store-certified MSIX, signed and updated through the Store. Linux package-signing status must be stated accurately for each release; an unsigned artifact is never represented as signed. Customers should install supported releases and verify published integrity evidence when available.
+Release checks verify dependency and secret scanning, build integrity, checksums, and platform-specific signing evidence. macOS releases are intended to be Developer ID signed and notarized. The Microsoft Store MSIX submission is in preparation and is not yet certified. Once accepted, Microsoft Store will sign and distribute that package and manage its updates. Linux package-signing status must be stated accurately for each release; an unsigned artifact is never represented as signed. Customers should install supported releases and verify published integrity evidence when available.
 
 ## Support and uptime commitment
 
