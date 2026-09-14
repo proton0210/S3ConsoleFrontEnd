@@ -67,6 +67,7 @@ const OS_LABELS: Record<DetectedOS, string> = {
 // Partner Center product identities are permanent and public. Keeping the
 // canonical URL in source prevents a missing deployment variable from sending
 // Windows customers to a stale "coming soon" state after Store publication.
+const windowsInstallerUrl = "https://s3consolewindows.s3.ap-south-1.amazonaws.com/latest/Buckets-windows-x64.exe";
 const windowsStoreUrl = "https://apps.microsoft.com/detail/9N62S7QSHBDN";
 
 //checking
@@ -150,11 +151,11 @@ export default function DownloadsPage() {
 
   const handleMacDownload = () => {
     const downloadLink =
-      "https://s3consolemac.s3.us-east-1.amazonaws.com/latest/Serverless-Buckets-mac-arm64.zip";
+      "https://s3consolemac.s3.us-east-1.amazonaws.com/latest/Buckets-mac-arm64.zip";
 
     const link = document.createElement("a");
     link.href = downloadLink;
-    link.download = "Serverless-Buckets-mac-arm64.zip";
+    link.download = "Buckets-mac-arm64.zip";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -180,11 +181,11 @@ export default function DownloadsPage() {
 
   const handleLinuxDownload = () => {
     const downloadLink =
-      "https://s3consolelinux.s3.ap-south-1.amazonaws.com/latest/Serverless-Buckets-linux-x64.deb";
+      "https://s3consolelinux.s3.ap-south-1.amazonaws.com/latest/Buckets-linux-x64.deb";
 
     const link = document.createElement("a");
     link.href = downloadLink;
-    link.download = "Serverless-Buckets-linux-x64.deb";
+    link.download = "Buckets-linux-x64.deb";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -454,8 +455,9 @@ export default function DownloadsPage() {
             </div>
 
             <p className="mx-auto mt-6 max-w-xl text-sm text-slate-600">
-              Windows downloads on this page use Microsoft Store. For details on
-              credential storage, data handling, and current security assurance, see our{" "}
+              Prefer a direct download?{" "}
+              <a href={windowsInstallerUrl} className="underline hover:text-primary">Download the Windows installer (.exe, x64)</a>.
+              {" "}For details on credential storage, data handling, and current security assurance, see our{" "}
               <Link href="/trust" className="underline hover:text-primary">Trust Center</Link>.
             </p>
 
