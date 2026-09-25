@@ -61,9 +61,9 @@ interface UserData {
 }
 
 const TIER_LABELS: Record<Tier, { name: string; price: string; cadence: string }> = {
-  monthly: { name: "Monthly", price: "$9", cadence: "per month" },
-  yearly: { name: "Yearly", price: "$79", cadence: "per year" },
-  lifetime: { name: "Lifetime", price: "$149", cadence: "one-time" },
+  monthly: { name: "Monthly", price: "$5", cadence: "per month" },
+  yearly: { name: "Yearly", price: "$49", cadence: "per year" },
+  lifetime: { name: "Lifetime", price: "$99", cadence: "one-time" },
   team: { name: "Team", price: `$${TEAM_SEAT_PRICE_USD}`, cadence: "per seat / year" },
 };
 
@@ -552,6 +552,9 @@ export default function BillingDashboardPage() {
                     </span>
                     <span className="text-sm text-slate-500">{tierInfo.cadence}</span>
                   </div>
+                  <p className="text-xs text-slate-500 mt-2">
+                    Current list price. Your receipt or billing portal shows your actual charges.
+                  </p>
                 </div>
                 <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10">
                   {isLifetime ? (
@@ -684,7 +687,7 @@ export default function BillingDashboardPage() {
                   </h3>
                   <p className="text-xs text-slate-700 mb-4">
                     {tier === "monthly"
-                      ? "Save 27% with yearly, or pay once for lifetime access."
+                      ? "Save 18% with yearly, or pay once for lifetime access."
                       : "Skip renewals forever with a one-time lifetime purchase."}
                   </p>
                   <div className="space-y-2">

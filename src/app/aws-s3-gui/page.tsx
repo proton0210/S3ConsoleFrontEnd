@@ -42,7 +42,7 @@ const FAQS = [
   },
   {
     q: "Is Buckets by ServerlessCreed free?",
-    a: "Buckets by ServerlessCreed offers a 14-day free trial with full feature access on every platform. After the trial, plans start at $9/month or $149 one-time for lifetime access.",
+    a: "Buckets by ServerlessCreed offers a 14-day free trial with full feature access on every platform. After the trial, plans start at $5/month or $99 one-time for lifetime access.",
   },
 ];
 

@@ -23,7 +23,7 @@ Check each comparison row against current primary vendor documentation before ex
 
 Target hypothesis: consultants and small platform teams who manage S3 across accounts every week. Validate this hypothesis with paying users before treating it as established demand.
 
-Current individual pricing remains $9/month, $79/year, and $149 lifetime; Team is $99/seat/year with a three-seat minimum. No pricing or existing entitlement change is included in this work. Lifetime receipts are one-time cash, not MRR. Low hosting costs do not eliminate support and maintenance costs.
+Current individual pricing (updated September 25, 2026) is $5/month, $49/year, and $99 lifetime; Team is $99/seat/year with a three-seat minimum. Existing entitlement behavior is unchanged. Lifetime receipts are one-time cash, not MRR. Low hosting costs do not eliminate support and maintenance costs.
 
 Do not publish assumed hours saved, guaranteed recovery time, avoided-incident savings, or a fixed return on investment. If illustrating a calculation, label every input as hypothetical. Prefer measured results with context and customer permission.
 

@@ -30,7 +30,7 @@ const FAQS = [
   },
   {
     q: "Is Buckets by ServerlessCreed free like Cyberduck?",
-    a: "Cyberduck is donationware — free to download, with donations and paid store versions. Buckets by ServerlessCreed offers a 14-day free trial with full feature access, then $9/month, $79/year, or $149 one-time for lifetime access. The trial doesn't require a credit card.",
+    a: "Cyberduck is donationware — free to download, with donations and paid store versions. Buckets by ServerlessCreed offers a 14-day free trial with full feature access, then $5/month, $49/year, or $99 one-time for lifetime access. The trial doesn't require a credit card.",
   },
   {
     q: "How do I migrate from Cyberduck to Buckets by ServerlessCreed?",

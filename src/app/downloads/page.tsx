@@ -793,7 +793,7 @@ export default function DownloadsPage() {
                     See plans &amp; pricing
                   </Link>
                   <p className="text-xs text-muted-foreground text-center">
-                    Monthly $9 · Yearly $79 · Lifetime $149
+                    Monthly $5 · Yearly $49 · Lifetime $99
                   </p>
                 </div>
               </div>

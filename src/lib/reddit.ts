@@ -15,7 +15,7 @@
  *   Lead        → desktop download             (activation)
  *
  * Reddit's `value` is the numeric amount in the currency's major unit
- * (e.g. 149 for $149), `currency` is ISO-4217. `transactionId` dedupes Purchase
+ * (e.g. 99 for $99), `currency` is ISO-4217. `transactionId` dedupes Purchase
  * across webhook polling / page refreshes.
  */
 
@@ -61,9 +61,9 @@ export type LicenseTier = "monthly" | "yearly" | "lifetime" | "team";
 export const TEAM_SEAT_PRICE_USD = 99;
 
 const TIER_VALUE_USD: Record<LicenseTier, number> = {
-  monthly: 9,
-  yearly: 79,
-  lifetime: 149,
+  monthly: 5,
+  yearly: 49,
+  lifetime: 99,
   // Per-seat price — callers multiply by seat count for cart value.
   team: TEAM_SEAT_PRICE_USD,
 };

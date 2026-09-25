@@ -80,7 +80,7 @@ export const siteConfig = {
       name: "MONTHLY",
       tier: "monthly",
       href: "/buy?tier=monthly",
-      price: "$9",
+      price: "$5",
       period: "per month",
       yearlyPrice: null,
       features: [
@@ -99,7 +99,7 @@ export const siteConfig = {
       name: "YEARLY",
       tier: "yearly",
       href: "/buy?tier=yearly",
-      price: "$79",
+      price: "$49",
       period: "per year",
       yearlyPrice: null,
       features: [
@@ -107,7 +107,7 @@ export const siteConfig = {
         "Use on 2 machines",
         "All features included",
         "Auto-renews yearly",
-        "Save 27% vs monthly",
+        "Save 18% vs monthly",
         "Priority email support",
       ],
       description: "Best value for daily users.",
@@ -118,7 +118,7 @@ export const siteConfig = {
       name: "LIFETIME",
       tier: "lifetime",
       href: "/buy?tier=lifetime",
-      price: "$149",
+      price: "$99",
       period: "one-time",
       yearlyPrice: null,
       features: [
@@ -231,10 +231,10 @@ export const siteConfig = {
       question: "What does each plan include?",
       answer: (
         <span>
-          All plans (Monthly $9, Yearly $79, Lifetime $149, Team $99/seat/yr)
+          All plans (Monthly $5, Yearly $49, Lifetime $99, Team $99/seat/yr)
           include identical features and let each license holder use Buckets
           on up to 2 machines. The difference is how you pay: monthly
-          auto-renews each month, yearly saves 27% vs monthly, lifetime is a
+          auto-renews each month, yearly saves 18% vs monthly, lifetime is a
           one-time payment with no recurring billing, and Team gives every
           member their own license with centralized billing and seat
           management (3-seat minimum).
