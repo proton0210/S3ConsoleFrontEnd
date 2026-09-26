@@ -455,8 +455,18 @@ export default function DownloadsPage() {
             </div>
 
             <p className="mx-auto mt-6 max-w-xl text-sm text-slate-600">
-              Prefer a direct download?{" "}
-              <a href={windowsInstallerUrl} className="underline hover:text-primary">Download the Windows installer (.exe, x64)</a>.
+              Install Buckets for Windows through the{" "}
+              <a
+                href={windowsStoreUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={handleWindowsStore}
+                className="underline hover:text-primary"
+              >
+                Microsoft Store
+              </a>{" "}
+              for Store-managed updates, or{" "}
+              <a href={windowsInstallerUrl} className="underline hover:text-primary">download the Windows installer (.exe, x64)</a>.
               {" "}For details on credential storage, data handling, and current security assurance, see our{" "}
               <Link href="/trust" className="underline hover:text-primary">Trust Center</Link>.
             </p>

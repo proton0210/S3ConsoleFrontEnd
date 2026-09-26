@@ -57,7 +57,7 @@ Send vulnerability reports to [vidit@serverlesscreed.com](mailto:vidit@serverles
 
 ## Desktop updates and code signing
 
-Release checks verify dependency and secret scanning, build integrity, checksums, and platform-specific signing evidence. macOS releases are intended to be Developer ID signed and notarized. The Microsoft Store MSIX submission is in preparation and is not yet certified. Once accepted, Microsoft Store will sign and distribute that package and manage its updates. Linux package-signing status must be stated accurately for each release; an unsigned artifact is never represented as signed. Customers should install supported releases and verify published integrity evidence when available.
+Release checks verify dependency and secret scanning, build integrity, checksums, and platform-specific signing evidence. macOS releases are intended to be Developer ID signed and notarized. The Windows edition is available from [Microsoft Store](https://apps.microsoft.com/detail/9N62S7QSHBDN). Microsoft Store signs and distributes accepted packages and manages their updates. New submissions become available after passing Store certification. Linux package-signing status must be stated accurately for each release; an unsigned artifact is never represented as signed. Customers should install supported releases and verify published integrity evidence when available.
 
 ## Support and uptime commitment
 
