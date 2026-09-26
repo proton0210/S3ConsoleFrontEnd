@@ -41,11 +41,6 @@ export const siteConfig = {
     "AWS S3 client Windows",
     "AWS S3 client Linux",
     "S3 GUI for Mac",
-    // Comparison / alternative
-    "Cyberduck alternative",
-    "S3 Browser alternative",
-    "CloudBerry alternative",
-    "MSP360 alternative",
     // Feature-led
     "S3 presigned URL generator",
     "S3 bucket policy generator",

@@ -1,4 +1,4 @@
-import Comparison from "@/components/sections/comparison";
+import Capabilities from "@/components/sections/capabilities";
 import CTA from "@/components/sections/cta";
 import FAQ from "@/components/sections/faq";
 import Features from "@/components/sections/features";
@@ -26,7 +26,7 @@ export default function Home() {
       <Header />
       <Hero />
       <Features />
-      <Comparison />
+      <Capabilities />
       <Pricing />
       <FAQ />
       <CTA />

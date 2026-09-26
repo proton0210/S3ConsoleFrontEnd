@@ -5,7 +5,7 @@
  *   1. H1 with the exact-match keyword.
  *   2. Above-the-fold CTA (download / pricing).
  *   3. "Why" section — 4-6 features with platform-specific screenshots.
- *   4. Comparison row vs. Cyberduck / S3 Browser / AWS Console.
+ *   4. "What's included" checklist of core capabilities.
  *   5. FAQ block — also emitted as FAQPage JSON-LD.
  *   6. Final CTA.
  *
@@ -23,7 +23,6 @@ import {
   FaWindows,
   FaLinux,
   FaCheck,
-  FaTimes,
   FaBolt,
   FaShieldAlt,
   FaRobot,
@@ -35,11 +34,11 @@ import {
 const FAQS = [
   {
     q: "What is an AWS S3 client?",
-    a: "An AWS S3 client is a desktop application that lets you browse, upload, download, and manage files in Amazon S3 buckets without writing CLI commands or using the AWS web console. A good S3 client gives you a desktop GUI, drag-and-drop file transfer, multi-profile support for several AWS accounts, and tools like presigned URL generation and bucket policy editing.",
+    a: "An AWS S3 client is a desktop application that lets you browse, upload, download, and manage files in Amazon S3 buckets from a native desktop app. A good S3 client gives you a desktop GUI, drag-and-drop file transfer, multi-profile support for several AWS accounts, and tools like presigned URL generation and bucket policy editing.",
   },
   {
-    q: "Is Buckets by ServerlessCreed better than Cyberduck for S3?",
-    a: "Buckets by ServerlessCreed is purpose-built for AWS S3, while Cyberduck is a general-purpose FTP/SFTP/cloud client. Buckets adds S3-focused workflows including AWS SSO and IAM Identity Center login, AWS SDK code generation, an S3 cost estimator, and a visual bucket policy editor.",
+    q: "What can I do with Buckets by ServerlessCreed?",
+    a: "Buckets by ServerlessCreed is purpose-built for AWS S3. Browse and transfer files with drag and drop, sign in with AWS SSO and IAM Identity Center, switch between profiles, generate presigned URLs, edit bucket policies visually, generate AWS SDK code, and estimate storage costs, all from one desktop app.",
   },
   {
     q: "Does Buckets by ServerlessCreed work on Mac, Windows, and Linux?",
@@ -113,8 +112,7 @@ export default function AwsS3ClientPage() {
           <p className="text-lg text-slate-600 max-w-3xl mb-8">
             Buckets by ServerlessCreed is a cross-platform desktop S3 client built for engineers who live
             in AWS. Browse buckets, generate presigned URLs, edit policies, and
-            switch profiles in one place — without the AWS web console&apos;s lag
-            or the CLI&apos;s ceremony.
+            switch profiles in one place, with every workflow a click away.
           </p>
 
           <div className="flex flex-wrap gap-3 mb-6">
@@ -146,16 +144,15 @@ export default function AwsS3ClientPage() {
             Why developers pick Buckets by ServerlessCreed as their S3 client
           </h2>
           <p className="text-slate-600 mb-10 max-w-3xl">
-            Most S3 clients are FTP apps with an S3 backend bolted on. Buckets by ServerlessCreed
-            is built around how engineers actually work with AWS — multi-account
+            Buckets by ServerlessCreed is built around how engineers actually work with AWS — multi-account
             SSO, IAM-aware tools, and focused desktop workflows.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {[
               {
                 icon: FaBolt,
-                title: "Built for S3, not retrofitted from FTP",
-                body: "Every screen, shortcut, and feature is designed for S3 semantics — versioning, storage classes, requester-pays, server-side encryption. No leftover SFTP cruft.",
+                title: "Built for S3 from the ground up",
+                body: "Every screen, shortcut, and feature is designed for S3 semantics — versioning, storage classes, requester-pays, server-side encryption.",
               },
               {
                 icon: FaUserSecret,
@@ -170,7 +167,7 @@ export default function AwsS3ClientPage() {
               {
                 icon: FaRobot,
                 title: "AI code generation",
-                body: "Right-click an object and copy the AWS SDK code to fetch, sign, or stream it — in JavaScript, Python, Go, or Java. Useful for one-off scripts and pasting into PRs.",
+                body: "Right-click an object and copy the AWS SDK code to fetch, sign, or stream it — in TypeScript, JavaScript, or Python. Useful for one-off scripts and pasting into PRs.",
               },
               {
                 icon: FaCog,
@@ -201,62 +198,33 @@ export default function AwsS3ClientPage() {
           </div>
         </section>
 
-        {/* Comparison */}
+        {/* What's included */}
         <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <h2 className="text-3xl font-bold text-slate-900 mb-3">
-            Buckets by ServerlessCreed vs. other AWS S3 clients
+            Everything included in Buckets by ServerlessCreed
           </h2>
           <p className="text-slate-600 mb-8 max-w-3xl">
-            Here&apos;s how Buckets by ServerlessCreed stacks up against several S3 clients
-            and the AWS web console for daily use.
+            One license unlocks every feature on every supported platform.
           </p>
-          <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-50 border-b border-slate-200">
-                <tr>
-                  <th className="text-left px-4 py-3 font-semibold text-slate-700">Feature</th>
-                  <th className="px-4 py-3 font-semibold text-primary">Buckets by ServerlessCreed</th>
-                  <th className="px-4 py-3 font-semibold text-slate-700">AWS Console</th>
-                  <th className="px-4 py-3 font-semibold text-slate-700">Cyberduck</th>
-                  <th className="px-4 py-3 font-semibold text-slate-700">S3 Browser</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {[
-                  ["macOS desktop app", "yes", "no", "yes", "no"],
-                  ["Windows desktop app", "yes", "no", "yes", "yes"],
-                  ["Linux desktop app", "yes", "no", "no", "no"],
-                  ["AWS SSO / IAM Identity Center", "yes", "yes", "9.5+", "yes"],
-                  ["Visual bucket policy editor", "yes", "json", "no", "no"],
-                  ["AI code generation", "yes", "no", "no", "no"],
-                  ["Presigned URL generator", "yes", "yes", "yes", "yes"],
-                  ["S3 cost estimator", "yes", "yes", "no", "no"],
-                  ["Multi-profile switcher", "yes", "no", "limited", "yes"],
-                  ["Free tier", "14-day trial", "free", "free", "free (Win)"],
-                ].map(([feature, ours, aws, cd, sb]) => (
-                  <tr key={feature as string}>
-                    <td className="px-4 py-3 text-slate-800">{feature}</td>
-                    <td className="px-4 py-3 text-center">
-                      <Cell value={ours as string} />
-                    </td>
-                    <td className="px-4 py-3 text-center text-slate-600">
-                      <Cell value={aws as string} />
-                    </td>
-                    <td className="px-4 py-3 text-center text-slate-600">
-                      <Cell value={cd as string} />
-                    </td>
-                    <td className="px-4 py-3 text-center text-slate-600">
-                      <Cell value={sb as string} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <p className="text-xs text-slate-500 mt-3">
-            Compared as of {new Date().getFullYear()}. Features evolve — please
-            verify current capabilities on each vendor&apos;s site before deciding.
-          </p>
+          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 rounded-2xl border border-slate-200 bg-white p-6">
+            {[
+              "Desktop apps for macOS, Windows, and Linux",
+              "AWS SSO / IAM Identity Center sign-in",
+              "Multi-profile, multi-region switching",
+              "Drag-and-drop uploads and downloads",
+              "Presigned URL generator",
+              "Visual bucket policy and CORS editor",
+              "AI code generation for S3 operations",
+              "S3 storage cost estimator",
+              "Local-only credentials, direct to AWS",
+              "14-day free trial, no credit card",
+            ].map((item) => (
+              <li key={item} className="flex items-start gap-2.5 text-sm text-slate-800">
+                <FaCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+                {item}
+              </li>
+            ))}
+          </ul>
         </section>
 
         {/* FAQ */}
@@ -287,8 +255,8 @@ export default function AwsS3ClientPage() {
           </h2>
           <p className="text-slate-600 mb-8 max-w-2xl mx-auto">
             Full feature access on macOS, Windows, and Linux. No credit card.
-            If Buckets by ServerlessCreed doesn&apos;t replace whatever you&apos;re using today,
-            uninstall it — we won&apos;t take it personally.
+            Connect your first bucket in minutes and see how much faster your
+            everyday S3 work can be.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <Link href="/downloads">
@@ -308,14 +276,4 @@ export default function AwsS3ClientPage() {
       <Footer />
     </>
   );
-}
-
-function Cell({ value }: { value: string }) {
-  if (value === "yes") {
-    return <FaCheck className="inline h-4 w-4 text-green-600" aria-label="Yes" />;
-  }
-  if (value === "no") {
-    return <FaTimes className="inline h-4 w-4 text-slate-400" aria-label="No" />;
-  }
-  return <span className="text-xs text-slate-600">{value}</span>;
 }

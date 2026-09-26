@@ -8,8 +8,6 @@ Reviewed September 5, 2026 against desktop source v2.7.12. This is an internal e
 |---|---|---|
 | URL uploads | Buckets handles downloading and uploading, with resume support | Desktop `urlUploadService.ts` / `stageUrlUpload`, called by `index.ts`: local spool before upload; disk and both network legs required; source resume depends on validators and range support |
 | SSO | Integrated IAM Identity Center and profile workflows | Desktop `ssoAuth.ts`, `ssoIPCHandlers.ts`, `cliLoginService.ts`; do not claim exclusivity |
-| Cyberduck SSO | Direct IAM Identity Center support in 9.5+, plus AWS CLI credentials | https://docs.cyberduck.io/protocols/s3/ reviewed September 5, 2026 |
-| S3 Browser SSO | Built-in SSO flow | https://s3browser.com/amazon-s3-via-sso-single-sign-on.aspx reviewed September 5, 2026 |
 | Recovery | Reconstruct and restore using retained history | Desktop `timeTravelService.ts`: cap is 200,000 scanned version/delete-marker entries; refuse incomplete bulk restores; permanently deleted history cannot be recovered |
 | Scanner | Sampled findings for review | Desktop `piiScannerService.ts`: defaults 5,000 objects, 1 MiB sampled each, skip above 50 MiB; optional ACL checks; false negatives/positives possible |
 | Inventory | Query imported reports locally | Desktop `inventoryIngestService.ts`: CSV/Parquet imports; not live object state; report generation and imports can incur AWS charges |
@@ -17,7 +15,7 @@ Reviewed September 5, 2026 against desktop source v2.7.12. This is an internal e
 | Drop Zones | Upload pages backed by signed S3 POST policies | Desktop `dropZonesService.ts`: multiple type choices and file count are page-only checks; saved signed pages are not revoked by deleting the hosted page |
 | Windows | Website routes users to Microsoft Store | `src/app/downloads/page.tsx`; this does not establish signing of separate GitHub installers |
 
-Check each comparison row against current primary vendor documentation before expanding it. A version number or missing documentation is not proof that all competitors lack a feature. Do not change an article's publication date when updating it; update lastModified instead.
+Positioning (September 26, 2026): the website does not compare Buckets with other products. Do not name other clients, publish comparison tables, or add "vs" / "alternative" pages or keywords; describe what Buckets does and the value it brings. Retired /vs/* URLs permanently redirect to the homepage. Do not change an article's publication date when updating it; update lastModified instead.
 
 ## Positioning and pricing
 

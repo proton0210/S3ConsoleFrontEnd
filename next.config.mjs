@@ -64,6 +64,9 @@ const nextConfig = {
     return [
       { source: "/download", destination: "/downloads", permanent: true },
       { source: "/get", destination: "/downloads", permanent: true },
+      // Retired comparison pages. We focus on what Buckets does, not on
+      // other products; keep old links and search results working.
+      { source: "/vs/:path*", destination: "/", permanent: true },
     ];
   },
 };

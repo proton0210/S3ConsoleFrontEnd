@@ -5,9 +5,9 @@ import { Globe, Share, UserX } from "lucide-react";
 
 const problems = [
   {
-    title: "Complex AWS Console Navigation",
+    title: "Finding Your Way Around S3",
     description:
-      "The AWS web console is overwhelming and slow. Finding files, managing permissions, and performing bulk operations feels like navigating a maze.",
+      "Finding files, managing permissions, and running bulk operations should be quick. Buckets puts them all a click away.",
     icon: Globe,
   },
   {
@@ -19,7 +19,7 @@ const problems = [
   {
     title: "Multi-Account Profile Management",
     description:
-      "Switching between AWS profiles, regions, and accounts requires constant re-authentication and browser tab juggling. It's a productivity killer.",
+      "Switching between AWS profiles, regions, and accounts should take one click, not a fresh sign-in every time.",
     icon: UserX,
   },
 ];

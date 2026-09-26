@@ -26,11 +26,11 @@ import {
 const FAQS = [
   {
     q: "What is an AWS S3 GUI for Mac?",
-    a: "Buckets by ServerlessCreed is a macOS S3 desktop client built for Apple Silicon Macs. It supports drag-and-drop uploads, side-by-side bucket browsing, AWS SSO login, multi-profile switching, and a visual bucket policy editor. Cyberduck and Transmit also have S3 support, but they're general-purpose file transfer apps; Buckets by ServerlessCreed is purpose-built for S3.",
+    a: "Buckets by ServerlessCreed is a macOS S3 desktop client built for Apple Silicon Macs. It supports drag-and-drop uploads, side-by-side bucket browsing, AWS SSO login, multi-profile switching, and a visual bucket policy editor. It is purpose-built for S3, so every screen is designed around buckets, objects, and AWS accounts.",
   },
   {
     q: "Does AWS provide an official S3 GUI?",
-    a: "AWS provides the S3 console, a web-based GUI in the AWS Management Console. It supports common bucket and object-management tasks. A desktop client such as Buckets by ServerlessCreed adds local desktop workflows, multi-profile switching, and file previews.",
+    a: "AWS provides the S3 console, a web-based GUI in the AWS Management Console. It supports common bucket and object-management tasks. Buckets by ServerlessCreed gives you a native desktop experience with local workflows, multi-profile switching, and file previews.",
   },
   {
     q: "Can I preview files inside Buckets by ServerlessCreed?",
@@ -133,8 +133,8 @@ export default function AwsS3GuiPage() {
             Everything an S3 GUI should do — and more
           </h2>
           <p className="text-slate-600 mb-10 max-w-3xl">
-            The AWS web console is fine for clicks-per-week usage. If you live
-            in S3, you need an interface that respects your time.
+            If you live in S3, you deserve an interface that respects your time.
+            Buckets keeps every everyday task one click away.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {[
@@ -156,7 +156,7 @@ export default function AwsS3GuiPage() {
               {
                 icon: FaSearch,
                 title: "Fast key search and filters",
-                body: "Search prefixes, filter by storage class or last-modified, and sort huge listings without the AWS console&apos;s pagination dance.",
+                body: "Search prefixes, filter by storage class or last-modified, and sort huge listings in one smooth view.",
               },
               {
                 icon: FaShieldAlt,

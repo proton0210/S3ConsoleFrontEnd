@@ -58,12 +58,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly",
       priority: 0.85,
     },
-    {
-      url: `${baseUrl}/vs/cyberduck`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.85,
-    },
 
     // Blog
     {

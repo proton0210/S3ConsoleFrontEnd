@@ -16,7 +16,6 @@ const publicRoutes = [
   "/pricing",
   "/aws-s3-client",
   "/aws-s3-gui",
-  "/vs/(.*)",
   "/og",
   "/api/legal/current-versions",
   "/blog",

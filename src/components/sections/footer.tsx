@@ -42,7 +42,6 @@ const NAV = [
     links: [
       { label: "AWS S3 Client", href: "/aws-s3-client" },
       { label: "AWS S3 GUI", href: "/aws-s3-gui" },
-      { label: "Cyberduck Alternative", href: "/vs/cyberduck" },
     ],
   },
   {

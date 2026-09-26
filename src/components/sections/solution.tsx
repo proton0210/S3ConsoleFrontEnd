@@ -11,7 +11,7 @@ const features = [
   {
     title: "Intuitive Desktop Interface",
     description:
-      "Say goodbye to complex web consoles. Our cross-platform desktop app provides a clean, familiar interface that makes S3 management feel like working with your local file system.",
+      "Our cross-platform desktop app provides a clean, familiar interface that makes S3 management feel like working with your local file system.",
     className: "hover:bg-blue-500/10 transition-all duration-500 ease-out",
     content: (
       <>
@@ -94,7 +94,7 @@ export default function Component() {
   return (
     <Section
       subtitle="A Desktop App That Actually Gets S3 Management Right"
-      description="No more wrestling with web consoles or wrestling with CLI commands. Buckets by ServerlessCreed brings the simplicity of modern desktop apps to AWS S3 management."
+      description="Buckets by ServerlessCreed brings the simplicity of modern desktop apps to AWS S3 management."
       className="bg-neutral-100"
     >
       <div className="mx-auto mt-16 grid max-w-sm grid-cols-1 gap-6 text-gray-500 md:max-w-3xl md:grid-cols-2 xl:grid-rows-2 md:grid-rows-3 xl:max-w-6xl xl:auto-rows-fr xl:grid-cols-3">
