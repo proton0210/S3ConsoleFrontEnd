@@ -1,11 +1,14 @@
 import Capabilities from "@/components/sections/capabilities";
 import CTA from "@/components/sections/cta";
+import Demo from "@/components/sections/demo";
 import FAQ from "@/components/sections/faq";
 import Features from "@/components/sections/features";
 import Footer from "@/components/sections/footer";
 import Header from "@/components/sections/header";
 import Hero from "@/components/sections/hero";
 import Pricing from "@/components/sections/pricing";
+import Security from "@/components/sections/security";
+import Workflow from "@/components/sections/workflow";
 import { StructuredData } from "@/components/structured-data";
 import { siteConfig } from "@/lib/config";
 import { constructMetadata } from "@/lib/utils";
@@ -21,12 +24,15 @@ export const metadata: Metadata = constructMetadata({
 
 export default function Home() {
   return (
-    <main>
+    <main className="theme-scope min-h-screen overflow-x-clip">
       <StructuredData type="faq" />
       <Header />
       <Hero />
       <Features />
+      <Demo />
+      <Workflow />
       <Capabilities />
+      <Security />
       <Pricing />
       <FAQ />
       <CTA />

@@ -52,6 +52,8 @@ const nextConfig = {
   },
   images: {
     remotePatterns: [{ hostname: "localhost" }],
+    // 90 keeps small UI text in the product screenshots crisp.
+    qualities: [75, 90],
   },
   // Never put secrets in next.config `env`. Next replaces those values at
   // build time, which destroys the server/runtime boundary and can copy them

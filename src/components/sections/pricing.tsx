@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
 import Link from "next/link";
-import { FaStar } from "react-icons/fa";
 import { useEffect } from "react";
 import { trackReddit } from "@/lib/reddit";
 
@@ -21,87 +20,70 @@ export default function PricingSection() {
   }, []);
 
   return (
-    <Section title="Pricing" subtitle="Pick a plan that fits">
-      <p className="text-sm text-muted-foreground text-center mb-2 max-w-2xl mx-auto">
-        All plans include every feature on up to 2 machines. Start with a 14-day
-        free trial — no credit card required.
-      </p>
-      <p className="text-xs text-muted-foreground text-center mb-10">
-        Depending on your country&apos;s tax rules, VAT/GST may be added at checkout.
-      </p>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
+    <Section
+      title="Pricing"
+      subtitle="Simple pricing. Every feature included."
+      description="Every plan unlocks the full app on up to 2 machines. Start with a 14-day free trial, no credit card required."
+    >
+      <div className="mx-auto mt-6 grid max-w-7xl grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
         {siteConfig.pricing.map((plan, index) => (
           <motion.div
-            key={index}
-            initial={{ y: 30, opacity: 0 }}
+            key={plan.name}
+            initial={{ y: 24, opacity: 0 }}
             whileInView={{ y: 0, opacity: 1 }}
             viewport={{ once: true }}
-            transition={{
-              duration: 0.5,
-              type: "spring",
-              stiffness: 100,
-              damping: 30,
-              delay: 0.1 * index,
-            }}
+            transition={{ duration: 0.6, delay: 0.08 * index, ease: [0.16, 1, 0.3, 1] }}
             className={cn(
-              "relative rounded-2xl p-8 bg-background text-center transition-all duration-300 flex flex-col h-full",
-              "border",
+              "relative flex h-full flex-col rounded-2xl p-7",
               plan.isPopular
-                ? "border-primary shadow-lg shadow-primary/10 scale-[1.02]"
-                : "border-border hover:border-primary/40"
+                ? "border border-primary/50 bg-gradient-to-b from-primary/[0.12] to-transparent shadow-[0_30px_80px_-30px_hsl(var(--primary)/0.35)]"
+                : "surface"
             )}
           >
-            {plan.isPopular && (
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <span className="inline-flex items-center gap-1 bg-primary text-white text-xs font-semibold px-3 py-1 rounded-full">
-                  <FaStar className="h-3 w-3" />
-                  Most Popular
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                {plan.name}
+              </p>
+              {plan.isPopular && (
+                <span className="rounded-full bg-primary px-2.5 py-0.5 text-[11px] font-semibold text-primary-foreground">
+                  Most popular
                 </span>
-              </div>
-            )}
-
-            <p className="text-sm font-semibold text-muted-foreground tracking-wide uppercase">
-              {plan.name}
-            </p>
-            <div className="mt-4 flex items-baseline justify-center gap-x-1">
-              <span className="text-5xl font-bold tracking-tight text-foreground">
+              )}
+            </div>
+            <div className="mt-6 flex items-baseline gap-x-2">
+              <span className="text-5xl font-semibold tracking-[-0.04em] text-foreground">
                 {plan.price}
               </span>
+              <span className="text-sm text-muted-foreground">{plan.period}</span>
             </div>
-            <p className="text-sm text-muted-foreground mt-1 mb-6">
-              {plan.period}
-            </p>
+            <p className="mt-3 min-h-[2.5rem] text-sm text-muted-foreground">{plan.description}</p>
 
-            <ul className="space-y-2.5 text-left mb-8 flex-1">
-              {plan.features.map((feature, idx) => (
-                <li key={idx} className="flex items-start gap-2 text-sm">
-                  <Check className="mt-0.5 h-4 w-4 text-primary flex-shrink-0" />
-                  <span className="text-foreground">{feature}</span>
+            <Link
+              href={plan.href}
+              className={cn(
+                buttonVariants({ variant: plan.isPopular ? "default" : "outline" }),
+                "mt-7 h-11 w-full rounded-full font-semibold",
+                !plan.isPopular &&
+                  "border-border bg-foreground/[0.03] hover:bg-foreground/[0.08]"
+              )}
+            >
+              {plan.buttonText}
+            </Link>
+
+            <ul className="mt-7 flex-1 space-y-3 border-t border-border pt-6 text-left">
+              {plan.features.map((feature) => (
+                <li key={feature} className="flex items-start gap-2.5 text-sm">
+                  <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+                  <span className="text-foreground/90">{feature}</span>
                 </li>
               ))}
             </ul>
-
-            <div className="mt-auto">
-              <Link
-                href={plan.href}
-                className={cn(
-                  buttonVariants({ variant: "default" }),
-                  "w-full font-medium",
-                  plan.isPopular
-                    ? "bg-primary hover:bg-primary/90 text-white"
-                    : "bg-slate-900 hover:bg-slate-800 text-white"
-                )}
-              >
-                {plan.buttonText}
-              </Link>
-              <p className="mt-3 text-xs text-muted-foreground">
-                {plan.description}
-              </p>
-            </div>
           </motion.div>
         ))}
       </div>
+      <p className="mt-8 text-center text-xs text-muted-foreground">
+        Depending on your country&apos;s tax rules, VAT/GST may be added at checkout.
+      </p>
     </Section>
   );
 }

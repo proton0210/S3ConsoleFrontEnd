@@ -1,3 +1,4 @@
+import { Icons } from "@/components/icons";
 import { siteConfig } from "@/lib/config";
 import Link from "next/link";
 import { FaLinkedinIn, FaXTwitter } from "react-icons/fa6";
@@ -59,20 +60,24 @@ const NAV = [
 
 export default function Footer() {
   return (
-    <footer className="border-t bg-background">
-      <div className="max-w-6xl mx-auto px-5 sm:px-10 py-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
-          <div className="col-span-2 md:col-span-1">
-            <Link href="/" className="inline-flex flex-col leading-none text-foreground">
-              <span className="text-lg font-bold">{siteConfig.shortName}</span>
-              <span className="mt-1 text-[9px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
-                by {siteConfig.publisherName}
+    <footer className="border-t border-border bg-background">
+      <div className="mx-auto max-w-6xl px-5 py-16 sm:px-10">
+        <div className="mb-12 grid grid-cols-2 gap-10 md:grid-cols-5">
+          <div className="col-span-2">
+            <Link href="/" className="inline-flex items-center gap-2.5 text-foreground">
+              <Icons.logo className="h-9 w-9 object-contain" />
+              <span className="flex flex-col leading-none">
+                <span className="text-lg font-semibold tracking-[-0.03em]">{siteConfig.shortName}</span>
+                <span className="mt-1 text-[9px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                  by {siteConfig.publisherName}
+                </span>
               </span>
             </Link>
-            <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
-              A cross-platform AWS S3 client for Mac, Windows, and Linux.
+            <p className="mt-4 max-w-xs text-sm leading-6 text-muted-foreground">
+              The desktop app for engineers who live in S3. Every bucket, every
+              AWS account, one app.
             </p>
-            <div className="flex items-center gap-3 mt-4">
+            <div className="mt-5 flex items-center gap-2">
               {SOCIALS.map(({ label, href, Icon }) => (
                 <a
                   key={label}
@@ -80,24 +85,34 @@ export default function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={`ServerlessCreed on ${label}`}
-                  className="text-muted-foreground hover:text-primary transition-colors"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
                 >
                   <Icon className="h-4 w-4" />
                 </a>
               ))}
             </div>
+            <a
+              href="https://tables.serverlesscreed.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group mt-6 inline-flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <span className="font-semibold text-foreground">Also from ServerlessCreed:</span>
+              Tables for DynamoDB
+              <span aria-hidden className="transition-transform group-hover:translate-x-0.5">&rarr;</span>
+            </a>
           </div>
           {NAV.map((col) => (
             <div key={col.title}>
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground mb-3">
+              <h3 className="mb-4 text-xs font-semibold uppercase tracking-[0.16em] text-foreground">
                 {col.title}
               </h3>
-              <ul className="space-y-2">
+              <ul className="space-y-2.5">
                 {col.links.map((l) => (
                   <li key={l.href}>
                     <Link
                       href={l.href}
-                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                      className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                     >
                       {l.label}
                     </Link>
@@ -107,15 +122,20 @@ export default function Footer() {
             </div>
           ))}
         </div>
-        <div className="border-t pt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-muted-foreground">
+        <div className="flex flex-col items-start justify-between gap-3 border-t border-border pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center">
           <span>
-            © {new Date().getFullYear()}{" "}
-            <Link href="/" className="hover:text-primary transition-colors">
-              {siteConfig.name}
-            </Link>
-            . A cross-platform AWS S3 client for Mac, Windows, and Linux.
+            &copy; {new Date().getFullYear()} {siteConfig.name}. All rights reserved.
           </span>
-          <span>Built for developers who live in AWS.</span>
+          <span>
+            Talk to the developer on{" "}
+            <a href="https://x.com/Vidit_210" target="_blank" rel="noopener noreferrer" className="underline decoration-border underline-offset-4 hover:text-foreground">
+              X
+            </a>{" "}
+            or{" "}
+            <a href="https://www.linkedin.com/in/vidit-shah/" target="_blank" rel="noopener noreferrer" className="underline decoration-border underline-offset-4 hover:text-foreground">
+              LinkedIn
+            </a>
+          </span>
         </div>
       </div>
     </footer>

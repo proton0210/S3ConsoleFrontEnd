@@ -68,6 +68,7 @@ const groups: CapabilityGroup[] = [
       "ACL management",
       "CORS configuration",
       "Public access block controls",
+      "Versioning, encryption and Object Lock",
     ],
   },
   {
@@ -96,11 +97,11 @@ export default function Capabilities() {
   return (
     <Section
       id="capabilities"
-      title="What you get"
-      subtitle="Everything you do in S3, in one place"
-      description="Buckets brings the S3 work you do every week into a single desktop app, so you spend less time hunting for settings and more time shipping."
+      title="Everything included"
+      subtitle="One app for the whole S3 workflow"
+      description="Beyond the everyday essentials, Buckets covers access control, delivery and cost, so you can run S3 end to end without switching tools."
     >
-      <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {groups.map((group, i) => (
           <motion.div
             key={group.name}
@@ -108,24 +109,24 @@ export default function Capabilities() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: i * 0.08 }}
-            className="flex flex-col rounded-2xl border border-border bg-background p-6 shadow-sm"
+            className="surface flex flex-col rounded-2xl p-7"
           >
             <div className="flex items-center gap-3">
-              <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-primary/25 bg-primary/10 text-primary">
                 {group.icon}
               </span>
-              <h4 className="text-lg font-semibold text-foreground">
+              <h4 className="text-lg font-semibold tracking-[-0.02em] text-foreground">
                 {group.name}
               </h4>
             </div>
             <p className="mt-3 text-sm text-muted-foreground">
               {group.outcome}
             </p>
-            <ul className="mt-5 space-y-2.5">
+            <ul className="mt-6 space-y-2.5 border-t border-border pt-5">
               {group.items.map((item) => (
                 <li key={item} className="flex items-start gap-2.5 text-sm">
                   <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                  <span className="text-foreground">{item}</span>
+                  <span className="text-foreground/90">{item}</span>
                 </li>
               ))}
             </ul>

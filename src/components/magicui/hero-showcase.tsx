@@ -179,7 +179,7 @@ export default function HeroShowcase({ className }: { className?: string }) {
       <div className="mb-5 flex items-end justify-between gap-4 px-1">
         <div className="min-w-0">
           <p className="text-xs font-medium uppercase tracking-wider text-primary">
-            See it in action
+            Screen recording
           </p>
           <h3 className="mt-1 truncate text-lg font-semibold text-foreground sm:text-xl">
             {current.title}

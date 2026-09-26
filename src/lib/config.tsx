@@ -66,6 +66,10 @@ export const siteConfig = {
       label: "Features",
     },
     {
+      href: "/pricing",
+      label: "Pricing",
+    },
+    {
       href: "/blog",
       label: "Blog",
     },
@@ -153,9 +157,10 @@ export const siteConfig = {
       question: "What is Buckets by ServerlessCreed?",
       answer: (
         <span>
-          Buckets by ServerlessCreed is a focused desktop client for Amazon S3
-          and compatible object storage. It streamlines everyday bucket and
-          object workflows without positioning itself as an AWS service.
+          Buckets by ServerlessCreed is an independent desktop app for Amazon
+          S3 and compatible object storage. It brings browsing, transfers,
+          sharing, access control and multi-account sign-in together in one
+          fast app for macOS, Windows and Linux.
         </span>
       ),
     },
@@ -174,10 +179,10 @@ export const siteConfig = {
       question: "What S3 features does Buckets support?",
       answer: (
         <span>
-          Buckets supports a wide range of S3 features, including but not
-          limited to bucket management, object operations, versioning, and
-          lifecycle policies. We continuously update our platform to support the
-          latest S3 capabilities.
+          Everyday object work (upload, download, move, preview, search and
+          presigned links) plus bucket administration: versioning, storage
+          classes, encryption, Object Lock, CORS, ACLs, bucket and IAM
+          policies, public access blocks, and CloudFront distributions.
         </span>
       ),
     },
@@ -205,10 +210,10 @@ export const siteConfig = {
       question: "Is Buckets suitable for beginners using Amazon S3?",
       answer: (
         <span>
-          Yes, Buckets is designed to be user-friendly for both beginners and
-          experienced AWS users. We offer intuitive interfaces, pre-built
-          templates, and extensive learning resources to help users of all skill
-          levels manage their S3 storage effectively.
+          Yes. Everyday tasks work like a familiar file manager, and advanced
+          tools such as policy templates and code generation are there when
+          you need them. Your AWS permissions decide which actions are
+          available.
         </span>
       ),
     },

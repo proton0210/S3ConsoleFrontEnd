@@ -8,6 +8,9 @@ const config = {
     "./src/**/*.{ts,tsx}",
   ],
   prefix: "",
+  // `dark:` utilities apply inside a .theme-scope page when the visitor
+  // picks dark mode in the header toggle (next-themes sets data-theme).
+  darkMode: ["selector", '[data-theme="dark"] .theme-scope'],
   theme: {
     container: {
       center: true,

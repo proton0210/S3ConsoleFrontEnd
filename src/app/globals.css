@@ -126,3 +126,122 @@
     -webkit-overflow-scrolling: touch;
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Premium theme scope (light + dark)                                  */
+/* Pages wrapped in .theme-scope get the premium palette. Light is the */
+/* default; the header toggle sets <html data-theme="dark"> (via       */
+/* next-themes) to switch them to dark. Pages without .theme-scope     */
+/* keep the original light site styles regardless of the setting.     */
+/* ------------------------------------------------------------------ */
+@layer base {
+  .theme-scope {
+    color-scheme: light;
+    --background: 30 20% 98.5%;
+    --foreground: 240 10% 8%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 8%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 8%;
+    /* Copper accent, drawn from the Buckets logo. Deeper in light mode
+       so white button text stays readable. */
+    --primary: 22 85% 47%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 30 15% 94%;
+    --secondary-foreground: 240 10% 8%;
+    --muted: 30 15% 94%;
+    --muted-foreground: 240 5% 38%;
+    --accent: 30 15% 93%;
+    --accent-foreground: 240 10% 8%;
+    --border: 30 10% 88%;
+    --input: 30 10% 86%;
+    --ring: 22 85% 47%;
+    --glow: 0.10;
+    --brand-from: 18 85% 48%;
+    --brand-to: 34 92% 48%;
+    --surface-bg: linear-gradient(180deg, hsl(0 0% 100%), hsl(0 0% 100% / 0.85));
+    --surface-shadow: 0 1px 2px rgb(20 15 10 / 0.04), 0 12px 32px -16px rgb(20 15 10 / 0.12);
+    --frame-shadow: 0 40px 100px -40px rgb(20 15 10 / 0.28);
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+
+  [data-theme="dark"] .theme-scope {
+    color-scheme: dark;
+    --background: 240 12% 4%;
+    --foreground: 240 10% 96%;
+    --card: 240 10% 7%;
+    --card-foreground: 240 10% 96%;
+    --popover: 240 10% 7%;
+    --popover-foreground: 240 10% 96%;
+    --primary: 24 88% 58%;
+    --primary-foreground: 24 30% 8%;
+    --secondary: 240 8% 12%;
+    --secondary-foreground: 240 10% 96%;
+    --muted: 240 8% 11%;
+    --muted-foreground: 240 6% 64%;
+    --accent: 240 8% 13%;
+    --accent-foreground: 240 10% 96%;
+    --border: 240 7% 16%;
+    --input: 240 7% 18%;
+    --ring: 24 88% 58%;
+    --glow: 0.20;
+    --brand-from: 18 90% 60%;
+    --brand-to: 38 92% 64%;
+    --surface-bg: linear-gradient(180deg, hsl(240 10% 96% / 0.045), hsl(240 10% 96% / 0.015));
+    --surface-shadow: inset 0 1px 0 0 hsl(240 10% 96% / 0.06);
+    --frame-shadow: 0 40px 120px -40px rgb(0 0 0 / 0.8);
+  }
+
+  /* Avoid a white flash on overscroll when a themed page is dark. */
+  html[data-theme="dark"]:has(.theme-scope),
+  html[data-theme="dark"]:has(.theme-scope) body {
+    background-color: hsl(240 12% 4%);
+  }
+}
+
+@layer utilities {
+  /* Soft brand glow used behind hero and CTA panels. */
+  .bg-glow {
+    background:
+      radial-gradient(60% 50% at 50% 0%, hsl(var(--primary) / var(--glow, 0.2)), transparent 70%),
+      radial-gradient(35% 35% at 85% 15%, hsl(38 90% 60% / calc(var(--glow, 0.2) * 0.5)), transparent 70%),
+      radial-gradient(35% 35% at 15% 25%, hsl(12 85% 55% / calc(var(--glow, 0.2) * 0.4)), transparent 70%);
+  }
+
+  /* Faint engineering grid that fades out toward the edges. */
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, hsl(var(--foreground) / 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--foreground) / 0.05) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black 30%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black 30%, transparent 75%);
+  }
+
+  /* Headline gradient: full strength at the top, softly dimmed at the bottom. */
+  .text-gradient {
+    background-image: linear-gradient(180deg, hsl(var(--foreground)) 30%, hsl(var(--foreground) / 0.66));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .text-gradient-brand {
+    background-image: linear-gradient(90deg, hsl(var(--brand-from, 18 90% 60%)), hsl(var(--brand-to, 38 92% 64%)));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Card surface: crisp white in light mode, machined glass in dark. */
+  .surface {
+    background: var(--surface-bg, hsl(var(--card)));
+    border: 1px solid hsl(var(--border));
+    box-shadow: var(--surface-shadow, none);
+  }
+
+  .shadow-frame {
+    box-shadow: var(--frame-shadow);
+  }
+}

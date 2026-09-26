@@ -9,33 +9,31 @@ import { siteConfig } from "@/lib/config";
 
 export default function FAQ() {
   return (
-    <Section title="FAQ" subtitle="Frequently asked questions">
-      <div className="mx-auto my-12 md:max-w-[800px]">
-        <Accordion
-          type="single"
-          collapsible
-          className="flex w-full flex-col items-center justify-center space-y-2"
-        >
+    <Section title="FAQ" subtitle="Questions, answered">
+      <div className="mx-auto mt-6 md:max-w-3xl">
+        <Accordion type="single" collapsible className="w-full divide-y divide-border border-y border-border">
           {siteConfig.faqs.map((faq, idx) => (
-            <AccordionItem
-              key={idx}
-              value={faq.question}
-              className="w-full border rounded-lg overflow-hidden"
-            >
-              <AccordionTrigger className="px-4">
+            <AccordionItem key={idx} value={faq.question} className="border-0">
+              <AccordionTrigger className="py-5 text-left text-base font-medium text-foreground hover:no-underline">
                 {faq.question}
               </AccordionTrigger>
-              <AccordionContent className="px-4">{faq.answer}</AccordionContent>
+              <AccordionContent className="pb-5 text-[15px] leading-7 text-muted-foreground">
+                {faq.answer}
+              </AccordionContent>
             </AccordionItem>
           ))}
         </Accordion>
       </div>
-      <h4 className="mb-12 text-center text-sm font-medium tracking-tight text-foreground/80">
-        Still have questions? Email us at{" "}
-        <a href={`mailto:${siteConfig.links.email}`} className="underline">
-          {siteConfig.links.email}
+      <p className="mt-10 text-center text-sm text-muted-foreground">
+        Still have questions?{" "}
+        <a
+          href={`mailto:${siteConfig.links.email}`}
+          className="font-medium text-foreground underline decoration-border underline-offset-4 hover:decoration-primary"
+        >
+          Email the team
         </a>
-      </h4>
+        .
+      </p>
     </Section>
   );
 }

@@ -14,6 +14,7 @@ import {
 import { Inter } from "next/font/google";
 import { RedditPixel } from "@/components/reddit-pixel";
 import { MaintenanceNotice } from "@/components/maintenance-notice";
+import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
 const inter = Inter({
@@ -66,8 +67,19 @@ export default function RootLayout({
             inter.variable
           )}
         >
+          {/* Remembers each visitor's light/dark choice (default light).
+              Only pages wrapped in .theme-scope react to it. */}
+          <ThemeProvider
+            attribute="data-theme"
+            defaultTheme="light"
+            enableSystem={false}
+            enableColorScheme={false}
+            storageKey="buckets-theme"
+            disableTransitionOnChange
+          >
             <MaintenanceNotice />
             {children}
+          </ThemeProvider>
             <GoogleAnalytics gaId="G-W5G449QF3Y" />
             <RedditPixel />
         </body>
