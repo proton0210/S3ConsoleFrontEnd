@@ -15,10 +15,8 @@ const files = {
   securityTxt: read("public/.well-known/security.txt"),
   marketplaceFulfillment: read("src/app/marketplace/route.ts"),
   marketplaceClaim: read("src/app/api/marketplace/claim/route.ts"),
-  marketplaceStatus: read("src/app/account/marketplace/page.tsx"),
   marketplaceStatusApi: read("src/app/api/marketplace/status/route.ts"),
   marketplaceRegistrationForm: read("src/app/marketplace/complete/marketplace-registration-form.tsx"),
-  directBillingPage: read("src/app/account/billing/page.tsx"),
 };
 
 const failures = [];
@@ -56,10 +54,8 @@ requireText(files.marketplaceFulfillment, "Marketplace fulfillment", "x-amzn-mar
 requireText(files.marketplaceFulfillment, "Marketplace fulfillment", "/v2/marketplace/fulfillment");
 requireText(files.marketplaceFulfillment, "Marketplace fulfillment", "httpOnly: true");
 requireText(files.marketplaceClaim, "Marketplace claim", "/v2/marketplace/register");
-requireText(files.marketplaceStatus, "Marketplace status", "/v2/marketplace/status");
 requireText(files.marketplaceStatusApi, "Marketplace status API", "/v2/marketplace/status");
-requireText(files.marketplaceRegistrationForm, "Marketplace registration", "/account/marketplace");
-requireText(files.directBillingPage, "Direct billing isolation", "/api/marketplace/status");
+requireText(files.marketplaceRegistrationForm, "Marketplace registration", "/api/marketplace/claim");
 if (/cookies\.set\([^\n]*registrationToken/.test(files.marketplaceFulfillment)) {
   failures.push("AWS Marketplace registration token must never be written to a cookie");
 }

@@ -43,8 +43,7 @@ export default function MarketplaceRegistrationForm({ initialError }: { initialE
             : "AWS has not reported an active entitlement yet. The account is linked; retry from the desktop shortly or contact support if the status does not update."}
         </p>
         <div className="flex gap-3">
-          <Link className="rounded-md bg-primary px-4 py-2 text-primary-foreground" href="/account/marketplace">View subscription</Link>
-          <Link className="rounded-md border px-4 py-2" href="/downloads">Downloads</Link>
+          <Link className="rounded-md bg-primary px-4 py-2 text-primary-foreground" href="/downloads">Downloads</Link>
           <a className="rounded-md border px-4 py-2" href="mailto:vidit@serverlesscreed.com">Support</a>
         </div>
       </div>
