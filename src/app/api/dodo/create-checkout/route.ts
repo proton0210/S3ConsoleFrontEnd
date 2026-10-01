@@ -5,12 +5,21 @@ import {
   getConfiguredProductIds,
   getDodoApiBaseUrl,
   getCheckoutReturnUrl,
+  getTierForProductId,
   isLicenseTier,
   MAX_TEAM_SEATS,
   MIN_TEAM_SEATS,
   type LicenseTier,
 } from "@/lib/dodo";
 import { isMaintenanceMode } from "@/lib/maintenance";
+import { getLicenseForAccount } from "@/lib/license-api";
+import {
+  BILLING_URL,
+  checkoutAllowed,
+  checkoutBlockedMessage,
+  currentPlanFromLicense,
+  TEAM_URL,
+} from "@/lib/plan-options";
 
 type CreateCheckoutBody = {
   /** New tier-based flow (preferred). */
@@ -177,6 +186,38 @@ export async function POST(req: NextRequest) {
         { error: "Missing tier (monthly|yearly|lifetime). Provide a tier in the request body." },
         { status: 400 }
       );
+    }
+
+    // Existing customers change plans in place (billing page), never through
+    // a second checkout — that would leave two subscriptions billing in
+    // parallel, or sell Monthly to someone who already owns Lifetime.
+    const purchaseTier = resolvedTier ?? getTierForProductId(productId);
+    if (purchaseTier) {
+      try {
+        const { response: licenseResponse, data: license } =
+          await getLicenseForAccount(clerkEmail);
+        if (licenseResponse.ok && (!license.clerkId || license.clerkId === userId)) {
+          const current = currentPlanFromLicense(license);
+          if (!checkoutAllowed(current, purchaseTier)) {
+            return NextResponse.json(
+              {
+                error: checkoutBlockedMessage(current, purchaseTier),
+                code: "plan_already_owned",
+                currentPlan: current,
+                manageUrl: current === "team" ? TEAM_URL : BILLING_URL,
+              },
+              { status: 409 }
+            );
+          }
+        } else if (licenseResponse.status !== 404) {
+          // Fail open: a license-service outage shouldn't block new sales.
+          console.warn("[create-checkout] Plan check skipped: license lookup failed", {
+            status: licenseResponse.status,
+          });
+        }
+      } catch {
+        console.warn("[create-checkout] Plan check skipped: license service unreachable");
+      }
     }
 
     const baseUrl = getDodoApiBaseUrl();

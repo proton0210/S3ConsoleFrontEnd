@@ -13,6 +13,13 @@ import { useUser } from "@clerk/nextjs";
 import { compositeLegalVersion } from "@/lib/legalVersions";
 import { sendGAEvent } from "@next/third-parties/google";
 import { trackReddit, tierValue } from "@/lib/reddit";
+import { useCurrentPlan } from "@/lib/hooks/use-current-plan";
+import {
+  BILLING_URL,
+  TEAM_URL,
+  checkoutAllowed,
+  checkoutBlockedMessage,
+} from "@/lib/plan-options";
 
 type Tier = "monthly" | "yearly" | "lifetime" | "team";
 
@@ -68,6 +75,13 @@ function BuyPageContent() {
     [user?.firstName, user?.lastName].filter(Boolean).join(" ") ||
     undefined;
 
+  // Existing customers never get a second checkout from a stale link: they
+  // see what they own and where to change it instead.
+  const { loading: planLoading, plan: currentPlan } = useCurrentPlan();
+  const blocked =
+    !planLoading && isValidTier(tier) && !checkoutAllowed(currentPlan, tier);
+  const [manageUrl, setManageUrl] = useState<string | null>(null);
+
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<"loading" | "redirecting" | "error">("loading");
 
@@ -81,6 +95,9 @@ function BuyPageContent() {
       setStatus("error");
       return;
     }
+
+    // Wait until we know what the signed-in user already owns.
+    if (planLoading || blocked) return;
 
     // Hold the redirect until the user has accepted ToS. The desktop app
     // pre-stamps `atv` to skip this gate — magic-link visitors see the
@@ -127,6 +144,7 @@ function BuyPageContent() {
         const data = await resp.json();
         if (canceled) return;
         if (!resp.ok || !data?.checkout_url) {
+          if (typeof data?.manageUrl === "string") setManageUrl(data.manageUrl);
           throw new Error(data?.error || "Could not start checkout. Please try again.");
         }
         sendGAEvent({ event: "checkout_started", tier: tier });
@@ -152,11 +170,34 @@ function BuyPageContent() {
     return () => {
       canceled = true;
     };
-  }, [tier, seats, email, name, isLoaded, termsAccepted, queryAtv]);
+  }, [tier, seats, email, name, isLoaded, termsAccepted, queryAtv, planLoading, blocked]);
 
   // Magic-link visitors land here without `atv` — show a one-tap consent
   // gate so we capture acceptance *before* sending them to Dodo.
-  const needsConsent = !termsAccepted && isValidTier(tier);
+  const needsConsent = !termsAccepted && isValidTier(tier) && !blocked;
+
+  if (blocked && isValidTier(tier)) {
+    const href = currentPlan === "team" ? TEAM_URL : BILLING_URL;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+        <div className="max-w-md rounded-lg border border-slate-200 bg-white p-6 text-center shadow-sm">
+          <h1 className="text-lg font-semibold text-slate-900">You already have Buckets Pro</h1>
+          <p className="mt-2 text-sm text-slate-600">{checkoutBlockedMessage(currentPlan, tier)}</p>
+          <a
+            href={href}
+            className="mt-5 inline-flex items-center justify-center rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+          >
+            {currentPlan === "team" ? "Go to your team" : "Go to Billing"}
+          </a>
+          <p className="mt-4 text-xs text-slate-500">
+            <a href="/downloads" className="underline hover:text-primary">
+              Download Buckets
+            </a>
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
@@ -285,9 +326,15 @@ function BuyPageContent() {
           <>
             <p className="text-red-700 font-medium mb-2">{error}</p>
             <p className="text-sm text-slate-600">
-              <a className="underline" href="/pricing">
-                ← Back to pricing
-              </a>
+              {manageUrl ? (
+                <a className="underline" href={manageUrl}>
+                  Manage your plan →
+                </a>
+              ) : (
+                <a className="underline" href="/pricing">
+                  ← Back to pricing
+                </a>
+              )}
             </p>
           </>
         )}

@@ -7,6 +7,9 @@ import { sendGAEvent } from "@next/third-parties/google";
 import { FaCheck, FaSpinner } from "react-icons/fa";
 import Header from "@/components/sections/header";
 import Footer from "@/components/sections/footer";
+import { CurrentPlanBanner, PlanActionButton } from "@/components/plan-action";
+import { useCurrentPlan } from "@/lib/hooks/use-current-plan";
+import { planActionFor } from "@/lib/plan-options";
 
 type Tier = "monthly" | "yearly" | "lifetime" | "team";
 
@@ -95,6 +98,9 @@ export default function PricingPage() {
   const { user } = useUser();
 
   const [loadingTier, setLoadingTier] = useState<Tier | null>(null);
+  // Existing customers see their plan marked and upgrades routed through
+  // Billing instead of a second checkout.
+  const { loading: planLoading, plan: currentPlan } = useCurrentPlan();
 
   const handleCheckout = async (tier: Tier) => {
     try {
@@ -189,17 +195,23 @@ export default function PricingPage() {
             </p>
           </div>
 
+          <CurrentPlanBanner plan={currentPlan} className="mx-auto mb-10 max-w-3xl" />
+
           {/* Tier Cards */}
           <div className="mx-auto grid max-w-6xl grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
             {TIERS.map((tier) => {
               const loading = loadingTier === tier.id;
               const disabled = loadingTier !== null && loadingTier !== tier.id;
+              const action = planActionFor(currentPlan, tier.id);
+              const isCurrent = action.kind === "current";
 
               return (
                 <div
                   key={tier.id}
                   className={`relative flex flex-col rounded-2xl p-7 transition-colors duration-300 ${
-                    tier.highlighted
+                    isCurrent
+                      ? "border-2 border-primary bg-primary/[0.06]"
+                      : tier.highlighted && currentPlan === "none"
                       ? "border border-primary/50 bg-gradient-to-b from-primary/[0.12] to-transparent shadow-[0_30px_80px_-30px_hsl(var(--primary)/0.35)]"
                       : "surface hover:border-primary/30"
                   }`}
@@ -208,16 +220,22 @@ export default function PricingPage() {
                     <h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                       {tier.name}
                     </h3>
-                    {tier.badge && (
-                      <span
-                        className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
-                          tier.highlighted
-                            ? "bg-primary text-primary-foreground"
-                            : "border border-border text-foreground"
-                        }`}
-                      >
-                        {tier.badge}
+                    {isCurrent ? (
+                      <span className="rounded-full bg-primary px-2.5 py-0.5 text-[11px] font-semibold text-primary-foreground">
+                        Your plan
                       </span>
+                    ) : (
+                      tier.badge && (currentPlan === "none" || tier.id === "team") && (
+                        <span
+                          className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+                            tier.highlighted
+                              ? "bg-primary text-primary-foreground"
+                              : "border border-border text-foreground"
+                          }`}
+                        >
+                          {tier.badge}
+                        </span>
+                      )
                     )}
                   </div>
                   <div className="mt-6 flex items-baseline gap-2">
@@ -229,20 +247,28 @@ export default function PricingPage() {
                   <p className="mt-2 min-h-[1rem] text-xs text-muted-foreground">{tier.priceNote}</p>
                   <p className="mt-2 min-h-[2.5rem] text-sm text-muted-foreground">{tier.description}</p>
 
-                  <Button
-                    size="lg"
-                    onClick={() => handleCheckout(tier.id)}
-                    disabled={loading || disabled}
-                    variant={tier.highlighted ? "default" : "outline"}
-                    className={`mt-7 h-11 w-full rounded-full font-semibold ${
-                      tier.highlighted
-                        ? ""
-                        : "border-border bg-foreground/[0.03] hover:bg-foreground/[0.08]"
-                    }`}
-                  >
-                    {loading && <FaSpinner className="mr-2 h-4 w-4 animate-spin" />}
-                    {loading ? "Processing..." : `Choose ${tier.name}`}
-                  </Button>
+                  {action.kind === "checkout" ? (
+                    <Button
+                      size="lg"
+                      onClick={() => handleCheckout(tier.id)}
+                      disabled={loading || disabled || planLoading}
+                      variant={tier.highlighted ? "default" : "outline"}
+                      className={`mt-7 h-11 w-full rounded-full font-semibold ${
+                        tier.highlighted
+                          ? ""
+                          : "border-border bg-foreground/[0.03] hover:bg-foreground/[0.08]"
+                      }`}
+                    >
+                      {loading && <FaSpinner className="mr-2 h-4 w-4 animate-spin" />}
+                      {loading
+                        ? "Processing..."
+                        : tier.id === "team" && currentPlan !== "none"
+                        ? "Buy for your team"
+                        : `Choose ${tier.name}`}
+                    </Button>
+                  ) : (
+                    <PlanActionButton action={action} className="mt-7" />
+                  )}
 
                   <ul className="mt-7 flex-1 space-y-3 border-t border-border pt-6">
                     {tier.features.map((feature, idx) => (

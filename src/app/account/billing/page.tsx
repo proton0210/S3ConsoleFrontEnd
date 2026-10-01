@@ -566,8 +566,14 @@ export default function BillingDashboardPage() {
   }
 
   /* --------------------------------- Customer ----------------------------- */
+  // Paid rows without a tier are early-access customers from before plans
+  // existed: perpetual access like Lifetime, but they never bought the $99
+  // Lifetime product, so don't show them its price.
+  const isEarly = !userData.tier;
   const tier = (userData.tier as Tier) || "lifetime";
-  const tierInfo = TIER_LABELS[tier] || TIER_LABELS.lifetime;
+  const tierInfo = isEarly
+    ? { name: "Early Access", price: "Pro", cadence: "early supporter", blurb: "Yours for good" }
+    : TIER_LABELS[tier] || TIER_LABELS.lifetime;
   const isLifetime = tier === "lifetime";
   const isTeam = tier === "team";
   const isRecurringSolo = tier === "monthly" || tier === "yearly";
@@ -727,7 +733,9 @@ export default function BillingDashboardPage() {
                 <span className="text-sm text-muted-foreground">{tierInfo.cadence}</span>
               </div>
               <p className="mt-2 text-xs text-muted-foreground">
-                List price. Your receipts in the billing portal show exactly what you were charged.
+                {isEarly
+                  ? "Thanks for backing Buckets early — your access never expires."
+                  : "List price. Your receipts in the billing portal show exactly what you were charged."}
               </p>
             </div>
             <div className="hidden h-12 w-12 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-inset ring-primary/20 sm:flex">
@@ -800,7 +808,9 @@ export default function BillingDashboardPage() {
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-foreground/[0.02] px-6 py-4 md:px-8">
             <p className="text-xs text-muted-foreground">
               {isLifetime
-                ? "One-time purchase — no recurring charges."
+                ? isEarly
+                  ? "Early Access — no recurring charges."
+                  : "One-time purchase — no recurring charges."
                 : "Renewals are charged automatically."}{" "}
               Payments are processed securely by Dodo Payments.
             </p>
@@ -913,10 +923,13 @@ export default function BillingDashboardPage() {
           {/* Lifetime */}
           {isLifetime && (
             <section className="rounded-2xl border border-primary/40 bg-gradient-to-b from-primary/[0.12] to-transparent p-6 shadow-[0_30px_80px_-30px_hsl(var(--primary)/0.35)]">
-              <CardTitle icon={<FaInfinity className="h-3.5 w-3.5" />}>Lifetime access</CardTitle>
+              <CardTitle icon={<FaInfinity className="h-3.5 w-3.5" />}>
+                {isEarly ? "Early Access" : "Lifetime access"}
+              </CardTitle>
               <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                You own Buckets Pro for good. No renewals, no recurring charges, and every future update is
-                included.
+                {isEarly
+                  ? "You have every Buckets Pro feature for good as an early supporter. No renewals, nothing to upgrade, and every future update is included."
+                  : "You own Buckets Pro for good. No renewals, no recurring charges, and every future update is included."}
               </p>
               <Link
                 href="/downloads"
