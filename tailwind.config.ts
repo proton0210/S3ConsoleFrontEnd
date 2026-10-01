@@ -1,3 +1,5 @@
+import animate from "tailwindcss-animate";
+import typography from "@tailwindcss/typography";
 import type { Config } from "tailwindcss";
 
 const config = {
@@ -67,8 +69,24 @@ const config = {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         ripple: "ripple var(--duration,2s) ease calc(var(--i, 0)*.2s) infinite",
+        shine: "shine 1.4s ease-in-out infinite",
+        "shine-once": "shine 1.4s ease-in-out 1.6s 1 both",
+        halo: "halo 2.4s cubic-bezier(0, 0, 0.2, 1) 1.2s 3 both",
+        blink: "blink 1s steps(1) infinite",
       },
       keyframes: {
+        shine: {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(500%)" },
+        },
+        blink: {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0" },
+        },
+        halo: {
+          "0%": { transform: "scale(1)", opacity: "0.5" },
+          "100%": { transform: "scale(2.4)", opacity: "0" },
+        },
         marquee: {
           from: { transform: "translateX(0)" },
           to: { transform: "translateX(calc(-100% - var(--gap)))" },
@@ -101,7 +119,7 @@ const config = {
       },
     },
   },
-  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
+  plugins: [animate, typography],
 } satisfies Config;
 
 export default config;

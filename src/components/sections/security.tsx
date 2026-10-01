@@ -42,9 +42,9 @@ export default function Security() {
               <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden />
               Security
             </p>
-            <h3 className="mt-6 text-balance text-3xl font-semibold tracking-[-0.03em] text-foreground sm:text-4xl">
+            <h2 className="mt-6 text-balance text-3xl font-semibold tracking-[-0.03em] text-foreground sm:text-4xl">
               Your data stays between you and AWS
-            </h3>
+            </h2>
             <p className="mt-5 text-lg leading-8 text-muted-foreground">
               Buckets was designed local-first, so adopting it doesn&apos;t mean
               handing your keys or your files to another service.
@@ -68,7 +68,7 @@ export default function Security() {
                 className="rounded-2xl border border-border bg-background/50 p-6"
               >
                 <Icon className="h-5 w-5 text-primary" />
-                <h4 className="mt-4 font-semibold text-foreground">{title}</h4>
+                <h3 className="mt-4 font-semibold text-foreground">{title}</h3>
                 <p className="mt-1.5 text-sm leading-6 text-muted-foreground">{body}</p>
               </motion.div>
             ))}

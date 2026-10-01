@@ -56,7 +56,7 @@ const groups: CapabilityGroup[] = [
       "Run generated code in the app",
       "Generate and run AWS CLI commands",
       "IAM policy generator",
-      "6 built-in bucket policy templates",
+      "8 built-in bucket policy templates",
     ],
   },
   {
@@ -101,7 +101,11 @@ export default function Capabilities() {
       subtitle="One app for the whole S3 workflow"
       description="Beyond the everyday essentials, Buckets covers access control, delivery and cost, so you can run S3 end to end without switching tools."
     >
-      <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {/* Phones: a swipeable row instead of six tall stacked cards. */}
+      <p className="-mt-2 mb-3 text-center text-xs text-muted-foreground sm:hidden" aria-hidden>
+        Swipe to see all {groups.length} →
+      </p>
+      <div className="no-scrollbar -mx-4 mt-2 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 sm:mx-0 sm:mt-6 sm:grid sm:snap-none sm:grid-cols-2 sm:gap-5 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3">
         {groups.map((group, i) => (
           <motion.div
             key={group.name}
@@ -109,15 +113,15 @@ export default function Capabilities() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: i * 0.08 }}
-            className="surface flex flex-col rounded-2xl p-7"
+            className="surface flex w-[84%] shrink-0 snap-center flex-col rounded-2xl p-6 sm:w-auto sm:p-7"
           >
             <div className="flex items-center gap-3">
               <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-primary/25 bg-primary/10 text-primary">
                 {group.icon}
               </span>
-              <h4 className="text-lg font-semibold tracking-[-0.02em] text-foreground">
+              <h3 className="text-lg font-semibold tracking-[-0.02em] text-foreground">
                 {group.name}
-              </h4>
+              </h3>
             </div>
             <p className="mt-3 text-sm text-muted-foreground">
               {group.outcome}

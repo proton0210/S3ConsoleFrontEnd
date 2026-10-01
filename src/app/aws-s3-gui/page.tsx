@@ -6,6 +6,7 @@
  * interface angle that "GUI" searchers care about.
  */
 import Link from "next/link";
+import { ProductShot } from "@/components/product-shot";
 import Script from "next/script";
 import Header from "@/components/sections/header";
 import Footer from "@/components/sections/footer";
@@ -42,7 +43,7 @@ const FAQS = [
   },
   {
     q: "Is Buckets by ServerlessCreed free?",
-    a: "Buckets by ServerlessCreed offers a 14-day free trial with full feature access on every platform. After the trial, plans start at $5/month or $99 one-time for lifetime access.",
+    a: "Buckets by ServerlessCreed offers a 14-day free trial with full feature access on every platform. After the trial, choose Monthly ($5), Yearly ($49), Lifetime ($99 one-time) or Team ($99 per seat per year).",
   },
 ];
 
@@ -127,6 +128,23 @@ export default function AwsS3GuiPage() {
           </div>
         </section>
 
+        {/* Real app screenshot */}
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+          <figure>
+          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_40px_100px_-40px_rgb(20_15_10/0.35)]">
+            <div className="flex h-8 items-center gap-1.5 border-b border-slate-200 px-4">
+              <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+            </div>
+            <ProductShot name="workspace" priority themed={false} sizes="(max-width: 1200px) 100vw, 1150px" />
+          </div>
+          <figcaption className="mt-3 text-center text-sm text-slate-500">
+            The Buckets desktop app with three AWS accounts open in tabs and the object inspector beside the file list (sample data).
+          </figcaption>
+          </figure>
+        </section>
+
         {/* What you get */}
         <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <h2 className="text-3xl font-bold text-slate-900 mb-3">
@@ -161,12 +179,12 @@ export default function AwsS3GuiPage() {
               {
                 icon: FaShieldAlt,
                 title: "Visual permissions",
-                body: "Inspect and edit bucket policies, ACLs, and CORS rules with a typed UI. See exactly what each rule does before you save.",
+                body: "Inspect and edit bucket policies, ACLs, and CORS rules with a typed UI. Review the rule before you save.",
               },
               {
                 icon: FaMousePointer,
                 title: "Keyboard-first workflow",
-                body: "Every common action has a shortcut. Open, copy URL, generate presigned link, and switch profile without ever touching the mouse.",
+                body: "A command palette (Ctrl K, or ⌘K on Mac) puts common actions a few keystrokes away: jump to a bucket, copy an S3 URI or ARN, or open a policy editor.",
               },
             ].map(({ icon: Icon, title, body }) => (
               <div
@@ -197,7 +215,7 @@ export default function AwsS3GuiPage() {
               <Link href="/aws-s3-client" className="text-primary hover:underline font-medium">
                 AWS S3 client
               </Link>{" "}
-              with AI code generation, AWS SSO, multi-profile support, and an S3
+              with SDK and CLI code generation, AWS SSO, multi-profile support, and an S3
               cost estimator. The same app, more depth.
             </p>
             <Link
@@ -220,7 +238,7 @@ export default function AwsS3GuiPage() {
                 key={f.q}
                 className="group rounded-xl border border-slate-200 bg-white p-5 hover:border-primary/40 transition-colors"
               >
-                <summary className="cursor-pointer font-semibold text-slate-900 list-none flex items-start justify-between gap-4">
+                <summary className="flex min-h-[44px] cursor-pointer list-none items-center justify-between gap-4 py-1 font-semibold text-slate-900">
                   <span>{f.q}</span>
                   <span className="text-primary group-open:rotate-45 transition-transform">+</span>
                 </summary>

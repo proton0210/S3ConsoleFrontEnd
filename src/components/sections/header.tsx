@@ -49,7 +49,7 @@ export default function Header() {
             <span className="text-lg font-semibold tracking-[-0.03em] text-foreground">
               {siteConfig.shortName}
             </span>
-            <span className="mt-1 text-[9px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+            <span className="mt-1 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
               by {siteConfig.publisherName}
             </span>
           </span>
@@ -119,9 +119,7 @@ export default function Header() {
         </div>
         <div className="flex items-center gap-3 text-foreground lg:hidden">
           <ThemeSwitch />
-          <div className="cursor-pointer">
-            <Drawer />
-          </div>
+          <Drawer />
         </div>
       </div>
     </header>

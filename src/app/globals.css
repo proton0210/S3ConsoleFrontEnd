@@ -145,7 +145,9 @@
     --popover-foreground: 240 10% 8%;
     /* Copper accent, drawn from the Buckets logo. Deeper in light mode
        so white button text stays readable. */
-    --primary: 22 85% 47%;
+    /* 41% lightness keeps white button text and small copper labels at
+       WCAG AA (4.7:1 on white, 4.6:1 on the page background). */
+    --primary: 22 85% 41%;
     --primary-foreground: 0 0% 100%;
     --secondary: 30 15% 94%;
     --secondary-foreground: 240 10% 8%;
@@ -155,10 +157,10 @@
     --accent-foreground: 240 10% 8%;
     --border: 30 10% 88%;
     --input: 30 10% 86%;
-    --ring: 22 85% 47%;
+    --ring: 22 85% 41%;
     --glow: 0.10;
-    --brand-from: 18 85% 48%;
-    --brand-to: 34 92% 48%;
+    --brand-from: 18 85% 44%;
+    --brand-to: 34 92% 41%;
     --surface-bg: linear-gradient(180deg, hsl(0 0% 100%), hsl(0 0% 100% / 0.85));
     --surface-shadow: 0 1px 2px rgb(20 15 10 / 0.04), 0 12px 32px -16px rgb(20 15 10 / 0.12);
     --frame-shadow: 0 40px 100px -40px rgb(20 15 10 / 0.28);
@@ -243,5 +245,38 @@
 
   .shadow-frame {
     box-shadow: var(--frame-shadow);
+  }
+}
+
+@layer utilities {
+  .no-scrollbar { scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+}
+
+/* Hero entrance runs in CSS so the headline and product shot paint on the
+   first frame instead of waiting for React to hydrate (better LCP). */
+@keyframes hero-rise {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes hero-rise-soft {
+  from { transform: translateY(40px); }
+  to { transform: none; }
+}
+.hero-rise { animation: hero-rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.hero-rise-soft { animation: hero-rise-soft 1s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-rise,
+  .hero-rise-soft,
+  .animate-marquee,
+  .animate-shine,
+  .animate-shine-once,
+  .animate-halo,
+  .animate-blink,
+  .animate-ping,
+  .animate-pulse,
+  .after\:animate-border-beam::after {
+    animation: none !important;
   }
 }

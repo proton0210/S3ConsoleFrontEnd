@@ -52,7 +52,7 @@ const TIERS: TierConfig[] = [
       "Priority email support",
     ],
     highlighted: true,
-    badge: "Most Popular",
+    badge: "Best value",
   },
   {
     id: "lifetime",

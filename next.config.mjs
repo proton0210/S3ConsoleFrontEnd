@@ -54,6 +54,9 @@ const nextConfig = {
     remotePatterns: [{ hostname: "localhost" }],
     // 90 keeps small UI text in the product screenshots crisp.
     qualities: [75, 90],
+    // 2304 lets a ~1150px product shot on a 2x screen pick a 2304w file
+    // instead of jumping straight to 3840w.
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2304, 3840],
   },
   // Never put secrets in next.config `env`. Next replaces those values at
   // build time, which destroys the server/runtime boundary and can copy them

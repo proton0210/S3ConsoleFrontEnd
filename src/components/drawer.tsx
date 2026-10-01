@@ -2,8 +2,10 @@
 
 import { Icons } from "@/components/icons";
 import { buttonVariants } from "@/components/ui/button";
+import { THEMED_ROUTES } from "@/components/theme-switch";
 import {
   Drawer,
+  DrawerClose,
   DrawerContent,
   DrawerFooter,
   DrawerHeader,
@@ -13,20 +15,33 @@ import { siteConfig } from "@/lib/config";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import { IoMenuSharp } from "react-icons/io5";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 
 export default function DrawerMenu() {
   const pathname = usePathname();
   const isDownloadsPage = pathname === "/downloads";
+  const [open, setOpen] = useState(false);
+  // The drawer renders in a portal outside the page, so give it the page's
+  // premium palette (and dark mode) only where the page itself has it.
+  const themed = THEMED_ROUTES.has(pathname);
 
   return (
-    <Drawer>
-      <DrawerTrigger>
+    <Drawer open={open} onOpenChange={setOpen}>
+      <DrawerTrigger
+        aria-label="Open menu"
+        className="-mr-2 inline-flex h-11 w-11 items-center justify-center rounded-full text-foreground transition-colors hover:bg-foreground/5"
+      >
         <IoMenuSharp className="text-2xl" />
       </DrawerTrigger>
-      <DrawerContent>
-        <DrawerHeader className="px-6">
+      <DrawerContent
+        className={cn(
+          themed && "theme-scope",
+          "max-h-[90dvh] pb-[env(safe-area-inset-bottom)]"
+        )}
+      >
+        <DrawerHeader className="px-6 text-left">
           <div className="">
             <Link
               href="/"
@@ -39,7 +54,7 @@ export default function DrawerMenu() {
               </span>
               <span className="flex flex-col leading-none">
                 <span className="text-xl font-semibold tracking-[-0.025em]">{siteConfig.shortName}</span>
-                <span className="mt-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                <span className="mt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                   by {siteConfig.publisherName}
                 </span>
               </span>
@@ -47,12 +62,18 @@ export default function DrawerMenu() {
           </div>
           {!isDownloadsPage && (
             <nav>
-              <ul className="mt-7 text-left">
+              <ul className="mt-5 text-left">
                 {siteConfig.header.map((item, index) => (
-                  <li key={index} className="my-3">
-                    <Link href={item.href || ""} className="font-semibold">
-                      {item.label}
-                    </Link>
+                  <li key={index}>
+                    {/* Close on tap so same-page anchors (#tour) aren't hidden behind the drawer. */}
+                    <DrawerClose asChild>
+                      <Link
+                        href={item.href || ""}
+                        className="flex min-h-[48px] items-center border-b border-border/60 text-lg font-semibold"
+                      >
+                        {item.label}
+                      </Link>
+                    </DrawerClose>
                   </li>
                 ))}
               </ul>
@@ -67,7 +88,7 @@ export default function DrawerMenu() {
                 href="https://x.com/Vidit_210"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+                className="flex min-h-[44px] items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
               >
                 <Icons.twitter className="h-5 w-5 fill-current" />
                 <span>X</span>
@@ -76,7 +97,7 @@ export default function DrawerMenu() {
                 href="https://www.linkedin.com/in/vidit-shah/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+                className="flex min-h-[44px] items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
               >
                 <Icons.linkedin className="h-5 w-5" />
                 <span>LinkedIn</span>
@@ -86,15 +107,17 @@ export default function DrawerMenu() {
           <SignedOut>
             <Link
               href="/sign-in"
-              className={buttonVariants({ variant: "outline" })}
+              onClick={() => setOpen(false)}
+              className={cn(buttonVariants({ variant: "outline" }), "h-11")}
             >
               Sign In
             </Link>
             <Link
               href="/downloads"
+              onClick={() => setOpen(false)}
               className={cn(
                 buttonVariants({ variant: "default" }),
-                "w-full sm:w-auto text-background flex gap-2"
+                "h-11 w-full sm:w-auto text-primary-foreground flex gap-2"
               )}
             >
               Download Now
@@ -104,9 +127,10 @@ export default function DrawerMenu() {
             {!isDownloadsPage && (
               <Link
                 href="/downloads"
+                onClick={() => setOpen(false)}
                 className={cn(
                   buttonVariants({ variant: "default" }),
-                  "w-full sm:w-auto text-background"
+                  "h-11 w-full sm:w-auto text-primary-foreground"
                 )}
               >
                 Download Buckets

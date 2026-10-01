@@ -68,7 +68,7 @@ export default function Footer() {
               <Icons.logo className="h-9 w-9 object-contain" />
               <span className="flex flex-col leading-none">
                 <span className="text-lg font-semibold tracking-[-0.03em]">{siteConfig.shortName}</span>
-                <span className="mt-1 text-[9px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                <span className="mt-1 text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
                   by {siteConfig.publisherName}
                 </span>
               </span>
@@ -107,12 +107,12 @@ export default function Footer() {
               <h3 className="mb-4 text-xs font-semibold uppercase tracking-[0.16em] text-foreground">
                 {col.title}
               </h3>
-              <ul className="space-y-2.5">
+              <ul className="space-y-0 sm:space-y-2.5">
                 {col.links.map((l) => (
                   <li key={l.href}>
                     <Link
                       href={l.href}
-                      className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                      className="inline-flex min-h-[40px] items-center text-sm text-muted-foreground transition-colors hover:text-foreground sm:min-h-0"
                     >
                       {l.label}
                     </Link>

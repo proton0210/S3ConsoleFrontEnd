@@ -46,7 +46,7 @@ export default function PricingSection() {
               </p>
               {plan.isPopular && (
                 <span className="rounded-full bg-primary px-2.5 py-0.5 text-[11px] font-semibold text-primary-foreground">
-                  Most popular
+                  Best value
                 </span>
               )}
             </div>
@@ -81,7 +81,13 @@ export default function PricingSection() {
           </motion.div>
         ))}
       </div>
-      <p className="mt-8 text-center text-xs text-muted-foreground">
+      <p className="mt-8 text-center text-sm text-muted-foreground">
+        14-day money-back guarantee on Monthly and Yearly, 7 days on Lifetime.{" "}
+        <Link href="/refund-policy" className="font-medium text-foreground underline-offset-4 hover:underline">
+          Refund policy
+        </Link>
+      </p>
+      <p className="mt-2 text-center text-xs text-muted-foreground">
         Depending on your country&apos;s tax rules, VAT/GST may be added at checkout.
       </p>
     </Section>

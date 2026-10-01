@@ -46,9 +46,9 @@ export default function Workflow() {
               <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-primary/30 bg-primary/10 font-mono text-sm font-semibold text-primary">
                 {s.n}
               </span>
-              <h4 className="mt-5 text-lg font-semibold tracking-[-0.02em] text-foreground">
+              <h3 className="mt-5 text-lg font-semibold tracking-[-0.02em] text-foreground">
                 {s.title}
-              </h4>
+              </h3>
               <p className="mt-2 text-[15px] leading-7 text-muted-foreground">{s.body}</p>
             </div>
           </motion.div>

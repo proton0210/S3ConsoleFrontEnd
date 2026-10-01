@@ -108,7 +108,7 @@ export function StructuredData({ type = "website", data }: StructuredDataProps) 
     offers,
     featureList: [
       "Amazon S3 bucket management with a cross-platform desktop GUI",
-      "AI-powered code generation for S3 operations",
+      "Code generation for S3 operations in TypeScript, JavaScript, Python and AWS CLI",
       "Secure presigned URL generation with custom expiration",
       "Multi-profile AWS account support with SSO",
       "Object previews inside the app; content is retrieved from S3",
@@ -117,8 +117,8 @@ export function StructuredData({ type = "website", data }: StructuredDataProps) 
       "S3 cost estimation and access analyzer",
       "Cross-platform: macOS, Windows, Linux",
     ],
-    screenshot: `${baseUrl}/dashboard.png`,
-    softwareVersion: "2.7.4",
+    screenshot: `${baseUrl}/social/og-home.png`,
+    softwareVersion: "2.7.41",
     downloadUrl: `${baseUrl}/downloads`,
     publisher: {
       "@type": "Organization",

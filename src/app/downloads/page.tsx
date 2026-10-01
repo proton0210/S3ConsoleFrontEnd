@@ -38,7 +38,7 @@ declare global {
   }
 }
 
-type DetectedOS = "mac" | "windows" | "linux" | "unknown";
+type DetectedOS = "mac" | "windows" | "linux" | "mobile" | "unknown";
 
 /**
  * OS detection from the browser. Runs only after mount so SSR + client agree
@@ -49,18 +49,38 @@ type DetectedOS = "mac" | "windows" | "linux" | "unknown";
 function detectOS(): DetectedOS {
   if (typeof navigator === "undefined") return "unknown";
   const ua = navigator.userAgent || "";
+  // Phones and tablets can't run the desktop app. Check them first: Android
+  // user agents contain "Linux" and iOS ones contain "Mac".
+  if (/iPhone|iPad|iPod|Android/i.test(ua)) return "mobile";
   // Prefer Mac/Win/Linux exclusivity. ARM/Intel doesn't matter for the
   // download URL — we ship a single artifact per platform.
-  if (/Mac|iPhone|iPad|iPod/i.test(ua)) return "mac";
+  if (/Mac/i.test(ua)) return "mac";
   if (/Windows/i.test(ua)) return "windows";
   if (/Linux|X11/i.test(ua)) return "linux";
   return "unknown";
+}
+
+function CopyLinkButton() {
+  const [copied, setCopied] = useState(false);
+  return (
+    <Button
+      size="lg"
+      variant="outline"
+      className="mt-4 w-full"
+      onClick={() => {
+        void navigator.clipboard?.writeText(window.location.href).then(() => setCopied(true));
+      }}
+    >
+      {copied ? "Link copied" : "Copy download link"}
+    </Button>
+  );
 }
 
 const OS_LABELS: Record<DetectedOS, string> = {
   mac: "macOS",
   windows: "Windows",
   linux: "Linux",
+  mobile: "your computer",
   unknown: "your computer",
 };
 
@@ -377,7 +397,16 @@ export default function DownloadsPage() {
 
             {/* Primary download — big, centered */}
             <div className="flex flex-col items-center gap-3">
-              {detectedOS === "windows" ? (
+              {detectedOS === "mobile" ? (
+                <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 text-left shadow-sm">
+                  <p className="font-semibold text-slate-900">Buckets is a desktop app</p>
+                  <p className="mt-1 text-sm text-slate-600">
+                    It runs on macOS, Windows and Linux. Open this page on your
+                    computer to download it, or copy the link to send it to yourself.
+                  </p>
+                  <CopyLinkButton />
+                </div>
+              ) : detectedOS === "windows" ? (
                 <Button
                   asChild
                   size="lg"

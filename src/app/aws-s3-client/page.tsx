@@ -13,6 +13,7 @@
  * payload (Googlebot doesn't always execute JS).
  */
 import Link from "next/link";
+import { ProductShot } from "@/components/product-shot";
 import Script from "next/script";
 import Header from "@/components/sections/header";
 import Footer from "@/components/sections/footer";
@@ -25,10 +26,10 @@ import {
   FaCheck,
   FaBolt,
   FaShieldAlt,
-  FaRobot,
   FaUserSecret,
   FaCog,
   FaDownload,
+  FaCode,
 } from "react-icons/fa";
 
 const FAQS = [
@@ -138,6 +139,23 @@ export default function AwsS3ClientPage() {
           </div>
         </section>
 
+        {/* Real app screenshot */}
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+          <figure>
+          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_40px_100px_-40px_rgb(20_15_10/0.35)]">
+            <div className="flex h-8 items-center gap-1.5 border-b border-slate-200 px-4">
+              <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+            </div>
+            <ProductShot name="searchall" priority themed={false} sizes="(max-width: 1200px) 100vw, 1150px" />
+          </div>
+          <figcaption className="mt-3 text-center text-sm text-slate-500">
+            One search across every bucket in the account, grouped by bucket (sample data).
+          </figcaption>
+          </figure>
+        </section>
+
         {/* Features */}
         <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <h2 className="text-3xl font-bold text-slate-900 mb-3">
@@ -157,16 +175,16 @@ export default function AwsS3ClientPage() {
               {
                 icon: FaUserSecret,
                 title: "AWS SSO &amp; IAM Identity Center",
-                body: "Sign in with your existing AWS SSO profile. Switch accounts and roles with a keystroke. Use short-lived credentials; expired sessions may require sign-in.",
+                body: "Sign in with your existing AWS SSO profile. Keep each account in its own tab and switch in a click. Use short-lived credentials; expired sessions may require sign-in.",
               },
               {
                 icon: FaShieldAlt,
                 title: "Visual bucket policy &amp; CORS editor",
-                body: "Stop writing JSON by hand. Build bucket policies and CORS rules with a typed UI that validates as you go and generates the exact JSON AWS expects.",
+                body: "Stop writing JSON by hand. Build bucket policies and CORS rules with a typed UI that validates as you go, then review the generated JSON before you save.",
               },
               {
-                icon: FaRobot,
-                title: "AI code generation",
+                icon: FaCode,
+                title: "AWS SDK code generation",
                 body: "Right-click an object and copy the AWS SDK code to fetch, sign, or stream it — in TypeScript, JavaScript, or Python. Useful for one-off scripts and pasting into PRs.",
               },
               {
@@ -214,7 +232,7 @@ export default function AwsS3ClientPage() {
               "Drag-and-drop uploads and downloads",
               "Presigned URL generator",
               "Visual bucket policy and CORS editor",
-              "AI code generation for S3 operations",
+              "Code generation for S3 operations (TypeScript, JavaScript, Python, AWS CLI)",
               "S3 storage cost estimator",
               "Local-only credentials, direct to AWS",
               "14-day free trial, no credit card",
@@ -238,7 +256,7 @@ export default function AwsS3ClientPage() {
                 key={f.q}
                 className="group rounded-xl border border-slate-200 bg-white p-5 hover:border-primary/40 transition-colors"
               >
-                <summary className="cursor-pointer font-semibold text-slate-900 list-none flex items-start justify-between gap-4">
+                <summary className="flex min-h-[44px] cursor-pointer list-none items-center justify-between gap-4 py-1 font-semibold text-slate-900">
                   <span>{f.q}</span>
                   <span className="text-primary group-open:rotate-45 transition-transform">+</span>
                 </summary>
@@ -255,8 +273,8 @@ export default function AwsS3ClientPage() {
           </h2>
           <p className="text-slate-600 mb-8 max-w-2xl mx-auto">
             Full feature access on macOS, Windows, and Linux. No credit card.
-            Connect your first bucket in minutes and see how much faster your
-            everyday S3 work can be.
+            Connect the AWS profiles you already have and try every feature on
+            your own buckets.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <Link href="/downloads">

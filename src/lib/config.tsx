@@ -62,6 +62,10 @@ export const siteConfig = {
   },
   header: [
     {
+      href: "/#tour",
+      label: "Tour",
+    },
+    {
       href: "/#features",
       label: "Features",
     },
