@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
-import { getLicenseByEmail } from "@/lib/license-api";
+import { getLicenseForAccount } from "@/lib/license-api";
 
 export async function GET() {
   try {
@@ -13,7 +13,7 @@ export async function GET() {
     }
 
     const user = await currentUser();
-    const email = user?.primaryEmailAddress?.emailAddress?.trim().toLowerCase();
+    const email = user?.primaryEmailAddress?.emailAddress?.trim();
     if (!email) {
       return NextResponse.json(
         { success: false, error: "No primary email on account" },
@@ -21,7 +21,7 @@ export async function GET() {
       );
     }
 
-    const { response, data } = await getLicenseByEmail(email);
+    const { response, data } = await getLicenseForAccount(email);
     if (!response.ok) {
       return NextResponse.json(
         { success: false, error: data.error || "License lookup failed" },

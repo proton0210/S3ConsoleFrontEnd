@@ -1,45 +1,56 @@
 /**
  * Billing dashboard for signed-in paid customers.
  *
- * Read-only view of the license row's billing fields (tier, status,
- * validUntil, gracePeriod) plus action buttons that delegate to:
- *   - /api/dodo/portal-session  → Dodo hosted portal (cancel, update card, invoices)
- *   - /api/dodo/change-plan     → in-place plan change (monthly ↔ yearly)
- *   - /api/dodo/create-checkout → lifetime upgrade (one-time payment, separate product)
+ * Two sources of state:
+ *   - /api/user-data        → the license row (tier, status, validUntil…).
+ *     Written only by the Dodo webhook, so it is the source of truth for
+ *     access and for which plan the customer is on.
+ *   - /api/dodo/subscription → live Dodo state for things that are only
+ *     *scheduled*: a cancellation at period end (set in the portal) or a
+ *     downgrade queued for the next billing date.
  *
- * Lifetime users see a "no recurring billing" state — no cancel/upgrade actions
- * (their tier is the top of the ladder and there's nothing to renew).
+ * Actions delegate to:
+ *   - /api/dodo/portal-session  → Dodo hosted portal (cancel, card, invoices)
+ *   - /api/dodo/change-plan     → monthly → yearly now (prorated), or
+ *                                 yearly → monthly at the next billing date
+ *   - /api/dodo/subscription    → DELETE undoes a scheduled downgrade
+ *   - /api/dodo/create-checkout → lifetime upgrade (one-time product; the
+ *                                 webhook auto-cancels the old subscription)
  *
- * After any state-changing action, the dashboard polls /api/user-data for up
- * to 20s so the user sees the new state without having to refresh manually.
- * The webhook is the authoritative writer; we just wait for it to land.
+ * After any state-changing action the page polls until the webhook (or Dodo)
+ * reflects the change, so the customer never has to refresh by hand.
  */
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth, useUser } from "@clerk/nextjs";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import Header from "@/components/sections/header";
-import Section from "@/components/section";
+import Footer from "@/components/sections/footer";
+import { cn } from "@/lib/utils";
 import { TEAM_SEAT_PRICE_USD } from "@/lib/reddit";
 import {
-  FaCrown,
-  FaSpinner,
+  FaArrowDown,
+  FaArrowUp,
+  FaBan,
+  FaCalendarAlt,
   FaCheckCircle,
+  FaCrown,
+  FaEnvelope,
   FaExclamationTriangle,
   FaInfinity,
-  FaCalendarAlt,
-  FaEnvelope,
-  FaArrowUp,
-  FaCog,
+  FaInfoCircle,
   FaReceipt,
-  FaBan,
+  FaSpinner,
   FaSync,
+  FaUndo,
+  FaUsers,
 } from "react-icons/fa";
 
 type Tier = "monthly" | "yearly" | "lifetime" | "team";
+type SoloTier = Exclude<Tier, "team">;
 type SubStatus = "active" | "past_due" | "canceled" | string;
 
 interface UserData {
@@ -60,68 +71,179 @@ interface UserData {
   disputed?: boolean;
 }
 
-const TIER_LABELS: Record<Tier, { name: string; price: string; cadence: string }> = {
-  monthly: { name: "Monthly", price: "$5", cadence: "per month" },
-  yearly: { name: "Yearly", price: "$49", cadence: "per year" },
-  lifetime: { name: "Lifetime", price: "$99", cadence: "one-time" },
-  team: { name: "Team", price: `$${TEAM_SEAT_PRICE_USD}`, cadence: "per seat / year" },
-};
-
-function formatDate(ms?: number | null): string {
-  if (!ms) return "—";
-  try {
-    return new Date(ms).toLocaleDateString(undefined, {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  } catch {
-    return "—";
-  }
+/** Live Dodo state (see /api/dodo/subscription). */
+interface LiveSubscription {
+  status: string | null;
+  tier: Tier | null;
+  nextBillingDate: string | null;
+  cancelAtNextBillingDate: boolean;
+  scheduledChange: { tier: Tier; effectiveAt: string | null } | null;
 }
 
-function StatusBadge({ tier, status, revoked }: { tier?: Tier; status?: SubStatus; revoked?: boolean }) {
-  if (revoked) {
-    return (
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">
-        <FaBan className="h-3 w-3" /> Revoked
-      </span>
-    );
-  }
-  if (tier === "lifetime") {
-    return (
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-100 px-3 py-1 text-xs font-semibold text-violet-700">
-        <FaInfinity className="h-3 w-3" /> Lifetime — Active
-      </span>
-    );
-  }
-  if (status === "active") {
-    return (
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
-        <FaCheckCircle className="h-3 w-3" /> Active
-      </span>
-    );
-  }
-  if (status === "past_due") {
-    return (
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
-        <FaExclamationTriangle className="h-3 w-3" /> Payment past due
-      </span>
-    );
-  }
-  if (status === "canceled") {
-    return (
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-200 px-3 py-1 text-xs font-semibold text-slate-700">
-        <FaBan className="h-3 w-3" /> Canceled
-      </span>
-    );
-  }
+const TIER_LABELS: Record<Tier, { name: string; price: string; cadence: string; blurb: string }> = {
+  monthly: { name: "Monthly", price: "$5", cadence: "per month", blurb: "Flexible, cancel anytime" },
+  yearly: { name: "Yearly", price: "$49", cadence: "per year", blurb: "Save 18% vs monthly" },
+  lifetime: { name: "Lifetime", price: "$99", cadence: "one-time", blurb: "Pay once, no renewals" },
+  team: { name: "Team", price: `$${TEAM_SEAT_PRICE_USD}`, cadence: "per seat / year", blurb: "One invoice for the team" },
+};
+
+const PLAN_ORDER: SoloTier[] = ["monthly", "yearly", "lifetime"];
+const RANK: Record<SoloTier, number> = { monthly: 0, yearly: 1, lifetime: 2 };
+
+function errorText(e: unknown, fallback: string): string {
+  return e instanceof Error && e.message ? e.message : fallback;
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+/** Deadline helpers live outside the component so polling stays pure. */
+const deadlineIn = (ms: number) => Date.now() + ms;
+const before = (deadline: number) => Date.now() < deadline;
+
+function formatDate(value?: number | string | null): string {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+}
+
+/* ------------------------------------------------------------------ */
+/* Small themed building blocks                                        */
+/* ------------------------------------------------------------------ */
+
+type Tone = "success" | "warning" | "danger" | "info" | "neutral" | "brand";
+
+const PILL_TONES: Record<Tone, string> = {
+  success: "bg-emerald-500/10 text-emerald-700 ring-emerald-500/25 dark:text-emerald-400",
+  warning: "bg-amber-500/10 text-amber-800 ring-amber-500/30 dark:text-amber-300",
+  danger: "bg-red-500/10 text-red-700 ring-red-500/25 dark:text-red-400",
+  info: "bg-sky-500/10 text-sky-800 ring-sky-500/25 dark:text-sky-300",
+  neutral: "bg-foreground/[0.05] text-muted-foreground ring-border",
+  brand: "bg-primary/10 text-primary ring-primary/25",
+};
+
+const NOTICE_TONES: Record<Tone, { box: string; icon: string }> = {
+  success: {
+    box: "border-emerald-500/25 bg-emerald-500/[0.07] text-emerald-900 dark:text-emerald-200",
+    icon: "text-emerald-600 dark:text-emerald-400",
+  },
+  warning: {
+    box: "border-amber-500/30 bg-amber-500/[0.08] text-amber-900 dark:text-amber-200",
+    icon: "text-amber-600 dark:text-amber-400",
+  },
+  danger: {
+    box: "border-red-500/25 bg-red-500/[0.07] text-red-800 dark:text-red-200",
+    icon: "text-red-600 dark:text-red-400",
+  },
+  info: {
+    box: "border-sky-500/25 bg-sky-500/[0.07] text-sky-900 dark:text-sky-200",
+    icon: "text-sky-600 dark:text-sky-400",
+  },
+  neutral: { box: "surface text-foreground", icon: "text-muted-foreground" },
+  brand: {
+    box: "border-primary/30 bg-primary/[0.07] text-foreground",
+    icon: "text-primary",
+  },
+};
+
+function Pill({ tone, icon, children }: { tone: Tone; icon?: ReactNode; children: ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-      Pending
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset",
+        PILL_TONES[tone]
+      )}
+    >
+      {icon}
+      {children}
     </span>
   );
 }
+
+function Notice({
+  tone,
+  icon,
+  title,
+  children,
+  action,
+}: {
+  tone: Tone;
+  icon: ReactNode;
+  title?: ReactNode;
+  children?: ReactNode;
+  action?: ReactNode;
+}) {
+  const t = NOTICE_TONES[tone];
+  return (
+    <div className={cn("flex items-start gap-3 rounded-xl border px-4 py-3.5 text-sm", t.box)}>
+      <span className={cn("mt-0.5 flex-shrink-0", t.icon)}>{icon}</span>
+      <div className="min-w-0 flex-1">
+        {title && <p className="font-semibold">{title}</p>}
+        {children && <div className={cn(title && "mt-0.5", "opacity-90")}>{children}</div>}
+      </div>
+      {action && <div className="flex-shrink-0">{action}</div>}
+    </div>
+  );
+}
+
+function FieldLabel({ icon, children }: { icon?: ReactNode; children: ReactNode }) {
+  return (
+    <dt className="mb-1.5 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+      {icon}
+      {children}
+    </dt>
+  );
+}
+
+function CardTitle({ icon, children }: { icon: ReactNode; children: ReactNode }) {
+  return (
+    <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+      <span className="text-primary">{icon}</span>
+      {children}
+    </h3>
+  );
+}
+
+function StatusBadge({
+  tier,
+  status,
+  revoked,
+  cancelsOn,
+}: {
+  tier?: Tier;
+  status?: SubStatus;
+  revoked?: boolean;
+  cancelsOn?: string | null;
+}) {
+  if (revoked) return <Pill tone="danger" icon={<FaBan className="h-3 w-3" />}>Revoked</Pill>;
+  if (tier === "lifetime")
+    return <Pill tone="brand" icon={<FaInfinity className="h-3 w-3" />}>Active · never expires</Pill>;
+  if (status === "past_due")
+    return <Pill tone="warning" icon={<FaExclamationTriangle className="h-3 w-3" />}>Payment past due</Pill>;
+  if (status === "canceled") return <Pill tone="neutral" icon={<FaBan className="h-3 w-3" />}>Canceled</Pill>;
+  if (status === "active" && cancelsOn)
+    return <Pill tone="warning" icon={<FaCalendarAlt className="h-3 w-3" />}>Cancels {cancelsOn}</Pill>;
+  if (status === "active") return <Pill tone="success" icon={<FaCheckCircle className="h-3 w-3" />}>Active</Pill>;
+  return <Pill tone="neutral">Pending</Pill>;
+}
+
+/** Page chrome shared by every state: premium theme, header, glow, footer. */
+function BillingShell({ children }: { children: ReactNode }) {
+  return (
+    <div className="theme-scope min-h-screen">
+      <Header />
+      <main className="relative isolate overflow-hidden">
+        <div aria-hidden className="bg-glow pointer-events-none absolute inset-x-0 top-0 -z-10 h-[520px] opacity-70" />
+        <div aria-hidden className="bg-grid pointer-events-none absolute inset-x-0 top-0 -z-10 h-[520px]" />
+        <div className="mx-auto max-w-5xl px-4 pb-24 pt-10 sm:px-6 sm:pt-14 lg:px-8">{children}</div>
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Page                                                                */
+/* ------------------------------------------------------------------ */
 
 export default function BillingDashboardPage() {
   const { isLoaded, userId } = useAuth();
@@ -129,108 +251,107 @@ export default function BillingDashboardPage() {
   const router = useRouter();
 
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [live, setLive] = useState<LiveSubscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
-  const [upgradeLoading, setUpgradeLoading] = useState<Tier | null>(null);
+  const [planLoading, setPlanLoading] = useState<Tier | "undo" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const pollAbort = useRef<AbortController | null>(null);
 
-  useEffect(() => {
-    if (!isLoaded) return;
-    if (!userId) {
-      router.replace("/sign-in?redirect_url=/account/billing");
-      return;
-    }
-    void initLoad();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoaded, userId]);
-
   /**
-   * On first mount, do an initial load. If the user just returned from the
-   * Dodo portal (?from=portal), poll for ~15s so any webhook the portal action
-   * triggered (cancel / payment-method update / plan change) lands before the
-   * user starts looking. We then strip the marker from the URL so a refresh
-   * doesn't re-poll.
+   * Initial load. If the customer just returned from the Dodo portal
+   * (?from=portal), poll briefly so a cancel / card update / plan change made
+   * there shows up before they start reading, then strip the marker so a
+   * refresh doesn't poll again.
    */
   async function initLoad() {
-    const marketplace = await fetch("/api/marketplace/status", { cache: "no-store" });
-    if (marketplace.ok) {
-      router.replace("/account/marketplace");
-      return;
-    }
-    if (marketplace.status !== 404) {
-      setError("We could not safely determine whether billing is managed by AWS Marketplace. Retry before changing a plan or payment method.");
-      setLoading(false);
-      return;
-    }
     const initial = await loadUserData();
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     if (params.get("from") !== "portal") return;
+
     setSuccessMessage("Syncing your latest billing changes…");
-    const beforeStatus = initial?.subscriptionStatus;
-    const beforeTier = initial?.tier;
+    const liveBefore = initial ? await fetchLive() : null;
     const landed = await pollUntil(
-      (u) =>
-        !!u &&
-        (u.subscriptionStatus !== beforeStatus || u.tier !== beforeTier),
-      { timeoutMs: 15000, intervalMs: 2000 }
+      async (u) => {
+        if (!u) return false;
+        if (u.subscriptionStatus !== initial?.subscriptionStatus || u.tier !== initial?.tier) return true;
+        const now = await fetchLive();
+        return (
+          !!now &&
+          (now.cancelAtNextBillingDate !== liveBefore?.cancelAtNextBillingDate ||
+            now.scheduledChange?.tier !== liveBefore?.scheduledChange?.tier)
+        );
+      },
+      { timeoutMs: 15000, intervalMs: 2500 }
     );
-    setSuccessMessage(
-      landed
-        ? "Your account has been updated."
-        : "All set — if anything looks off, hit Refresh."
-    );
-    // Clean the marker out of the URL.
-    const cleaned = `${window.location.pathname}${window.location.hash || ""}`;
-    window.history.replaceState({}, "", cleaned);
+    await loadLive();
+    setSuccessMessage(landed ? "Your account is up to date." : "All set — if anything looks off, hit Refresh.");
+    window.history.replaceState({}, "", `${window.location.pathname}${window.location.hash || ""}`);
   }
 
-  async function loadUserData(silent = false) {
+  async function fetchLive(): Promise<LiveSubscription | null> {
     try {
-      if (!silent) setLoading(true);
-      else setRefreshing(true);
-      setError(null);
-      const resp = await fetch("/api/user-data", {
-        headers: { "Content-Type": "application/json" },
-      });
+      const resp = await fetch("/api/dodo/subscription", { cache: "no-store" });
+      const data = await resp.json().catch(() => null);
+      return resp.ok && data?.success ? (data.subscription as LiveSubscription | null) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  async function loadLive() {
+    const next = await fetchLive();
+    setLive(next);
+    return next;
+  }
+
+  /** Load the license row (and live state). Callers own any spinner state. */
+  async function loadUserData() {
+    try {
+      const resp = await fetch("/api/user-data", { headers: { "Content-Type": "application/json" } });
       const data = await resp.json();
       if (resp.ok && data.success) {
         setUserData(data.userData);
+        // Live Dodo state only matters for recurring solo plans.
+        const tier = data.userData?.tier;
+        if (data.userData?.paid && (tier === "monthly" || tier === "yearly")) {
+          await loadLive();
+        } else {
+          setLive(null);
+        }
         return data.userData as UserData;
-      } else if (resp.status === 404) {
+      }
+      if (resp.status === 404) {
         // No license row — they haven't bought yet.
         setUserData(null);
         return null;
-      } else {
-        throw new Error(data?.error || "Failed to load billing details");
       }
-    } catch (e: any) {
-      setError(e?.message || "Something went wrong loading your billing details.");
+      throw new Error(data?.error || "Failed to load billing details");
+    } catch (e) {
+      setError(errorText(e, "Something went wrong loading your billing details."));
       return null;
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   }
 
   /**
-   * Poll /api/user-data until `predicate(userData) === true` or `timeoutMs`
-   * elapses. Used after state-changing actions (cancel/upgrade) so the
-   * dashboard reflects the webhook's write without the user having to hit
-   * Refresh manually.
+   * Poll /api/user-data until `predicate` passes or `timeoutMs` elapses.
+   * Used after state-changing actions so the page reflects the webhook's
+   * write without a manual refresh.
    */
   async function pollUntil(
-    predicate: (u: UserData | null) => boolean,
+    predicate: (u: UserData | null) => boolean | Promise<boolean>,
     { timeoutMs = 20000, intervalMs = 2000 } = {}
   ): Promise<boolean> {
     pollAbort.current?.abort();
     const controller = new AbortController();
     pollAbort.current = controller;
-    const deadline = Date.now() + timeoutMs;
-    while (Date.now() < deadline) {
+    const deadline = deadlineIn(timeoutMs);
+    while (before(deadline)) {
       if (controller.signal.aborted) return false;
       try {
         const resp = await fetch("/api/user-data", {
@@ -240,14 +361,32 @@ export default function BillingDashboardPage() {
         const data = await resp.json();
         if (resp.ok && data.success) {
           setUserData(data.userData);
-          if (predicate(data.userData)) return true;
+          if (await predicate(data.userData)) return true;
         }
       } catch {
-        // Swallow polling errors — we'll retry on the next tick.
+        // Swallow polling errors — retry on the next tick.
       }
-      await new Promise((r) => setTimeout(r, intervalMs));
+      await sleep(intervalMs);
     }
     return false;
+  }
+
+  /** Poll live Dodo state (for scheduled changes the webhook doesn't record). */
+  async function pollLiveUntil(predicate: (s: LiveSubscription | null) => boolean, timeoutMs = 12000) {
+    const deadline = deadlineIn(timeoutMs);
+    while (before(deadline)) {
+      const next = await loadLive();
+      if (predicate(next)) return true;
+      await sleep(2000);
+    }
+    return false;
+  }
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    setError(null);
+    await loadUserData();
+    setRefreshing(false);
   }
 
   async function handleManageSubscription() {
@@ -262,510 +401,548 @@ export default function BillingDashboardPage() {
       });
       const data = await resp.json();
       if (!resp.ok || !data?.link) {
-        throw new Error(
-          data?.error ||
-            "Could not open the billing portal. Please refresh and try again."
-        );
+        throw new Error(data?.error || "Could not open the billing portal. Please refresh and try again.");
       }
-      window.location.href = data.link;
-    } catch (e: any) {
-      setError(e?.message || "Failed to open billing portal.");
+      window.location.assign(data.link);
+    } catch (e) {
+      setError(errorText(e, "Failed to open billing portal."));
       setPortalLoading(false);
     }
   }
 
-  async function handleUpgrade(targetTier: Tier) {
+  async function handleLifetimeUpgrade(currentTier: Tier) {
     if (!userData?.email) return;
-    const currentTier = (userData.tier as Tier) || "monthly";
-
-    // Lifetime is a one-time product type, not a subscription tier — it
-    // requires a fresh /checkouts session. The webhook auto-cancels the
-    // previous monthly/yearly subscription server-side once payment lands,
-    // so the user never gets double-charged.
-    if (targetTier === "lifetime") {
-      try {
-        setUpgradeLoading(targetTier);
-        setError(null);
-        setSuccessMessage(null);
-        const fullName =
-          user?.fullName ||
-          [user?.firstName, user?.lastName].filter(Boolean).join(" ") ||
-          userData.name ||
-          undefined;
-        const resp = await fetch("/api/dodo/create-checkout", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            tier: targetTier,
-            email: userData.email,
-            ...(fullName ? { name: fullName } : {}),
-            metadata: { upgrade_from: currentTier },
-          }),
-        });
-        const data = await resp.json();
-        if (!resp.ok || !data?.checkout_url) {
-          throw new Error(data?.error || "Failed to start upgrade checkout.");
-        }
-        window.location.href = data.checkout_url;
-      } catch (e: any) {
-        setError(e?.message || "Failed to start upgrade checkout.");
-        setUpgradeLoading(null);
-      }
-      return;
-    }
-
-    // Monthly ↔ yearly: in-place plan change with proration (no second
-    // subscription). Confirm first because the customer is charged the
-    // difference immediately.
-    const tierInfo = TIER_LABELS[targetTier];
-    const confirmed = window.confirm(
-      `Switch to the ${tierInfo.name} plan (${tierInfo.price} ${tierInfo.cadence})?\n\n` +
-        `You'll be charged the prorated difference today, and your new plan takes effect immediately.`
+    // Lifetime is a one-time product, so it needs a fresh checkout. Once the
+    // payment lands, the webhook cancels the old subscription server-side so
+    // the customer is never charged again for it.
+    const ok = window.confirm(
+      `Upgrade to Lifetime for ${TIER_LABELS.lifetime.price} (one-time)?\n\n` +
+        `You'll finish payment on our secure checkout. Your current ${TIER_LABELS[currentTier].name} ` +
+        `subscription is canceled automatically once the payment is confirmed, so you won't be billed for it again.`
     );
-    if (!confirmed) return;
+    if (!ok) return;
+    try {
+      setPlanLoading("lifetime");
+      setError(null);
+      setSuccessMessage(null);
+      const fullName =
+        user?.fullName || [user?.firstName, user?.lastName].filter(Boolean).join(" ") || userData.name || undefined;
+      const resp = await fetch("/api/dodo/create-checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tier: "lifetime",
+          email: userData.email,
+          ...(fullName ? { name: fullName } : {}),
+          metadata: { upgrade_from: currentTier },
+        }),
+      });
+      const data = await resp.json();
+      if (!resp.ok || !data?.checkout_url) throw new Error(data?.error || "Failed to start upgrade checkout.");
+      window.location.assign(data.checkout_url);
+    } catch (e) {
+      setError(errorText(e, "Failed to start upgrade checkout."));
+      setPlanLoading(null);
+    }
+  }
+
+  async function handleChangePlan(currentTier: Tier, target: "monthly" | "yearly", renewsOn: string) {
+    if (!userData?.email) return;
+    const info = TIER_LABELS[target];
+    const isDowngrade = currentTier === "yearly" && target === "monthly";
+    const ok = window.confirm(
+      isDowngrade
+        ? `Switch to the Monthly plan (${info.price} ${info.cadence})?\n\n` +
+            `You keep Yearly until ${renewsOn}. After that you'll be billed ${info.price} each month instead of renewing yearly. ` +
+            `You can undo this any time before then.`
+        : `Upgrade to the Yearly plan (${info.price} ${info.cadence})?\n\n` +
+            `It takes effect now. You'll be charged for the year today, minus a credit for the unused part of your current month.`
+    );
+    if (!ok) return;
 
     try {
-      setUpgradeLoading(targetTier);
+      setPlanLoading(target);
       setError(null);
       setSuccessMessage(null);
       const resp = await fetch("/api/dodo/change-plan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tier: targetTier, email: userData.email }),
+        body: JSON.stringify({ tier: target, email: userData.email }),
       });
       const data = await resp.json();
-      if (!resp.ok || !data?.success) {
-        throw new Error(data?.error || "Failed to change plan.");
+      if (!resp.ok || !data?.success) throw new Error(data?.error || "Failed to change plan.");
+
+      if (data.scheduled) {
+        setSuccessMessage("Scheduling your switch to Monthly…");
+        const landed = await pollLiveUntil((s) => s?.scheduledChange?.tier === target);
+        setSuccessMessage(
+          landed
+            ? `Done. You'll move to Monthly on ${renewsOn}.`
+            : "Switch to Monthly requested. It may take a moment to appear here — hit Refresh if you don't see it shortly."
+        );
+      } else {
+        setSuccessMessage(`Switching to ${info.name}… this updates in a few seconds.`);
+        const landed = await pollUntil((u) => u?.tier === target, { timeoutMs: 25000, intervalMs: 2000 });
+        await loadLive();
+        setSuccessMessage(
+          landed
+            ? `You're now on the ${info.name} plan.`
+            : "Plan change submitted. It may take a moment longer to appear here — hit Refresh if you don't see it shortly."
+        );
       }
-      setSuccessMessage(
-        `Switching to ${tierInfo.name}… your dashboard will update in a few seconds.`
-      );
-      const landed = await pollUntil(
-        (u) => u?.tier === targetTier,
-        { timeoutMs: 25000, intervalMs: 2000 }
-      );
-      setSuccessMessage(
-        landed
-          ? `You're now on the ${tierInfo.name} plan.`
-          : `Plan change submitted. It may take a moment longer to appear here — try refreshing if you don't see it shortly.`
-      );
-    } catch (e: any) {
-      setError(e?.message || "Failed to change plan.");
+    } catch (e) {
+      setError(errorText(e, "Failed to change plan."));
     } finally {
-      setUpgradeLoading(null);
+      setPlanLoading(null);
     }
   }
 
-  // Cancel any in-flight poll on unmount so we don't setState on an
-  // unmounted component.
-  useEffect(() => {
-    return () => {
-      pollAbort.current?.abort();
-    };
-  }, []);
+  async function handleUndoScheduledChange(currentTier: Tier) {
+    try {
+      setPlanLoading("undo");
+      setError(null);
+      setSuccessMessage(null);
+      const resp = await fetch("/api/dodo/subscription", { method: "DELETE" });
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok || !data?.success) throw new Error(data?.error || "Could not cancel the scheduled change.");
+      await pollLiveUntil((s) => !s?.scheduledChange);
+      setSuccessMessage(`Scheduled change canceled. You'll stay on ${TIER_LABELS[currentTier].name}.`);
+    } catch (e) {
+      setError(errorText(e, "Could not cancel the scheduled change."));
+    } finally {
+      setPlanLoading(null);
+    }
+  }
 
+  useEffect(() => {
+    if (!isLoaded) return;
+    if (!userId) {
+      router.replace("/sign-in?redirect_url=/account/billing");
+      return;
+    }
+    // initLoad only sets state after awaiting the network, never synchronously.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void initLoad();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoaded, userId]);
+
+  // Cancel any in-flight poll on unmount so we don't setState after it.
+  useEffect(() => () => pollAbort.current?.abort(), []);
+
+  /* -------------------------------- Loading ------------------------------- */
   if (loading) {
     return (
-      <>
-        <Header />
-        <Section className="py-20">
-          <div className="min-h-[40vh] flex items-center justify-center">
-            <FaSpinner className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        </Section>
-      </>
+      <BillingShell>
+        <div className="flex min-h-[50vh] items-center justify-center">
+          <FaSpinner className="h-7 w-7 animate-spin text-primary" aria-label="Loading billing" />
+        </div>
+      </BillingShell>
     );
   }
 
-  // Signed in but no paid license — show empty state with CTA to /pricing.
+  /* ------------------------------ Not a customer -------------------------- */
   if (!userData?.paid) {
     return (
-      <>
-        <Header />
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-          <Section className="py-20">
-            <div className="max-w-xl mx-auto bg-white rounded-2xl border border-slate-200 shadow-sm p-10 text-center">
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10 mb-5">
-                <FaCrown className="h-6 w-6 text-primary" />
-              </div>
-              <h1 className="text-2xl font-bold text-slate-900 mb-2">
-                No active subscription
-              </h1>
-              <p className="text-slate-600 mb-6">
-                You're signed in but haven't purchased a plan yet. Pick a plan to
-                unlock Buckets by ServerlessCreed Pro on up to two machines.
-              </p>
-              <Link
-                href="/pricing"
-                className="inline-flex items-center justify-center rounded-md bg-primary hover:bg-primary/90 text-white font-semibold px-6 py-3 transition-colors"
-              >
-                See plans &amp; pricing
-              </Link>
-              {error && (
-                <p className="mt-6 text-sm text-red-600">{error}</p>
-              )}
-            </div>
-          </Section>
+      <BillingShell>
+        <div className="surface mx-auto mt-6 max-w-xl rounded-2xl p-10 text-center">
+          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-inset ring-primary/20">
+            <FaCrown className="h-6 w-6 text-primary" />
+          </div>
+          <h1 className="text-2xl font-semibold tracking-[-0.03em] text-foreground">No active plan yet</h1>
+          <p className="mx-auto mt-2 max-w-sm text-muted-foreground">
+            You&apos;re signed in but haven&apos;t picked a plan. Every plan unlocks the full Buckets app on up to
+            two machines.
+          </p>
+          <Link
+            href="/pricing"
+            className={cn(buttonVariants({ size: "lg" }), "mt-7 h-11 rounded-full px-7 font-semibold")}
+          >
+            See plans &amp; pricing
+          </Link>
+          {error && <p className="mt-6 text-sm text-destructive">{error}</p>}
         </div>
-      </>
+      </BillingShell>
     );
   }
 
+  /* --------------------------------- Customer ----------------------------- */
   const tier = (userData.tier as Tier) || "lifetime";
   const tierInfo = TIER_LABELS[tier] || TIER_LABELS.lifetime;
   const isLifetime = tier === "lifetime";
+  const isTeam = tier === "team";
+  const isRecurringSolo = tier === "monthly" || tier === "yearly";
   const isCanceled = userData.subscriptionStatus === "canceled";
   const isPastDue = userData.subscriptionStatus === "past_due";
 
-  // Upgrade options: monthly users see yearly + lifetime; yearly users see lifetime only.
-  const upgradeOptions: Tier[] =
-    tier === "monthly"
-      ? ["yearly", "lifetime"]
-      : tier === "yearly"
-      ? ["lifetime"]
-      : [];
+  const periodEnd = live?.nextBillingDate ?? userData.validUntil ?? null;
+  const periodEndLabel = formatDate(periodEnd);
+  const cancelScheduled = !isCanceled && !!live?.cancelAtNextBillingDate;
+  const scheduled = live?.scheduledChange ?? null;
+  const scheduledLabel = scheduled ? formatDate(scheduled.effectiveAt ?? periodEnd) : null;
+
+  // Plan changes only make sense on a live, renewing solo subscription.
+  // Past-due accounts fix their payment method first (portal), then change plan.
+  const canChangePlan = isRecurringSolo && !isCanceled && !isPastDue && !cancelScheduled && !userData.revoked;
+  const busy = planLoading !== null;
+
+  const nextCharge =
+    isRecurringSolo && !isCanceled && !cancelScheduled
+      ? TIER_LABELS[scheduled && scheduled.tier !== tier ? scheduled.tier : tier]
+      : null;
 
   return (
-    <>
-      <Header />
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-        <Section className="py-12 md:py-16">
-          {/* Page header */}
-          <div className="max-w-5xl mx-auto mb-8">
-            <p className="text-xs font-semibold uppercase tracking-wider text-primary mb-2">
-              Account
-            </p>
-            <div className="flex items-start justify-between gap-4 flex-wrap">
-              <div>
-                <h1 className="text-3xl md:text-4xl font-bold text-slate-900">
-                  Billing &amp; Subscription
-                </h1>
-                <p className="text-slate-600 mt-1.5">
-                  Manage your Buckets by ServerlessCreed Pro plan, payment method, and invoices.
-                </p>
-              </div>
-              <button
-                onClick={() => loadUserData(true)}
-                disabled={refreshing}
-                className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 disabled:opacity-50"
-                title="Refresh"
-              >
-                <FaSync className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
-                Refresh
-              </button>
-            </div>
-          </div>
-
-          {tier === "team" && (
-            <div className="max-w-5xl mx-auto mb-6">
-              <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
-                You're on a Team plan —{" "}
-                <Link href="/account/team" className="underline font-medium">
-                  manage seats and members here
-                </Link>
-                .
-              </div>
-            </div>
-          )}
-
-          {error && (
-            <div className="max-w-5xl mx-auto mb-6">
-              <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                {error}
-              </div>
-            </div>
-          )}
-
-          {successMessage && (
-            <div className="max-w-5xl mx-auto mb-6">
-              <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800 flex items-start gap-2">
-                <FaCheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                <span>{successMessage}</span>
-              </div>
-            </div>
-          )}
-
-          {/* Past-due banner */}
-          {isPastDue && (
-            <div className="max-w-5xl mx-auto mb-6">
-              <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 flex items-start gap-3">
-                <FaExclamationTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-amber-900">
-                    Your last payment didn't go through
-                  </p>
-                  <p className="text-xs text-amber-800 mt-0.5">
-                    Update your payment method to keep your subscription active.
-                    {userData.gracePeriodUntil && (
-                      <> Access continues until {formatDate(userData.gracePeriodUntil)}.</>
-                    )}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Canceled banner */}
-          {isCanceled && !isLifetime && (
-            <div className="max-w-5xl mx-auto mb-6">
-              <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 flex items-start gap-3">
-                <FaBan className="h-4 w-4 text-slate-500 mt-0.5 flex-shrink-0" />
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-slate-900">
-                    Subscription canceled
-                  </p>
-                  <p className="text-xs text-slate-600 mt-0.5">
-                    {userData.validUntil ? (
-                      <>You keep Pro access until {formatDate(userData.validUntil)}.</>
-                    ) : (
-                      <>Access has ended.</>
-                    )}{" "}
-                    Re-subscribe any time from the pricing page.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Main grid */}
-          <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Plan summary — spans 2 cols */}
-            <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-6 md:px-8 py-6 border-b border-slate-200 flex items-start justify-between gap-4 flex-wrap">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
-                    Current plan
-                  </p>
-                  <div className="flex items-baseline gap-3 flex-wrap">
-                    <h2 className="text-2xl font-bold text-slate-900">
-                      Buckets by ServerlessCreed Pro · {tierInfo.name}
-                    </h2>
-                    <StatusBadge
-                      tier={tier}
-                      status={userData.subscriptionStatus}
-                      revoked={userData.revoked}
-                    />
-                  </div>
-                  <div className="flex items-baseline gap-1.5 mt-2">
-                    <span className="text-3xl font-bold text-slate-900">
-                      {tierInfo.price}
-                    </span>
-                    <span className="text-sm text-slate-500">{tierInfo.cadence}</span>
-                  </div>
-                  <p className="text-xs text-slate-500 mt-2">
-                    Current list price. Your receipt or billing portal shows your actual charges.
-                  </p>
-                </div>
-                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10">
-                  {isLifetime ? (
-                    <FaInfinity className="h-5 w-5 text-primary" />
-                  ) : (
-                    <FaCrown className="h-5 w-5 text-primary" />
-                  )}
-                </div>
-              </div>
-
-              <dl className="px-6 md:px-8 py-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div>
-                  <dt className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
-                    <FaEnvelope className="h-3 w-3" /> Billing email
-                  </dt>
-                  <dd className="text-sm text-slate-900 break-all">{userData.email}</dd>
-                </div>
-
-                <div>
-                  <dt className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
-                    <FaCalendarAlt className="h-3 w-3" />{" "}
-                    {isLifetime
-                      ? "Purchased"
-                      : isCanceled
-                      ? "Access until"
-                      : "Renews on"}
-                  </dt>
-                  <dd className="text-sm text-slate-900">
-                    {isLifetime ? "—" : formatDate(userData.validUntil)}
-                  </dd>
-                </div>
-
-                {!isLifetime && (
-                  <div>
-                    <dt className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
-                      Subscription ID
-                    </dt>
-                    <dd className="text-xs font-mono text-slate-700 break-all">
-                      {userData.subscriptionId || "—"}
-                    </dd>
-                  </div>
-                )}
-
-                <div>
-                  <dt className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
-                    License key
-                  </dt>
-                  <dd className="text-xs font-mono text-slate-700 break-all">
-                    {userData.key || "—"}
-                  </dd>
-                </div>
-
-                <div>
-                  <dt className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
-                    Devices
-                  </dt>
-                  <dd className="text-sm text-slate-900">
-                    <span className="font-semibold">
-                      {userData.machines?.length || 0}
-                    </span>{" "}
-                    of {userData.licenseCount || 2} activated
-                  </dd>
-                </div>
-              </dl>
-
-              <div className="px-6 md:px-8 py-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center gap-3 justify-between">
-                <p className="text-xs text-slate-600">
-                  Payments are securely processed by Dodo Payments.
-                </p>
-                <Link
-                  href="/downloads"
-                  className="text-xs font-semibold text-primary hover:underline"
-                >
-                  View license &amp; devices →
-                </Link>
-              </div>
-            </div>
-
-            {/* Actions sidebar */}
-            <div className="space-y-6">
-              {/* Manage panel — only for subscriptions */}
-              {!isLifetime && (
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-                  <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2 mb-1">
-                    <FaCog className="h-4 w-4 text-primary" /> Manage
-                  </h3>
-                  <p className="text-xs text-slate-600 mb-4">
-                    Cancel, update your card, or download invoices in Dodo's
-                    secure customer portal.
-                  </p>
-                  <Button
-                    onClick={handleManageSubscription}
-                    disabled={portalLoading}
-                    className="w-full bg-slate-900 hover:bg-slate-800 text-white"
-                  >
-                    {portalLoading ? (
-                      <>
-                        <FaSpinner className="mr-2 h-4 w-4 animate-spin" />
-                        Opening…
-                      </>
-                    ) : (
-                      <>
-                        <FaReceipt className="mr-2 h-4 w-4" />
-                        Open billing portal
-                      </>
-                    )}
-                  </Button>
-                  <ul className="mt-4 space-y-1.5 text-xs text-slate-600">
-                    <li className="flex items-center gap-2">
-                      <FaCheckCircle className="h-3 w-3 text-slate-400" />
-                      Cancel subscription
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <FaCheckCircle className="h-3 w-3 text-slate-400" />
-                      Update payment method
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <FaCheckCircle className="h-3 w-3 text-slate-400" />
-                      Download invoices
-                    </li>
-                  </ul>
-                </div>
-              )}
-
-              {/* Upgrade panel */}
-              {upgradeOptions.length > 0 && (
-                <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl border border-primary/20 shadow-sm p-6">
-                  <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2 mb-1">
-                    <FaArrowUp className="h-4 w-4 text-primary" /> Upgrade your plan
-                  </h3>
-                  <p className="text-xs text-slate-700 mb-4">
-                    {tier === "monthly"
-                      ? "Save 18% with yearly, or pay once for lifetime access."
-                      : "Skip renewals forever with a one-time lifetime purchase."}
-                  </p>
-                  <div className="space-y-2">
-                    {upgradeOptions.map((opt) => {
-                      const info = TIER_LABELS[opt];
-                      return (
-                        <Button
-                          key={opt}
-                          onClick={() => handleUpgrade(opt)}
-                          disabled={upgradeLoading !== null}
-                          className={`w-full justify-between ${
-                            opt === "lifetime"
-                              ? "bg-primary hover:bg-primary/90 text-white"
-                              : "bg-white hover:bg-slate-50 text-slate-900 border border-slate-200"
-                          }`}
-                        >
-                          <span className="flex items-center gap-2">
-                            {upgradeLoading === opt ? (
-                              <FaSpinner className="h-3.5 w-3.5 animate-spin" />
-                            ) : opt === "lifetime" ? (
-                              <FaInfinity className="h-3.5 w-3.5" />
-                            ) : (
-                              <FaArrowUp className="h-3.5 w-3.5" />
-                            )}
-                            {info.name}
-                          </span>
-                          <span className="text-xs opacity-80">
-                            {info.price} {info.cadence}
-                          </span>
-                        </Button>
-                      );
-                    })}
-                  </div>
-                  <p className="mt-3 text-[11px] text-slate-500 leading-relaxed">
-                    Monthly ↔ yearly switches are applied in-place with
-                    prorated billing — no double-charge. Lifetime upgrades
-                    auto-cancel your recurring plan once payment is confirmed.
-                  </p>
-                </div>
-              )}
-
-              {/* Lifetime panel */}
-              {isLifetime && (
-                <div className="bg-gradient-to-br from-violet-50 to-violet-100 rounded-2xl border border-violet-200 shadow-sm p-6">
-                  <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2 mb-1">
-                    <FaInfinity className="h-4 w-4 text-violet-600" /> Lifetime access
-                  </h3>
-                  <p className="text-xs text-slate-700 mb-4">
-                    You own Buckets by ServerlessCreed Pro forever. No renewals, no recurring
-                    charges. All future updates are included.
-                  </p>
-                  <Link
-                    href="/downloads"
-                    className="block w-full text-center rounded-md bg-white hover:bg-slate-50 border border-slate-200 text-slate-900 font-semibold py-2.5 text-sm transition-colors"
-                  >
-                    View downloads
-                  </Link>
-                </div>
-              )}
-
-              {/* Help */}
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-                <h3 className="text-sm font-bold text-slate-900 mb-2">Need help?</h3>
-                <p className="text-xs text-slate-600 mb-3">
-                  Refunds within 30 days. Reach out and we'll sort it out fast.
-                </p>
-                <a
-                  href="mailto:vidit@serverlesscreed.com"
-                  className="inline-flex items-center gap-2 text-xs font-semibold text-primary hover:underline"
-                >
-                  <FaEnvelope className="h-3 w-3" />
-                  vidit@serverlesscreed.com
-                </a>
-              </div>
-            </div>
-          </div>
-        </Section>
+    <BillingShell>
+      {/* Page header */}
+      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+            <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden />
+            Account
+          </p>
+          <h1 className="mt-5 text-4xl font-semibold tracking-[-0.04em] md:text-5xl">
+            <span className="text-gradient">Billing &amp; plan</span>
+          </h1>
+          <p className="mt-3 max-w-xl text-muted-foreground">
+            Your Buckets plan, renewals, payment method and invoices in one place.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={handleRefresh}
+          disabled={refreshing || busy}
+          className="inline-flex h-9 items-center gap-2 rounded-full border border-border px-4 text-sm text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground disabled:opacity-50"
+        >
+          <FaSync className={cn("h-3.5 w-3.5", refreshing && "animate-spin")} />
+          Refresh
+        </button>
       </div>
-    </>
+
+      {/* Notices */}
+      <div className="mb-6 space-y-3 empty:hidden">
+        {error && (
+          <Notice tone="danger" icon={<FaExclamationTriangle className="h-4 w-4" />}>
+            {error}
+          </Notice>
+        )}
+        {successMessage && (
+          <Notice tone="success" icon={<FaCheckCircle className="h-4 w-4" />}>
+            {successMessage}
+          </Notice>
+        )}
+        {isTeam && (
+          <Notice tone="info" icon={<FaUsers className="h-4 w-4" />} title="You're on a Team plan">
+            Seats and members are managed on the{" "}
+            <Link href="/account/team" className="font-medium underline underline-offset-2">
+              Team page
+            </Link>
+            .
+          </Notice>
+        )}
+        {isPastDue && (
+          <Notice
+            tone="warning"
+            icon={<FaExclamationTriangle className="h-4 w-4" />}
+            title="Your last payment didn't go through"
+            action={
+              <Button
+                size="sm"
+                onClick={handleManageSubscription}
+                disabled={portalLoading}
+                className="h-8 rounded-full px-3.5 text-xs font-semibold"
+              >
+                {portalLoading ? <FaSpinner className="h-3 w-3 animate-spin" /> : "Update payment"}
+              </Button>
+            }
+          >
+            Update your payment method in the billing portal to keep your plan active.
+            {userData.gracePeriodUntil && <> Access continues until {formatDate(userData.gracePeriodUntil)}.</>}
+          </Notice>
+        )}
+        {cancelScheduled && (
+          <Notice
+            tone="warning"
+            icon={<FaCalendarAlt className="h-4 w-4" />}
+            title={`Your plan ends on ${periodEndLabel}`}
+          >
+            Cancellation is scheduled, so you won&apos;t be charged again. You keep full access until then. Changed
+            your mind? Resume it from the billing portal.
+          </Notice>
+        )}
+        {isCanceled && !isLifetime && (
+          <Notice tone="neutral" icon={<FaBan className="h-4 w-4" />} title="Subscription canceled">
+            {userData.validUntil ? <>You keep access until {formatDate(userData.validUntil)}.</> : <>Access has ended.</>}{" "}
+            <Link href="/pricing" className="font-medium text-primary underline-offset-2 hover:underline">
+              Choose a plan
+            </Link>{" "}
+            to subscribe again.
+          </Notice>
+        )}
+        {scheduled && scheduled.tier !== tier && !cancelScheduled && (
+          <Notice
+            tone="brand"
+            icon={<FaArrowDown className="h-4 w-4" />}
+            title={`Switching to ${TIER_LABELS[scheduled.tier].name} on ${scheduledLabel}`}
+            action={
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleUndoScheduledChange(tier)}
+                disabled={busy}
+                className="h-8 rounded-full border-border bg-transparent px-3 text-xs font-semibold hover:bg-foreground/5"
+              >
+                {planLoading === "undo" ? (
+                  <FaSpinner className="mr-1.5 h-3 w-3 animate-spin" />
+                ) : (
+                  <FaUndo className="mr-1.5 h-3 w-3" />
+                )}
+                Keep {tierInfo.name}
+              </Button>
+            }
+          >
+            You stay on {tierInfo.name} until then, and you&apos;ll be billed {TIER_LABELS[scheduled.tier].price}{" "}
+            {TIER_LABELS[scheduled.tier].cadence} after.
+          </Notice>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Plan summary */}
+        <section className="surface self-start overflow-hidden rounded-2xl lg:col-span-2">
+          <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border px-6 py-6 md:px-8">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                Current plan · Buckets Pro
+              </p>
+              <div className="mt-2 flex flex-wrap items-center gap-3">
+                <h2 className="text-2xl font-semibold tracking-[-0.03em] text-foreground">{tierInfo.name}</h2>
+                <StatusBadge
+                  tier={tier}
+                  status={userData.subscriptionStatus}
+                  revoked={userData.revoked}
+                  cancelsOn={cancelScheduled ? periodEndLabel : null}
+                />
+              </div>
+              <div className="mt-4 flex items-baseline gap-2">
+                <span className="text-5xl font-semibold tracking-[-0.04em] text-foreground">{tierInfo.price}</span>
+                <span className="text-sm text-muted-foreground">{tierInfo.cadence}</span>
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                List price. Your receipts in the billing portal show exactly what you were charged.
+              </p>
+            </div>
+            <div className="hidden h-12 w-12 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-inset ring-primary/20 sm:flex">
+              {isLifetime ? (
+                <FaInfinity className="h-5 w-5 text-primary" />
+              ) : isTeam ? (
+                <FaUsers className="h-5 w-5 text-primary" />
+              ) : (
+                <FaCrown className="h-5 w-5 text-primary" />
+              )}
+            </div>
+          </div>
+
+          <dl className="grid grid-cols-1 gap-6 px-6 py-6 sm:grid-cols-2 md:px-8">
+            <div>
+              <FieldLabel icon={<FaCalendarAlt className="h-3 w-3" />}>
+                {isLifetime
+                  ? "Renewal"
+                  : isCanceled || cancelScheduled
+                  ? "Access until"
+                  : isPastDue
+                  ? "Payment due"
+                  : "Renews on"}
+              </FieldLabel>
+              <dd className="text-sm text-foreground">{isLifetime ? "Never — yours for good" : periodEndLabel}</dd>
+            </div>
+
+            <div>
+              <FieldLabel icon={<FaReceipt className="h-3 w-3" />}>Next charge</FieldLabel>
+              <dd className="text-sm text-foreground">
+                {nextCharge ? (
+                  <>
+                    {nextCharge.price} <span className="text-muted-foreground">{nextCharge.cadence}</span>
+                    {periodEnd && <span className="text-muted-foreground"> · {periodEndLabel}</span>}
+                  </>
+                ) : isTeam ? (
+                  <span className="text-muted-foreground">See the Team page</span>
+                ) : (
+                  <span className="text-muted-foreground">None</span>
+                )}
+              </dd>
+            </div>
+
+            <div>
+              <FieldLabel icon={<FaEnvelope className="h-3 w-3" />}>Billing email</FieldLabel>
+              <dd className="break-all text-sm text-foreground">{userData.email}</dd>
+            </div>
+
+            <div>
+              <FieldLabel>Devices</FieldLabel>
+              <dd className="text-sm text-foreground">
+                <span className="font-semibold">{userData.machines?.length || 0}</span> of{" "}
+                {userData.licenseCount || 2} activated
+              </dd>
+            </div>
+
+            <div>
+              <FieldLabel>License key</FieldLabel>
+              <dd className="break-all font-mono text-xs text-foreground/80">{userData.key || "—"}</dd>
+            </div>
+
+            {!isLifetime && (
+              <div>
+                <FieldLabel>Subscription ID</FieldLabel>
+                <dd className="break-all font-mono text-xs text-foreground/80">{userData.subscriptionId || "—"}</dd>
+              </div>
+            )}
+          </dl>
+
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-foreground/[0.02] px-6 py-4 md:px-8">
+            <p className="text-xs text-muted-foreground">
+              {isLifetime
+                ? "One-time purchase — no recurring charges."
+                : "Renewals are charged automatically."}{" "}
+              Payments are processed securely by Dodo Payments.
+            </p>
+            <Link href="/downloads" className="text-xs font-semibold text-primary hover:underline">
+              License &amp; devices →
+            </Link>
+          </div>
+        </section>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Change plan */}
+          {canChangePlan && (
+            <section className="surface rounded-2xl p-6">
+              <CardTitle icon={<FaArrowUp className="h-3.5 w-3.5" />}>Change plan</CardTitle>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                Upgrades apply right away with a credit for unused time. Downgrades start at your next renewal.
+              </p>
+              <ul className="mt-4 space-y-2.5">
+                {PLAN_ORDER.map((opt) => {
+                  const info = TIER_LABELS[opt];
+                  const isCurrent = opt === tier;
+                  const isScheduled = scheduled?.tier === opt && !isCurrent;
+                  const direction = RANK[opt] > RANK[tier as SoloTier] ? "up" : "down";
+                  return (
+                    <li
+                      key={opt}
+                      className={cn(
+                        "flex items-center justify-between gap-3 rounded-xl border px-3.5 py-3",
+                        isCurrent ? "border-primary/40 bg-primary/[0.06]" : "border-border"
+                      )}
+                    >
+                      <div className="min-w-0">
+                        <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                          {info.name}
+                          {isCurrent && (
+                            <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold text-primary-foreground">
+                              Current
+                            </span>
+                          )}
+                        </p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                          {info.price} {info.cadence} · {info.blurb}
+                        </p>
+                      </div>
+                      {isCurrent ? null : isScheduled ? (
+                        <span className="whitespace-nowrap text-[11px] font-medium text-muted-foreground">
+                          From {scheduledLabel}
+                        </span>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant={direction === "up" ? "default" : "outline"}
+                          disabled={busy}
+                          onClick={() =>
+                            opt === "lifetime"
+                              ? handleLifetimeUpgrade(tier)
+                              : handleChangePlan(tier, opt, periodEndLabel)
+                          }
+                          className={cn(
+                            "h-8 shrink-0 rounded-full px-3.5 text-xs font-semibold",
+                            direction === "down" && "border-border bg-transparent hover:bg-foreground/5"
+                          )}
+                        >
+                          {planLoading === opt ? (
+                            <FaSpinner className="h-3 w-3 animate-spin" />
+                          ) : direction === "up" ? (
+                            "Upgrade"
+                          ) : (
+                            "Downgrade"
+                          )}
+                        </Button>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+              <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
+                You&apos;re never billed twice: plan changes update your existing subscription, and Lifetime cancels
+                it automatically once paid.
+              </p>
+            </section>
+          )}
+
+          {/* Manage */}
+          {!isLifetime && (
+            <section className="surface rounded-2xl p-6">
+              <CardTitle icon={<FaReceipt className="h-3.5 w-3.5" />}>Payment &amp; invoices</CardTitle>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                Update your card, download invoices, or cancel or resume your subscription in Dodo&apos;s secure
+                portal.
+              </p>
+              <Button
+                onClick={handleManageSubscription}
+                disabled={portalLoading}
+                className="mt-4 h-10 w-full rounded-full bg-foreground font-semibold text-background hover:bg-foreground/90"
+              >
+                {portalLoading ? (
+                  <>
+                    <FaSpinner className="mr-2 h-4 w-4 animate-spin" />
+                    Opening…
+                  </>
+                ) : (
+                  "Open billing portal"
+                )}
+              </Button>
+            </section>
+          )}
+
+          {/* Lifetime */}
+          {isLifetime && (
+            <section className="rounded-2xl border border-primary/40 bg-gradient-to-b from-primary/[0.12] to-transparent p-6 shadow-[0_30px_80px_-30px_hsl(var(--primary)/0.35)]">
+              <CardTitle icon={<FaInfinity className="h-3.5 w-3.5" />}>Lifetime access</CardTitle>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                You own Buckets Pro for good. No renewals, no recurring charges, and every future update is
+                included.
+              </p>
+              <Link
+                href="/downloads"
+                className={cn(buttonVariants(), "mt-4 h-10 w-full rounded-full font-semibold")}
+              >
+                Go to downloads
+              </Link>
+            </section>
+          )}
+
+          {/* Help */}
+          <section className="surface rounded-2xl p-6">
+            <CardTitle icon={<FaInfoCircle className="h-3.5 w-3.5" />}>Need help?</CardTitle>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+              Questions about a charge or refunds within 30 days? Email us and we&apos;ll sort it out fast.
+            </p>
+            <a
+              href="mailto:vidit@serverlesscreed.com"
+              className="mt-3 inline-flex items-center gap-2 text-xs font-semibold text-primary hover:underline"
+            >
+              <FaEnvelope className="h-3 w-3" />
+              vidit@serverlesscreed.com
+            </a>
+          </section>
+        </div>
+      </div>
+    </BillingShell>
   );
 }

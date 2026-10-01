@@ -36,6 +36,12 @@ export function getConfiguredProductIds(tier?: LicenseTier): string[] {
     );
 }
 
+/** Reverse lookup: which tier a Dodo product id belongs to (null if not ours). */
+export function getTierForProductId(productId?: string | null): LicenseTier | null {
+  if (!productId) return null;
+  return TIERS.find((tier) => getConfiguredProductIds(tier).includes(productId)) ?? null;
+}
+
 export function isLicenseTier(value: unknown): value is LicenseTier {
   return typeof value === "string" && (TIERS as readonly string[]).includes(value);
 }

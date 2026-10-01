@@ -1,9 +1,13 @@
 /**
  * In-place subscription plan change (monthly ↔ yearly).
  *
- * Calls Dodo's POST /subscriptions/{id}/change-plan with prorated billing so
- * the customer is charged the difference immediately rather than ending up
- * with two parallel subscriptions. Lifetime is intentionally NOT routed
+ * Calls Dodo's POST /subscriptions/{id}/change-plan so the customer never
+ * ends up with two parallel subscriptions:
+ *   - Upgrade (monthly → yearly) applies immediately with prorated billing —
+ *     unused monthly time is credited against the yearly charge.
+ *   - Downgrade (yearly → monthly) is scheduled for the next billing date, so
+ *     the customer keeps the year they paid for and is billed monthly after
+ *     that. It can be undone with DELETE /api/dodo/subscription. Lifetime is intentionally NOT routed
  * through here — it's a one-time product type and uses /api/dodo/create-checkout.
  *
  * The webhook (subscription.plan_changed) is the authoritative writer of
@@ -19,7 +23,7 @@ import {
   isSubscriptionTier,
   type LicenseTier,
 } from "@/lib/dodo";
-import { getLicenseByEmail } from "@/lib/license-api";
+import { getLicenseForAccount } from "@/lib/license-api";
 
 function errorMessage(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
@@ -56,7 +60,7 @@ export async function POST(req: NextRequest) {
     }
 
     const { response: licenseResponse, data: license } =
-      await getLicenseByEmail(email);
+      await getLicenseForAccount(email);
     if (licenseResponse.status === 404) {
       return NextResponse.json({ error: "License not found" }, { status: 404 });
     }
@@ -95,6 +99,17 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+    if (license.subscriptionStatus === "canceled") {
+      return NextResponse.json(
+        {
+          error:
+            "This subscription has been canceled. Choose a new plan from the pricing page to subscribe again.",
+        },
+        { status: 409 }
+      );
+    }
+    // Only monthly ↔ yearly reaches here (lifetime/team rejected above).
+    const isDowngrade = license.tier === "yearly" && tier === "monthly";
 
     const apiKey = process.env.DODO_API_KEY;
     if (!apiKey) {
@@ -126,11 +141,16 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         product_id: newProductId,
         quantity: 1,
-        // prorated_immediately: customer charged the difference on the spot,
-        // remaining time on old plan credited. Best fit for monthly→yearly
-        // where we want the upgrade to take effect immediately.
+        // Upgrade: prorated_immediately charges the new cycle now and credits
+        // the unused part of the old one, so it takes effect right away.
+        // Downgrade: queued for the end of the paid year — the switch (and
+        // the first monthly charge) happens on the renewal date, and the
+        // webhook updates the license when Dodo applies it.
         proration_billing_mode: "prorated_immediately",
-        effective_at: "immediately",
+        effective_at: isDowngrade ? "next_billing_date" : "immediately",
+        // Replace any change already queued (e.g. an earlier downgrade) so
+        // the subscription only ever has one pending plan.
+        cancel_scheduled_change_plan: true,
         // Don't roll the customer onto the new plan if their card declines —
         // we'd rather keep them where they are than lock them into a failed
         // state.
@@ -162,8 +182,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       tier,
-      message:
-        "Plan change submitted. Your dashboard will reflect the new plan within a few seconds.",
+      scheduled: isDowngrade,
+      message: isDowngrade
+        ? "Your plan will switch at the end of the current billing period."
+        : "Plan change submitted. Your dashboard will reflect the new plan within a few seconds.",
     });
   } catch (error: unknown) {
     console.error("[change-plan] Unexpected request failure.");

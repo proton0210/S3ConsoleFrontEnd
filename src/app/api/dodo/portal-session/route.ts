@@ -18,7 +18,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { getDodoApiBaseUrl, getProductAppOrigin } from "@/lib/dodo";
-import { getLicenseByEmail } from "@/lib/license-api";
+import { getLicenseForAccount } from "@/lib/license-api";
 
 function errorMessage(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
 
     // 2. Look up dodoCustomerId for this license row.
     const { response: licenseResponse, data: license } =
-      await getLicenseByEmail(email);
+      await getLicenseForAccount(email);
     if (licenseResponse.status === 404) {
       return NextResponse.json(
         { error: "License not found for this email" },

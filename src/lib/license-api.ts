@@ -38,6 +38,20 @@ export function getLicenseByEmail(email: string) {
   return licenseApiRequest(`/license?email=${encodeURIComponent(email)}`);
 }
 
+/**
+ * License row for the signed-in account. The webhook keys rows by the email
+ * exactly as Clerk/checkout stored it (trimmed, case preserved), while some
+ * older rows were written lower-cased. Try the exact address first, then the
+ * lower-cased one, so every billing route resolves the same row.
+ */
+export async function getLicenseForAccount(email: string) {
+  const exact = email.trim();
+  const first = await getLicenseByEmail(exact);
+  const lower = exact.toLowerCase();
+  if (first.response.status !== 404 || lower === exact) return first;
+  return getLicenseByEmail(lower);
+}
+
 export function getTeamByOwner(ownerEmail: string) {
   return licenseApiRequest(`/team?ownerEmail=${encodeURIComponent(ownerEmail)}`);
 }
