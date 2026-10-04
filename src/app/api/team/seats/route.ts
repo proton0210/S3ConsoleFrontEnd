@@ -141,9 +141,8 @@ export async function POST(req: NextRequest) {
         proration_billing_mode: "prorated_immediately",
         effective_at: "immediately",
         on_payment_failure: "prevent_change",
-        // change-plan REPLACES the subscription's metadata — re-stamp the
-        // routing keys (app/accountEmail) or downstream webhook events lose
-        // their product marker and row key after any seat change.
+        // Plan-change metadata belongs to the resulting payment. Preserve
+        // account routing keys for its signed payment webhook.
         metadata: {
           ...(provider.metadata && typeof provider.metadata === "object" ? provider.metadata : {}),
           billingOperationId: operationId,
