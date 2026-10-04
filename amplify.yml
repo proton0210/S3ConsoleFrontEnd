@@ -4,6 +4,8 @@ frontend:
     preBuild:
       commands:
         - npm ci --legacy-peer-deps
+        - npm run test:security
+        - npm audit --audit-level=high
         - npm run validate-env
         - npm run check:payment-identity
         - npm run check:trust-center
