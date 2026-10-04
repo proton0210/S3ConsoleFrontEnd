@@ -10,6 +10,7 @@ export default defineConfig([
     "out/**",
     "build/**",
     "third_party/**",
+    "vendor/**", // Reviewed third-party source; tested by test:security.
     "next-env.d.ts",
   ]),
 ]);

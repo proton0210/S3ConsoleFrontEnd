@@ -33,6 +33,7 @@ jobs:
           node-version: "22"
           cache: npm
       - run: npm ci
+      - run: npm run test:security
       - run: npm audit --audit-level=high
       - run: npm run check:payment-identity
       - run: npm run check:trust-center

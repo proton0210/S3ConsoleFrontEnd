@@ -1,0 +1,21 @@
+{
+  "name": "@serverlesscreed/braces",
+  "version": "3.0.3-tables.1",
+  "private": true,
+  "description": "Tables-maintained braces 3.0.3 fork with bounded nesting (CVE-2026-93687)",
+  "license": "MIT",
+  "author": "Jon Schlinkert (https://github.com/jonschlinkert)",
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "lib",
+    "LICENSE",
+    "SECURITY.md"
+  ],
+  "engines": {
+    "node": ">=8"
+  },
+  "dependencies": {
+    "fill-range": "^7.1.1"
+  }
+}
