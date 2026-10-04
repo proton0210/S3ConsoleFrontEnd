@@ -29,7 +29,7 @@ export async function resolveBillingAccount(): Promise<
 
   const user = await currentUser();
   const email = user?.primaryEmailAddress?.emailAddress?.trim() || "";
-  if (!email) return fail("No primary email on authenticated account", 400);
+  if (!email || user?.primaryEmailAddress?.verification?.status !== "verified") return fail("A verified primary email is required for billing changes", 400);
 
   const { response, data: license } = await getLicenseForAccount(email);
   if (response.status === 404) return fail("License not found", 404);

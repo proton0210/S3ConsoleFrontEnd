@@ -1,94 +1,67 @@
-/**
- * payment-success — read-only poller.
- *
- * **Phase 7 demotion:** this route used to write paid=true to DynamoDB on
- * post-checkout redirect. That was fragile (loses the update if the user
- * closes the tab) and racy with the Dodo webhook handler. Now the webhook is
- * the single writer; this endpoint just polls the license row until paid=true
- * or 30s elapses.
- *
- * The browser's /payment-status page hits this in a polling loop.
- */
+/** Read-only confirmation: only webhook-provisioned rows for this purchase can succeed. */
 import { NextRequest, NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
-import { getLicenseByEmail } from "@/lib/license-api";
+import { getLicenseByEmail, getTeamByOwner } from "@/lib/license-api";
+import { confirmedPurchaseTier, purchaseReference } from "@/lib/payment-confirmation";
 
-function errorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error ? error.message : fallback;
-}
+const json = (body: unknown, status = 200) =>
+  NextResponse.json(body, { status, headers: { "Cache-Control": "no-store" } });
+const pending = () => json({ success: true, status: "pending", message: "Awaiting confirmation and license activation for this purchase." });
+
 export async function POST(req: NextRequest) {
   try {
     const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    if (!userId) return json({ success: false, error: "Unauthorized" }, 401);
+    // Ignore all client-supplied identity. Only the signed-in account is read.
+    const purchase = purchaseReference(await req.json().catch(() => ({})));
+    if (!purchase.checkoutAttemptId && !purchase.paymentId && !purchase.subscriptionId) {
+      return json({ success: false, error: "Missing purchase reference. Open billing to check your license." }, 400);
     }
-
-    // Keep accepting the existing request body for released clients, but never
-    // use its email to select an account. Identity comes from Clerk.
-    await req.json().catch(() => ({}));
     const user = await currentUser();
     const email = user?.primaryEmailAddress?.emailAddress?.trim();
-    if (!email) {
-      return NextResponse.json(
-        { success: false, error: "No primary email on authenticated account" },
-        { status: 400 }
-      );
+    if (!email || user?.primaryEmailAddress?.verification?.status !== "verified") {
+      return json({ success: false, error: "A verified primary email is required" }, 400);
     }
-
-    const { response, data: license } = await getLicenseByEmail(email);
-    if (response.status === 404) {
-      // Webhook hasn't landed yet — return pending so the client retries.
-      return NextResponse.json({
-        success: true,
-        status: "pending",
-        message: "Awaiting payment confirmation from Dodo. This may take a few seconds.",
-      });
+    // Preserve legacy mixed-case rows while allowing normalized webhook keys.
+    let result = await getLicenseByEmail(email);
+    if (result.response.status === 404 && email !== email.toLowerCase()) {
+      result = await getLicenseByEmail(email.toLowerCase());
     }
-
-    if (!response.ok) {
-      return NextResponse.json(
-        { success: false, error: license.error || "License lookup failed" },
-        { status: response.status },
-      );
-    }
-
-    // Defense-in-depth: if a clerkId is on the row, ensure it matches the caller.
+    const { response, data: license } = result;
+    if (response.status === 404) return pending();
+    if (!response.ok) return json({ success: false, error: "License lookup failed" }, response.status);
     if (license.clerkId && license.clerkId !== userId) {
-      return NextResponse.json(
-        { success: false, error: "License does not belong to authenticated user" },
-        { status: 403 }
-      );
+      return json({ success: false, error: "License does not belong to authenticated user" }, 403);
     }
-
-    if (license.paid === true) {
-      return NextResponse.json({
-        success: true,
-        status: "paid",
-        userData: {
-          paid: true,
-          onTrial: false,
-          tier: license.tier,
-          validUntil: license.validUntil ?? null,
-          subscriptionStatus: license.subscriptionStatus,
-          licenseCount: license.licenseCount,
-          machines: Array.isArray(license.machines) ? license.machines : [],
-          // Surface the new license key so the redirect page can display it.
-          key: license.key,
-        },
-      });
+    let team = null;
+    if (!purchase.expectedTier || purchase.expectedTier === "team") {
+      const teamResult = await getTeamByOwner(email, userId);
+      if (teamResult.response.ok) {
+        team = teamResult.data;
+        if (team.ownerClerkId && team.ownerClerkId !== userId) {
+          return json({ success: false, error: "Team does not belong to authenticated user" }, 403);
+        }
+      }
+      else if (teamResult.response.status !== 404) {
+        return json({ success: false, error: "Team lookup failed" }, teamResult.response.status);
+      }
     }
-
-    // Still on trial / unpaid — the webhook hasn't arrived yet (or never will).
-    return NextResponse.json({
-      success: true,
-      status: "pending",
-      message: "Payment not yet confirmed. The browser will keep polling for ~30s.",
+    const tier = confirmedPurchaseTier(license, team, purchase, email);
+    if (!tier) return pending();
+    return json({
+      success: true, status: "paid",
+      userData: {
+        paid: true, onTrial: false, tier,
+        licenseTier: license.tier,
+        validUntil: tier === "team" ? team?.validUntil ?? null : license.validUntil ?? null,
+        subscriptionStatus: tier === "team" ? team?.subscriptionStatus : license.subscriptionStatus,
+        licenseCount: license.licenseCount,
+        machines: Array.isArray(license.machines) ? license.machines : [],
+        key: license.key,
+      },
     });
-  } catch (error: unknown) {
-    console.error("[payment-success] Poller request failed.");
-    return NextResponse.json(
-      { success: false, error: errorMessage(error, "Unexpected error") },
-      { status: 500 }
-    );
+  } catch {
+    console.error("[payment-success] Confirmation request failed.");
+    return json({ success: false, error: "Unable to check payment confirmation. Please retry." }, 500);
   }
 }

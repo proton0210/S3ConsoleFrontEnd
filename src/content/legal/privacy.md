@@ -387,7 +387,8 @@ If you are a California resident, you have the right to know what categories of 
 
 For any questions, requests, or complaints regarding this Privacy Policy or our processing of your Personal Information:
 
-- **Email (General, Support, Privacy, and Grievance):** vidit@serverlesscreed.com
+- **Email (General and Support):** buckets@serverlesscreed.com
+- **Email (Privacy and Grievance):** vidit@serverlesscreed.com
 - **Postal Address:** Khetwadi-11, Mumbai, India
 - **Website:** https://buckets.serverlesscreed.com
 - **GSTIN:** 27FZZPS3310E1ZX

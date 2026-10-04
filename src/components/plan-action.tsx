@@ -56,8 +56,8 @@ export function PlanActionButton({
 }
 
 const BANNER_COPY: Record<Exclude<CurrentPlan, "none">, string> = {
-  lifetime: "Every feature is already yours, with all future updates. There's nothing more to buy.",
-  early: "As an early supporter you already have every feature for good. There's nothing more to buy.",
+  lifetime: "Your personal license includes every feature and future update. Add a Team plan if you need shared billing.",
+  early: "As an early supporter you have every feature for good. Add a Team plan if you need shared billing.",
   monthly: "Upgrades change your existing subscription from the Billing page, so you're never billed twice.",
   yearly: "Plan changes happen from the Billing page, so you're never billed twice.",
   team: "Your team plan covers every feature. Manage seats and members from the Team page.",

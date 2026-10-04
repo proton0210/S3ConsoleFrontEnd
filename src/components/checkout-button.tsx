@@ -1,4 +1,6 @@
 "use client";
+import { useRouter } from "next/navigation";
+import { createCheckout } from "@/lib/checkout-client";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@clerk/nextjs";
 import { useState } from "react";
@@ -39,10 +41,15 @@ export default function CheckoutButton({
   variant = "default",
 }: CheckoutButtonProps) {
   const { userId } = useAuth();
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   const handleCheckout = async () => {
     try {
+      if (!userId) {
+        router.push(`/sign-up?redirect_url=${encodeURIComponent(`/buy?tier=${tier || "lifetime"}`)}`);
+        return;
+      }
       setLoading(true);
 
       sendGAEvent("event", "checkout_initiated", {
@@ -65,17 +72,7 @@ export default function CheckoutButton({
       if (email) requestBody.email = email;
       if (name) requestBody.name = name;
 
-      const resp = await fetch("/api/dodo/create-checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestBody),
-      });
-
-      const data = await resp.json();
-
-      if (!resp.ok || !data?.checkout_url) {
-        throw new Error(data?.error || "Failed to create checkout session");
-      }
+      const data = await createCheckout(userId, requestBody);
 
       window.location.href = data.checkout_url;
     } catch (error) {

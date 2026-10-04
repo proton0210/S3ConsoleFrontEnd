@@ -12,7 +12,7 @@ import { currentUser } from "@clerk/nextjs/server";
 export async function POST(req: NextRequest) {
   const user = await currentUser();
   const ownerEmail = user?.primaryEmailAddress?.emailAddress;
-  if (!ownerEmail) {
+  if (!ownerEmail || user?.primaryEmailAddress?.verification?.status !== "verified") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
   const resp = await fetch(`${apiUrl}/team/invite`, {
     method: "POST",
     headers: { "Content-Type": "application/json", "x-api-key": apiKey },
-    body: JSON.stringify({ ownerEmail, memberEmail }),
+    body: JSON.stringify({ ownerEmail, ownerSubject: user.id, memberEmail }),
   });
   const data = await resp.json().catch(() => ({}));
   return NextResponse.json(data, { status: resp.status });

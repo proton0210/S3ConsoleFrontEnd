@@ -27,6 +27,8 @@ import {
 import { Button } from "@/components/ui/button";
 import Header from "@/components/sections/header";
 import { trackReddit, tierValue } from "@/lib/reddit";
+import { clearCheckout } from "@/lib/checkout-client";
+import { paymentSignInUrl, waitForNextPoll, fetchPaymentConfirmation } from "@/lib/payment-confirmation";
 
 type UiPhase =
   | "loading" // resolving Clerk session
@@ -61,7 +63,7 @@ const COPY_STAGE_RELAXED_MS = 90_000;
 // (refresh, billing dashboard, email support).
 const LOADING_FALLBACK_MS = 15_000;
 
-const SUPPORT_EMAIL = "vidit@serverlesscreed.com";
+const SUPPORT_EMAIL = "buckets@serverlesscreed.com";
 
 export default function PaymentStatusPage() {
   return (
@@ -93,6 +95,9 @@ function PaymentStatusContent() {
   const statusParam = (searchParams.get("status") || "").toLowerCase();
   const paymentIdParam = searchParams.get("payment_id");
   const subscriptionIdParam = searchParams.get("subscription_id");
+  const checkoutAttemptId = searchParams.get("checkout_attempt_id");
+  const expectedTier = searchParams.get("expected_tier");
+  const returnQuery = searchParams.toString();
   // Dodo's return URL only contains payment_id / subscription_id / status /
   // license_key / email — no payment_method hint. We fetch the method
   // separately (see effect below) and refine the copy when it lands.
@@ -111,13 +116,14 @@ function PaymentStatusContent() {
   );
   const confettiFired = useRef(false);
   const purchaseTracked = useRef(false);
-  const abortRef = useRef<AbortController | null>(null);
 
   // While polling, tick a 1-Hz elapsed counter so the processing copy can
   // shift stages without forcing the polling effect to re-run.
   useEffect(() => {
     if (phase !== "processing") return;
     const startedAt = Date.now();
+    // Reset the timer when a new external polling lifecycle starts.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setElapsedMs(0);
     const id = setInterval(() => setElapsedMs(Date.now() - startedAt), 1000);
     return () => clearInterval(id);
@@ -187,13 +193,15 @@ function PaymentStatusContent() {
       currency: "USD",
       value: tierValue(tier),
       itemCount: 1,
-      transactionId: paymentIdParam || subscriptionIdParam || undefined,
+      transactionId: paymentIdParam || subscriptionIdParam || checkoutAttemptId || undefined,
       products: tier
         ? [{ id: tier, name: `Buckets by ServerlessCreed ${tier} plan` }]
         : undefined,
     });
-  }, [phase, license, paymentIdParam, subscriptionIdParam]);
+  }, [phase, license, paymentIdParam, subscriptionIdParam, checkoutAttemptId]);
 
+  // This effect owns the external request lifecycle and its visible states.
+  /* eslint-disable react-hooks/set-state-in-effect */
   // Polling loop.
   useEffect(() => {
     // Wait for Clerk to fully resolve BOTH the session (auth) and the profile
@@ -204,38 +212,48 @@ function PaymentStatusContent() {
 
     // Honor Dodo's hard-fail hint immediately — no point polling.
     if (statusParam === "failed") {
+      if (userId) clearCheckout(userId);
       setPhase("failed");
       return;
     }
 
     // Signed out → can't poll. Send them to sign-in with a return-to.
     if (!userId) {
-      router.replace("/sign-in?redirect_url=/payment-status");
+      router.replace(paymentSignInUrl(returnQuery));
       return;
     }
 
-    if (!email) {
+    if (!email || (!checkoutAttemptId && !paymentIdParam && !subscriptionIdParam)) {
       // Clerk fully loaded but no primary email on this account — genuinely
       // unrecoverable from this page; surface the timeout/recovery UI.
       setPhase("timeout");
       return;
     }
 
+    setLicense(null);
+    confettiFired.current = false;
+    purchaseTracked.current = false;
     setPhase("processing");
     const controller = new AbortController();
-    abortRef.current = controller;
     const startedAt = Date.now();
 
     const pollOnce = async (): Promise<boolean> => {
-      const resp = await fetch("/api/payment-success", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-        signal: controller.signal,
-      });
+      const { response: resp, data } = await fetchPaymentConfirmation(
+        { checkoutAttemptId, paymentId: paymentIdParam, subscriptionId: subscriptionIdParam, expectedTier },
+        controller.signal,
+      );
+      if (controller.signal.aborted) return true;
+      if (resp.status === 401) {
+        router.replace(paymentSignInUrl(returnQuery));
+        return true;
+      }
+      if (resp.status === 400 || resp.status === 403) {
+        setPhase("timeout");
+        return true;
+      }
       if (!resp.ok) return false;
-      const data = await resp.json();
       if (data?.status === "paid" && data?.userData?.paid) {
+        clearCheckout(userId);
         setLicense({
           key: data.userData.key,
           tier: data.userData.tier,
@@ -255,14 +273,14 @@ function PaymentStatusContent() {
         let confirmed = false;
         try {
           confirmed = await pollOnce();
-        } catch (err: any) {
-          if (err?.name === "AbortError") return;
+        } catch (err: unknown) {
+          if (controller.signal.aborted || (err instanceof Error && err.name === "AbortError")) return;
           // Network blip — swallow and retry on the next tick.
         }
         if (confirmed) return;
         const elapsed = Date.now() - startedAt;
         const wait = elapsed < FAST_WINDOW_MS ? FAST_INTERVAL_MS : SLOW_INTERVAL_MS;
-        await new Promise((r) => setTimeout(r, wait));
+        await waitForNextPoll(wait, controller.signal);
       }
       if (!controller.signal.aborted) setPhase("timeout");
     };
@@ -272,7 +290,9 @@ function PaymentStatusContent() {
     return () => {
       controller.abort();
     };
-  }, [authLoaded, userLoaded, userId, email, statusParam, router]);
+  }, [authLoaded, userLoaded, userId, email, statusParam, paymentIdParam, subscriptionIdParam, checkoutAttemptId, expectedTier, returnQuery, router]);
+
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   if (phase === "loading") {
     return (
@@ -289,11 +309,11 @@ function PaymentStatusContent() {
           <FaExclamationTriangle className="h-7 w-7 text-rose-600" />
         </div>
         <h1 className="text-3xl font-bold text-slate-900 mb-3">
-          Payment didn't go through
+          Payment didn&apos;t go through
         </h1>
         <p className="text-slate-600 mb-8">
-          Your card or UPI wasn't charged. You can try a different payment
-          method, or reach out and we'll help sort it.
+          The checkout reported a failure. Check your billing dashboard and
+          bank status before retrying, or contact us for help.
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3">
           <Button
@@ -322,15 +342,14 @@ function PaymentStatusContent() {
           <FaEnvelope className="h-7 w-7 text-amber-600" />
         </div>
         <h1 className="text-3xl font-bold text-slate-900 mb-3">
-          We'll email you when it's ready
+          We couldn&apos;t confirm this purchase yet
         </h1>
         <p className="text-slate-600 mb-2">
-          Your payment is still settling with your bank — this is normal for
-          UPI Autopay and NACH on the first cycle, and can take up to a few
-          hours in rare cases.
+          Payment confirmation or license activation may still be processing.
+          You can check again or view your current license on the billing dashboard.
         </p>
         <p className="text-slate-600 mb-8">
-          The moment it lands, your license key goes to{" "}
+          Once payment and activation are confirmed, your license key goes to{" "}
           {email ? (
             <span className="font-medium text-slate-800">{email}</span>
           ) : (
@@ -498,7 +517,7 @@ function PaymentStatusContent() {
         : methodProfile === "slow"
           ? `${methodLabel} mandate settling with your bank`
           : isSubscription
-            ? "Payment received — settling with your bank"
+            ? "Waiting for payment confirmation"
             : "Hang tight — your payment is being processed";
 
   const subhead =
@@ -535,7 +554,7 @@ function PaymentStatusContent() {
             Feel free to close this tab
           </p>
           <p className="text-sm text-slate-600">
-            We'll email your license key to{" "}
+            We&apos;ll email your license key to{" "}
             <span className="font-medium text-slate-800">{email}</span> the
             moment your payment settles. Your license will also appear on the{" "}
             <Link
@@ -551,7 +570,7 @@ function PaymentStatusContent() {
 
       {stage !== "relaxed" && (
         <p className="mt-6 text-sm text-slate-500">
-          You can leave this page open — we'll update it the moment we hear back.
+          You can leave this page open — we&apos;ll update it the moment we hear back.
         </p>
       )}
     </Wrapper>

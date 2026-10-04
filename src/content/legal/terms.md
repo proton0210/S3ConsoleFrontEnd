@@ -122,7 +122,7 @@ In these Terms, the following capitalized terms have the meanings set forth belo
 
 7.2 **Automatic Renewal.** Unless you cancel before the end of your then-current Subscription Term, your Subscription will automatically renew for successive periods equal in length to the original term, at the renewal price then in effect. Renewal charges will be billed to your designated payment method.
 
-7.3 **Cancellation.** You may cancel automatic renewal at any time through your Account or by contacting vidit@serverlesscreed.com. Cancellation takes effect at the end of the current Subscription Term; you retain access to the Software for the remainder of that term. Cancellation does not, by itself, entitle you to a refund (see Section 9).
+7.3 **Cancellation.** You may cancel automatic renewal at any time through your Account or by contacting buckets@serverlesscreed.com. Cancellation takes effect at the end of the current Subscription Term; you retain access to the Software for the remainder of that term. Cancellation does not, by itself, entitle you to a refund (see Section 9).
 
 7.4 **Price Changes.** ServerlessCreed may change Subscription prices at any time. Price changes affecting a renewal will be communicated to you by email or in-app notice at least thirty (30) days before the renewal date. If you do not agree to the new price, you may cancel before the renewal takes effect.
 
@@ -146,7 +146,7 @@ In these Terms, the following capitalized terms have the meanings set forth belo
 
 ## 9. Refund Policy
 
-9.1 **14-Day Money-Back.** You may request a full refund of your most recent Subscription payment by contacting vidit@serverlesscreed.com within **fourteen (14) days** of the date of that payment.
+9.1 **14-Day Money-Back.** You may request a full refund of your most recent Subscription payment by contacting buckets@serverlesscreed.com within **fourteen (14) days** of the date of that payment.
 
 9.2 **Scope.** The refund covers the single most recent payment only. It does not apply to (a) historical payments made more than fourteen days before the refund request, (b) prior renewals that you allowed to proceed, (c) third-party fees (e.g., bank or processor charges), or (d) any Trial Subscription (which is already free).
 
@@ -255,7 +255,7 @@ Account-connected folder-sync profiles also transmit device/profile identifiers,
 
 ## 17. Support
 
-17.1 **Best-Effort Support.** During an active Subscription Term, ServerlessCreed will provide best-effort email support at vidit@serverlesscreed.com for issues directly relating to the Software.
+17.1 **Best-Effort Support.** During an active Subscription Term, ServerlessCreed will provide best-effort email support at buckets@serverlesscreed.com for issues directly relating to the Software.
 
 17.2 **No SLA.** ServerlessCreed does not commit to any specific response time, resolution time, or service-level guarantee, except as may be set out in a separately executed support agreement.
 
@@ -451,7 +451,8 @@ Sections that by their nature should survive termination or expiration of these 
 
 For questions about these Terms, billing, support, or your Subscription, please contact us:
 
-- **Email (General, Support, and Legal):** vidit@serverlesscreed.com
+- **Email (General and Support):** buckets@serverlesscreed.com
+- **Email (Legal):** vidit@serverlesscreed.com
 - **Postal Address:** Khetwadi-11, Mumbai, India
 - **Website:** https://buckets.serverlesscreed.com
 - **GSTIN:** 27FZZPS3310E1ZX

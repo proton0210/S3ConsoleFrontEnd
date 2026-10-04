@@ -1,4 +1,6 @@
 "use client";
+import { useRouter } from "next/navigation";
+import { createCheckout } from "@/lib/checkout-client";
 import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -94,6 +96,7 @@ const TIERS: TierConfig[] = [
 const TEAM_BUY_URL = "/buy?tier=team&seats=3";
 
 export default function PricingPage() {
+  const router = useRouter();
   const { isSignedIn } = useAuth();
   const { user } = useUser();
 
@@ -114,9 +117,9 @@ export default function PricingPage() {
 
       // Team checkout picks a seat count on /buy before paying.
       if (tier === "team") {
-        window.location.href = isSignedIn
+        router.push(isSignedIn
           ? TEAM_BUY_URL
-          : `/sign-up?redirect_url=${encodeURIComponent(TEAM_BUY_URL)}`;
+          : `/sign-up?redirect_url=${encodeURIComponent(TEAM_BUY_URL)}`);
         return;
       }
 
@@ -125,7 +128,7 @@ export default function PricingPage() {
       // back to /buy?tier=... after sign-up, which auto-starts checkout.
       if (!isSignedIn) {
         const redirectUrl = `/buy?tier=${encodeURIComponent(tier)}`;
-        window.location.href = `/sign-up?redirect_url=${encodeURIComponent(redirectUrl)}`;
+        router.push(`/sign-up?redirect_url=${encodeURIComponent(redirectUrl)}`);
         return;
       }
 
@@ -135,23 +138,11 @@ export default function PricingPage() {
         [user?.firstName, user?.lastName].filter(Boolean).join(" ") ||
         undefined;
 
-      const resp = await fetch("/api/dodo/create-checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          tier,
-          ...(email ? { email } : {}),
-          ...(name ? { name } : {}),
-        }),
+      const data = await createCheckout(user!.id, {
+        tier, ...(email ? { email } : {}), ...(name ? { name } : {}),
       });
 
-      const data = await resp.json();
-
-      if (!resp.ok || !data?.checkout_url) {
-        throw new Error(data?.error || "Failed to start checkout");
-      }
-
-      window.location.href = data.checkout_url;
+      window.location.assign(data.checkout_url);
     } catch (err) {
       alert(
         err instanceof Error
@@ -295,7 +286,7 @@ export default function PricingPage() {
               seats self-serve). Invite members and add seats anytime from your
               account. Need more than 50 seats?{" "}
               <a
-                href="mailto:vidit@serverlesscreed.com"
+                href="mailto:buckets@serverlesscreed.com"
                 className="underline hover:text-foreground"
               >
                 Contact us

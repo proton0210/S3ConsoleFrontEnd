@@ -35,7 +35,7 @@ The Buyer controls and is responsible for its AWS accounts, IAM permissions, buc
 
 ## 6. Support and service levels
 
-Unless the applicable Marketplace listing or a separately signed agreement states different commitments, support is provided on a best-effort basis at **vidit@serverlesscreed.com**, with no guaranteed response or resolution time and no contractual uptime percentage. AWS service availability is governed by the Buyer's agreement with AWS.
+Unless the applicable Marketplace listing or a separately signed agreement states different commitments, support is provided on a best-effort basis at **buckets@serverlesscreed.com**, with no guaranteed response or resolution time and no contractual uptime percentage. AWS service availability is governed by the Buyer's agreement with AWS.
 
 ## 7. Security and updates
 
@@ -51,5 +51,5 @@ ServerlessCreed processes Marketplace registration, agreement, entitlement, acco
 
 ## 10. Contact
 
-Questions about Marketplace registration, entitlements, legal terms, or security may be sent to **vidit@serverlesscreed.com**. Include the product name and a non-sensitive AWS Marketplace order or agreement reference; do not email AWS credentials or customer data.
+Questions about Marketplace registration or entitlements may be sent to **buckets@serverlesscreed.com**. Legal or security questions may be sent to **vidit@serverlesscreed.com**. Include the product name and a non-sensitive AWS Marketplace order or agreement reference; do not email AWS credentials or customer data.
 

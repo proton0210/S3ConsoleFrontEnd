@@ -52,6 +52,11 @@ export async function getLicenseForAccount(email: string) {
   return getLicenseByEmail(lower);
 }
 
-export function getTeamByOwner(ownerEmail: string) {
-  return licenseApiRequest(`/team?ownerEmail=${encodeURIComponent(ownerEmail)}`);
+export async function getTeamByOwner(ownerEmail: string, ownerSubject: string) {
+  const subjectQuery = `&ownerSubject=${encodeURIComponent(ownerSubject)}`;
+  const exact = ownerEmail.trim();
+  const first = await licenseApiRequest(`/team?ownerEmail=${encodeURIComponent(exact)}${subjectQuery}`);
+  const lower = exact.toLowerCase();
+  if (first.response.status !== 404 || lower === exact) return first;
+  return licenseApiRequest(`/team?ownerEmail=${encodeURIComponent(lower)}${subjectQuery}`);
 }

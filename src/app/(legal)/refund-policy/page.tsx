@@ -23,7 +23,7 @@ export default function RefundPolicyPage() {
       <h2>Monthly &amp; Yearly subscriptions</h2>
       <p>
         14-day money-back guarantee from the date of initial purchase. Email
-        <a href="mailto:vidit@serverlesscreed.com"> vidit@serverlesscreed.com</a> with
+        <a href="mailto:buckets@serverlesscreed.com"> buckets@serverlesscreed.com</a> with
         your order details.
       </p>
 

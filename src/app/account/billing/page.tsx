@@ -22,6 +22,7 @@
  */
 "use client";
 
+import { createCheckout } from "@/lib/checkout-client";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -427,18 +428,11 @@ export default function BillingDashboardPage() {
       setSuccessMessage(null);
       const fullName =
         user?.fullName || [user?.firstName, user?.lastName].filter(Boolean).join(" ") || userData.name || undefined;
-      const resp = await fetch("/api/dodo/create-checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          tier: "lifetime",
-          email: userData.email,
-          ...(fullName ? { name: fullName } : {}),
-          metadata: { upgrade_from: currentTier },
-        }),
+      const data = await createCheckout(userId!, {
+        tier: "lifetime", email: userData.email,
+        ...(fullName ? { name: fullName } : {}),
+        metadata: { upgrade_from: currentTier },
       });
-      const data = await resp.json();
-      if (!resp.ok || !data?.checkout_url) throw new Error(data?.error || "Failed to start upgrade checkout.");
       window.location.assign(data.checkout_url);
     } catch (e) {
       setError(errorText(e, "Failed to start upgrade checkout."));
@@ -569,7 +563,7 @@ export default function BillingDashboardPage() {
   // Paid rows without a tier are early-access customers from before plans
   // existed: perpetual access like Lifetime, but they never bought the $99
   // Lifetime product, so don't show them its price.
-  const isEarly = !userData.tier;
+  const isEarly = !userData.tier || (userData.tier === "lifetime" && userData.productId === "legacy");
   const tier = (userData.tier as Tier) || "lifetime";
   const tierInfo = isEarly
     ? { name: "Early Access", price: "Pro", cadence: "early supporter", blurb: "Yours for good" }
@@ -896,7 +890,7 @@ export default function BillingDashboardPage() {
           )}
 
           {/* Manage */}
-          {!isLifetime && (
+          {!isLifetime && !isTeam && (
             <section className="surface rounded-2xl p-6">
               <CardTitle icon={<FaReceipt className="h-3.5 w-3.5" />}>Payment &amp; invoices</CardTitle>
               <p className="mt-1 text-xs leading-5 text-muted-foreground">
@@ -931,11 +925,11 @@ export default function BillingDashboardPage() {
                   ? "You have every Buckets Pro feature for good as an early supporter. No renewals, nothing to upgrade, and every future update is included."
                   : "You own Buckets Pro for good. No renewals, no recurring charges, and every future update is included."}
               </p>
-              <Link
-                href="/downloads"
-                className={cn(buttonVariants(), "mt-4 h-10 w-full rounded-full font-semibold")}
-              >
+              <Link href="/downloads" className={cn(buttonVariants(), "mt-4 h-10 w-full rounded-full font-semibold")}>
                 Go to downloads
+              </Link>
+              <Link href="/account/team" className="mt-4 block text-center text-xs font-semibold text-primary hover:underline">
+                Manage or start a team
               </Link>
             </section>
           )}
@@ -947,11 +941,11 @@ export default function BillingDashboardPage() {
               Questions about a charge or refunds within 30 days? Email us and we&apos;ll sort it out fast.
             </p>
             <a
-              href="mailto:vidit@serverlesscreed.com"
+              href="mailto:buckets@serverlesscreed.com"
               className="mt-3 inline-flex items-center gap-2 text-xs font-semibold text-primary hover:underline"
             >
               <FaEnvelope className="h-3 w-3" />
-              vidit@serverlesscreed.com
+              buckets@serverlesscreed.com
             </a>
           </section>
         </div>

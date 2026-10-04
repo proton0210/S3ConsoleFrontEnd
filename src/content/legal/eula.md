@@ -334,7 +334,8 @@ SOME JURISDICTIONS DO NOT ALLOW THE EXCLUSION OF CERTAIN WARRANTIES, SO THE EXCL
 
 For questions about this EULA, License Key activation issues, or compliance enquiries:
 
-- **Email (General, Support, Legal):** vidit@serverlesscreed.com
+- **Email (General and Support):** buckets@serverlesscreed.com
+- **Email (Legal):** vidit@serverlesscreed.com
 - **Postal Address:** Khetwadi-11, Mumbai, India
 - **Website:** https://buckets.serverlesscreed.com
 - **GSTIN:** 27FZZPS3310E1ZX

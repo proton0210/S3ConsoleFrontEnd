@@ -1,3 +1,4 @@
+import { runBillingOperation } from "@/lib/billing-operation";
 /**
  * Live subscription state, read straight from Dodo.
  *
@@ -111,7 +112,18 @@ export async function DELETE() {
       return NextResponse.json({ error: "Server misconfigured" }, { status: 500 });
     }
 
-    const resp = await fetch(
+    return runBillingOperation({
+      subject: resolved.account.userId, email: resolved.account.email, resource: `subscription:${subscriptionId}`,
+      intent: { action: "cancel-scheduled-plan" }, expected: { clearScheduled: true },
+      generation: { tier: resolved.account.license.tier, validUntil: resolved.account.license.validUntil, status: resolved.account.license.subscriptionStatus },
+    }, async ({ mutate }) => {
+    const live = await fetch(`${getDodoApiBaseUrl()}/subscriptions/${encodeURIComponent(subscriptionId)}`, {
+      headers: { Authorization: `Bearer ${apiKey}` }, cache: "no-store", signal: AbortSignal.timeout(10_000),
+    });
+    const provider = await live.json().catch(() => null);
+    if (!live.ok || !provider) return NextResponse.json({ error: "Could not verify the scheduled change." }, { status: 502 });
+    if (!provider.scheduled_change) return NextResponse.json({ success: true });
+    const resp = await mutate(
       `${getDodoApiBaseUrl()}/subscriptions/${encodeURIComponent(
         subscriptionId
       )}/change-plan/scheduled`,
@@ -132,6 +144,7 @@ export async function DELETE() {
       );
     }
     return NextResponse.json({ success: true });
+    });
   } catch {
     console.error("[subscription] Unexpected request failure.");
     return NextResponse.json({ error: "Unexpected error" }, { status: 500 });

@@ -61,7 +61,7 @@ Release checks verify dependency and secret scanning, build integrity, checksums
 
 ## Support and uptime commitment
 
-Support is provided at [vidit@serverlesscreed.com](mailto:vidit@serverlesscreed.com). Unless an AWS Marketplace listing or signed order says otherwise, support is best-effort and there is no contractual response time, resolution time, or uptime percentage. AWS service availability and charges are governed by the customer's agreement with AWS.
+Support is provided at [buckets@serverlesscreed.com](mailto:buckets@serverlesscreed.com). Unless an AWS Marketplace listing or signed order says otherwise, support is best-effort and there is no contractual response time, resolution time, or uptime percentage. AWS service availability and charges are governed by the customer's agreement with AWS.
 
 ## Current subprocessors and service providers
 

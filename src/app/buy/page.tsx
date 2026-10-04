@@ -7,8 +7,10 @@
  * Zero friction by design: email pre-filled, tier pre-selected, click → pay.
  */
 "use client";
+import { createCheckout, CheckoutError } from "@/lib/checkout-client";
 import { Suspense, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { compositeLegalVersion } from "@/lib/legalVersions";
 import { sendGAEvent } from "@next/third-parties/google";
@@ -37,6 +39,7 @@ function isValidTier(value: string | null): value is Tier {
 
 function BuyPageContent() {
   const sp = useSearchParams();
+  const router = useRouter();
   const tier = sp.get("tier");
   const queryEmail = sp.get("email") || undefined;
   // `atv` is set by the desktop app when the user has already accepted ToS in
@@ -44,6 +47,7 @@ function BuyPageContent() {
   // the user must consent below before we redirect to Dodo.
   const queryAtv = sp.get("atv") || undefined;
   const { user, isLoaded } = useUser();
+  const userId = user?.id;
   // Team checkouts always pause at the consent box so the buyer sees the seat
   // selector — a pre-stamped ?atv= must not race them past it with the
   // default seat count.
@@ -90,11 +94,7 @@ function BuyPageContent() {
     // without the email from a still-pending auth context.
     if (!isLoaded) return;
 
-    if (!isValidTier(tier)) {
-      setError("Invalid plan. Please go back to the pricing page and pick again.");
-      setStatus("error");
-      return;
-    }
+    if (!isValidTier(tier)) return;
 
     // Wait until we know what the signed-in user already owns.
     if (planLoading || blocked) return;
@@ -102,24 +102,18 @@ function BuyPageContent() {
     // Hold the redirect until the user has accepted ToS. The desktop app
     // pre-stamps `atv` to skip this gate — magic-link visitors see the
     // checkbox below before we kick them to Dodo.
-    if (!termsAccepted) {
-      setStatus("loading");
-      return;
-    }
+    if (!termsAccepted) return;
 
-    // Subscription tiers require email (Dodo's CustomerRequest schema). If
-    // we have no queryEmail and no signed-in user, bounce through sign-up
-    // rather than letting the route 400. Lifetime is exempt — /checkouts
-    // accepts payments without a customer object.
-    const needsAuth =
-      (tier === "monthly" || tier === "yearly" || tier === "team") && !email;
+    // Every checkout must be attached to a Clerk account, including Lifetime
+    // and emailed purchase links. A receipt email is not authentication.
+    const needsAuth = !userId;
     if (needsAuth) {
       // Carry the chosen seat count through the sign-up bounce — without it
       // the user lands back here with the default and has to re-pick.
       const here = `/buy?tier=${encodeURIComponent(tier!)}${
         tier === "team" ? `&seats=${seats}` : ""
       }`;
-      window.location.href = `/sign-up?redirect_url=${encodeURIComponent(here)}`;
+      router.replace(`/sign-up?redirect_url=${encodeURIComponent(here)}`);
       return;
     }
 
@@ -130,23 +124,14 @@ function BuyPageContent() {
         // the license row — it's how activation's post-policy gate passes.
         const acceptedTermsVersion = queryAtv || compositeLegalVersion();
         const acceptedTermsAt = String(Date.now());
-        const resp = await fetch("/api/dodo/create-checkout", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            tier,
-            ...(tier === "team" ? { seats } : {}),
-            ...(email ? { email } : {}),
-            ...(name ? { name } : {}),
-            metadata: { acceptedTermsVersion, acceptedTermsAt },
-          }),
+        const data = await createCheckout(userId!, {
+          tier,
+          ...(tier === "team" ? { seats } : {}),
+          ...(email ? { email } : {}),
+          ...(name ? { name } : {}),
+          metadata: { acceptedTermsVersion, acceptedTermsAt },
         });
-        const data = await resp.json();
         if (canceled) return;
-        if (!resp.ok || !data?.checkout_url) {
-          if (typeof data?.manageUrl === "string") setManageUrl(data.manageUrl);
-          throw new Error(data?.error || "Could not start checkout. Please try again.");
-        }
         sendGAEvent({ event: "checkout_started", tier: tier });
         // Reddit mid-funnel signal — lets the campaign optimize toward
         // cart-adders, with the tier's price as the cart value.
@@ -161,16 +146,24 @@ function BuyPageContent() {
         });
         setStatus("redirecting");
         window.location.href = data.checkout_url;
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (canceled) return;
-        setError(err?.message || "Unexpected error");
+        if (err instanceof CheckoutError && err.manageUrl) setManageUrl(err.manageUrl);
+        setError(err instanceof Error ? err.message : "Unexpected error");
         setStatus("error");
       }
     })();
     return () => {
       canceled = true;
     };
-  }, [tier, seats, email, name, isLoaded, termsAccepted, queryAtv, planLoading, blocked]);
+  }, [tier, seats, email, name, isLoaded, termsAccepted, queryAtv, planLoading, blocked, userId, router]);
+
+  if (!isValidTier(tier)) {
+    return <div className="theme-scope min-h-screen flex flex-col items-center justify-center gap-4">
+      <p>Invalid plan. Please pick a plan from the pricing page.</p>
+      <Link href="/pricing" className="text-primary underline">Back to pricing</Link>
+    </div>;
+  }
 
   // Magic-link visitors land here without `atv` — show a one-tap consent
   // gate so we capture acceptance *before* sending them to Dodo.
@@ -179,17 +172,17 @@ function BuyPageContent() {
   if (blocked && isValidTier(tier)) {
     const href = currentPlan === "team" ? TEAM_URL : BILLING_URL;
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
-        <div className="max-w-md rounded-lg border border-slate-200 bg-white p-6 text-center shadow-sm">
-          <h1 className="text-lg font-semibold text-slate-900">You already have Buckets Pro</h1>
-          <p className="mt-2 text-sm text-slate-600">{checkoutBlockedMessage(currentPlan, tier)}</p>
+      <div className="theme-scope min-h-screen flex items-center justify-center bg-background px-4">
+        <div className="max-w-md rounded-lg border border-border surface p-6 text-center shadow-sm">
+          <h1 className="text-lg font-semibold text-foreground">You already have Buckets Pro</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{checkoutBlockedMessage(currentPlan, tier)}</p>
           <a
             href={href}
             className="mt-5 inline-flex items-center justify-center rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
           >
             {currentPlan === "team" ? "Go to your team" : "Go to Billing"}
           </a>
-          <p className="mt-4 text-xs text-slate-500">
+          <p className="mt-4 text-xs text-muted-foreground">
             <a href="/downloads" className="underline hover:text-primary">
               Download Buckets
             </a>
@@ -200,22 +193,22 @@ function BuyPageContent() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+    <div className="theme-scope min-h-screen flex items-center justify-center bg-background px-4">
       <div className="text-center max-w-md">
         {needsConsent && status !== "error" ? (
-          <div className="text-left bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
-            <h1 className="text-lg font-semibold text-slate-900 mb-2">
+          <div className="text-left surface border border-border rounded-lg p-6 shadow-sm">
+            <h1 className="text-lg font-semibold text-foreground mb-2">
               Confirm and continue to checkout
             </h1>
-            <p className="text-sm text-slate-600 mb-4">
+            <p className="text-sm text-muted-foreground mb-4">
               Before we send you to our payment partner, please review and
               accept our terms.
             </p>
             {tier === "team" && (
-              <div className="mb-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <div className="mb-4 rounded-lg border border-border bg-background p-4">
                 <label
                   htmlFor="buy-seats"
-                  className="block text-sm font-medium text-slate-900 mb-2"
+                  className="block text-sm font-medium text-foreground mb-2"
                 >
                   Team seats (minimum {MIN_TEAM_SEATS})
                 </label>
@@ -224,7 +217,7 @@ function BuyPageContent() {
                     type="button"
                     aria-label="Remove a seat"
                     onClick={() => setSeats((s) => Math.max(MIN_TEAM_SEATS, s - 1))}
-                    className="h-8 w-8 rounded border border-slate-300 text-slate-700 hover:bg-slate-100"
+                    className="h-8 w-8 rounded border border-border text-foreground hover:bg-foreground/5"
                   >
                     −
                   </button>
@@ -240,21 +233,21 @@ function BuyPageContent() {
                         setSeats(Math.min(MAX_TEAM_SEATS, Math.max(MIN_TEAM_SEATS, v)));
                       }
                     }}
-                    className="w-16 rounded border border-slate-300 px-2 py-1 text-center text-slate-900"
+                    className="w-16 bg-background rounded border border-border px-2 py-1 text-center text-foreground"
                   />
                   <button
                     type="button"
                     aria-label="Add a seat"
                     onClick={() => setSeats((s) => Math.min(MAX_TEAM_SEATS, s + 1))}
-                    className="h-8 w-8 rounded border border-slate-300 text-slate-700 hover:bg-slate-100"
+                    className="h-8 w-8 rounded border border-border text-foreground hover:bg-foreground/5"
                   >
                     +
                   </button>
-                  <span className="text-sm text-slate-600 ml-1">
+                  <span className="text-sm text-muted-foreground ml-1">
                     ${(tierValue("team") ?? 0) * seats}/year total
                   </span>
                 </div>
-                <p className="mt-2 text-xs text-slate-500">
+                <p className="mt-2 text-xs text-muted-foreground">
                   You can add seats later from your account; invite teammates
                   by email after purchase.
                 </p>
@@ -262,14 +255,14 @@ function BuyPageContent() {
             )}
             <label
               htmlFor="buy-terms"
-              className="flex items-start gap-2 text-sm text-slate-700 cursor-pointer select-none"
+              className="flex items-start gap-2 text-sm text-foreground cursor-pointer select-none"
             >
               <input
                 id="buy-terms"
                 type="checkbox"
                 checked={termsAccepted}
                 onChange={(e) => setTermsAccepted(e.target.checked)}
-                className="mt-0.5 flex-shrink-0 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                className="mt-0.5 flex-shrink-0 rounded border-border text-primary focus:ring-primary"
               />
               <span>
                 I agree to the{" "}
@@ -277,7 +270,7 @@ function BuyPageContent() {
                   href="/terms"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="underline text-blue-600 hover:text-blue-800"
+                  className="underline text-primary hover:text-primary/80"
                 >
                   Terms of Service
                 </a>
@@ -286,7 +279,7 @@ function BuyPageContent() {
                   href="/privacy"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="underline text-blue-600 hover:text-blue-800"
+                  className="underline text-primary hover:text-primary/80"
                 >
                   Privacy Policy
                 </a>
@@ -295,7 +288,7 @@ function BuyPageContent() {
                   href="/eula"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="underline text-blue-600 hover:text-blue-800"
+                  className="underline text-primary hover:text-primary/80"
                 >
                   EULA
                 </a>
@@ -306,14 +299,14 @@ function BuyPageContent() {
         ) : null}
         {!needsConsent && status === "loading" && (
           <>
-            <div className="mb-4 inline-block h-8 w-8 rounded-full border-4 border-slate-200 border-t-primary animate-spin" />
-            <p className="text-slate-700">Setting up your checkout…</p>
+            <div className="mb-4 inline-block h-8 w-8 rounded-full border-4 border-border border-t-primary animate-spin" />
+            <p className="text-foreground">Setting up your checkout…</p>
           </>
         )}
         {status === "redirecting" && (
           <>
-            <p className="text-slate-700">Redirecting to checkout…</p>
-            <p className="text-xs text-slate-500 mt-2">
+            <p className="text-foreground">Redirecting to checkout…</p>
+            <p className="text-xs text-muted-foreground mt-2">
               If nothing happens, refresh this page or go to{" "}
               <a className="underline" href="/pricing">
                 /pricing
@@ -324,8 +317,8 @@ function BuyPageContent() {
         )}
         {status === "error" && (
           <>
-            <p className="text-red-700 font-medium mb-2">{error}</p>
-            <p className="text-sm text-slate-600">
+            <p className="text-destructive font-medium mb-2">{error}</p>
+            <p className="text-sm text-muted-foreground">
               {manageUrl ? (
                 <a className="underline" href={manageUrl}>
                   Manage your plan →
@@ -338,10 +331,10 @@ function BuyPageContent() {
             </p>
           </>
         )}
-        <div className="mt-8 flex items-center justify-center gap-4 text-xs text-slate-500">
-          <a href="/" className="hover:text-primary underline">
+        <div className="mt-8 flex items-center justify-center gap-4 text-xs text-muted-foreground">
+          <Link href="/" className="hover:text-primary underline">
             Home
-          </a>
+          </Link>
           <a href="/pricing" className="hover:text-primary underline">
             Pricing
           </a>
@@ -359,8 +352,8 @@ export default function BuyPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="h-8 w-8 rounded-full border-4 border-slate-200 border-t-primary animate-spin" />
+        <div className="theme-scope min-h-screen flex items-center justify-center">
+          <div className="h-8 w-8 rounded-full border-4 border-border border-t-primary animate-spin" />
         </div>
       }
     >

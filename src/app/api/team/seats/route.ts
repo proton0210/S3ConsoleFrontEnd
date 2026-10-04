@@ -1,3 +1,4 @@
+import { runBillingOperation } from "@/lib/billing-operation";
 /**
  * POST /api/team/seats — change the seat count on the signed-in owner's team
  * subscription. Body: { seats }
@@ -32,7 +33,7 @@ export async function POST(req: NextRequest) {
     }
     const user = await currentUser();
     const ownerEmail = user?.primaryEmailAddress?.emailAddress;
-    if (!ownerEmail) {
+    if (!ownerEmail || user?.primaryEmailAddress?.verification?.status !== "verified") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -52,7 +53,7 @@ export async function POST(req: NextRequest) {
     }
 
     const { response: teamResponse, data: team } =
-      await getTeamByOwner(ownerEmail);
+      await getTeamByOwner(ownerEmail, userId);
     if (teamResponse.status === 404) {
       return NextResponse.json(
         { error: "No team subscription for this account" },
@@ -64,6 +65,10 @@ export async function POST(req: NextRequest) {
         { error: team.error || "Team lookup failed" },
         { status: teamResponse.status },
       );
+    }
+
+    if (team.ownerClerkId && team.ownerClerkId !== userId) {
+      return NextResponse.json({ error: "Team does not belong to authenticated user." }, { status: 403 });
     }
 
     if (!team.subscriptionId) {
@@ -83,26 +88,49 @@ export async function POST(req: NextRequest) {
         { status: 409 }
       );
     }
-    if (seats === team.seatsPurchased) {
-      return NextResponse.json(
-        { error: `Already at ${seats} seats.` },
-        { status: 400 }
-      );
-    }
-
     const apiKey = process.env.DODO_API_KEY;
     if (!apiKey) {
-      console.error("[team-seats] DODO_API_KEY not set");
       return NextResponse.json({ error: "Server misconfigured" }, { status: 500 });
     }
 
+    return runBillingOperation({
+      subject: userId, email: ownerEmail, resource: `subscription:${team.subscriptionId}`,
+      intent: { action: "seats", seats },
+      expected: { productId: team.productId || getProductId("team"), quantity: seats },
+      generation: { productId: team.productId, quantity: team.seatsPurchased, validUntil: team.validUntil, status: team.subscriptionStatus },
+    }, async ({ operationId, mutate }) => {
     const productId = team.productId || getProductId("team");
-    const url = `${getDodoApiBaseUrl()}/subscriptions/${encodeURIComponent(
-      team.subscriptionId
-    )}/change-plan`;
+    const subscriptionUrl = `${getDodoApiBaseUrl()}/subscriptions/${encodeURIComponent(team.subscriptionId)}`;
+    // If the previous response was lost before the webhook arrived, a retry
+    // must not charge again for an already accepted seat count.
+    const providerResponse = await fetch(subscriptionUrl, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+      cache: "no-store", signal: AbortSignal.timeout(15_000),
+    });
+    const provider = await providerResponse.json().catch(() => null);
+    if (!providerResponse.ok || !provider || !Number.isInteger(provider.quantity)) {
+      return NextResponse.json({ error: "Could not verify the current subscription. Please try again." }, { status: 502 });
+    }
+    if (provider.product_id !== productId ||
+        (team.dodoCustomerId && provider.customer?.customer_id !== team.dodoCustomerId)) {
+      return NextResponse.json({ error: "Subscription does not match this team. Contact support." }, { status: 409 });
+    }
+    if (provider.quantity === seats) {
+      return NextResponse.json({ success: true, seats, pending: true,
+        message: "Seat change already received. Waiting for your dashboard to synchronize." });
+    }
+    if (provider.quantity !== team.seatsPurchased) {
+      return NextResponse.json({ error: "A seat change is still synchronizing. Refresh before changing seats." }, { status: 409 });
+    }
+    if (provider.status !== "active") {
+      return NextResponse.json({ error: "Your subscription must be active to change seats. Check the billing portal." }, { status: 409 });
+    }
+    const url = `${subscriptionUrl}/change-plan`;
 
-    const dodoResp = await fetch(url, {
+    const dodoResp = await mutate(url, {
       method: "POST",
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
@@ -117,9 +145,11 @@ export async function POST(req: NextRequest) {
         // routing keys (app/accountEmail) or downstream webhook events lose
         // their product marker and row key after any seat change.
         metadata: {
+          ...(provider.metadata && typeof provider.metadata === "object" ? provider.metadata : {}),
+          billingOperationId: operationId,
           tier: "team",
           seats_change_from: String(team.seatsPurchased ?? ""),
-          accountEmail: ownerEmail,
+          accountEmail: team.ownerEmail || ownerEmail,
           accountSubject: userId,
           app: "serverless-buckets",
         },
@@ -128,9 +158,6 @@ export async function POST(req: NextRequest) {
 
     const data = await dodoResp.json().catch(() => ({}));
     if (!dodoResp.ok) {
-      console.error("[team-seats] Dodo error", {
-        status: dodoResp.status,
-      });
       return NextResponse.json(
         { error: data?.message || "Failed to change seat count." },
         { status: dodoResp.status || 500 }
@@ -142,6 +169,7 @@ export async function POST(req: NextRequest) {
       seats,
       message:
         "Seat change submitted. Your dashboard will reflect the new count within a few seconds.",
+    });
     });
   } catch (error: unknown) {
     console.error("[team-seats] Unexpected request failure.");

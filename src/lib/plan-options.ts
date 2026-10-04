@@ -17,13 +17,14 @@ export type CurrentPlan = "none" | "monthly" | "yearly" | "lifetime" | "early" |
 export interface LicenseSnapshot {
   paid?: boolean;
   tier?: string | null;
+  productId?: string | null;
   subscriptionStatus?: string | null;
   revoked?: boolean;
 }
 
 export const BILLING_URL = "/account/billing";
 export const TEAM_URL = "/account/team";
-export const SALES_EMAIL = "mailto:vidit@serverlesscreed.com";
+export const SALES_EMAIL = "mailto:buckets@serverlesscreed.com";
 
 /**
  * - Paid rows without a tier are early-access (pre-tier) customers: perpetual
@@ -34,7 +35,7 @@ export const SALES_EMAIL = "mailto:vidit@serverlesscreed.com";
 export function currentPlanFromLicense(license?: LicenseSnapshot | null): CurrentPlan {
   if (!license || !license.paid || license.revoked) return "none";
   const tier = license.tier;
-  if (!tier) return "early";
+  if (!tier || (tier === "lifetime" && license.productId === "legacy")) return "early";
   if (tier === "lifetime") return "lifetime";
   if (tier === "monthly" || tier === "yearly" || tier === "team") {
     return license.subscriptionStatus === "canceled" ? "none" : tier;
@@ -120,7 +121,7 @@ export function checkoutBlockedMessage(current: CurrentPlan, target: PlanTier): 
     case "switch":
       return `You're on ${plan}. Change plans from your Billing page so your current subscription is updated instead of starting a second one.`;
     case "contact":
-      return `You're on ${plan}. To move to a Team plan, contact vidit@serverlesscreed.com and we'll switch you over without double billing.`;
+      return `You're on ${plan}. To move to a Team plan, contact buckets@serverlesscreed.com and we'll switch you over without double billing.`;
     default:
       return "This plan isn't available for your account.";
   }

@@ -53,7 +53,7 @@ export const siteConfig = {
   publisher: "ServerlessCreed",
   category: "Software",
   links: {
-    email: "vidit@serverlesscreed.com",
+    email: "buckets@serverlesscreed.com",
     twitter: "https://x.com/ServerlessCreed",
     discord: "https://discord.gg/s3console",
     github: "https://github.com/s3console",
@@ -261,7 +261,7 @@ export const siteConfig = {
       answer: (
         <span>
           14-day money-back guarantee on monthly and yearly plans. 7-day
-          guarantee on Lifetime. Email support@serverlesscreed.com with your order
+          guarantee on Lifetime. Email buckets@serverlesscreed.com with your order
           details — see the{" "}
           <a href="/refund-policy" className="underline hover:text-foreground">
             full refund policy

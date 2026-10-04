@@ -1,3 +1,4 @@
+import { runBillingOperation } from "@/lib/billing-operation";
 /**
  * In-place subscription plan change (monthly ↔ yearly).
  *
@@ -40,9 +41,9 @@ export async function POST(req: NextRequest) {
     const email = user?.primaryEmailAddress?.emailAddress?.trim() || "";
     const tier = body?.tier as LicenseTier | undefined;
 
-    if (!email) {
+    if (!email || user?.primaryEmailAddress?.verification?.status !== "verified") {
       return NextResponse.json(
-        { error: "No primary email on authenticated account" },
+        { error: "A verified primary email is required for billing changes" },
         { status: 400 }
       );
     }
@@ -78,9 +79,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (license.tier === "lifetime") {
+    if (license.tier !== "monthly" && license.tier !== "yearly") {
       return NextResponse.json(
-        { error: "Lifetime plan cannot be changed." },
+        { error: "Only individual monthly or yearly subscriptions can use this plan change." },
         { status: 400 }
       );
     }
@@ -91,12 +92,6 @@ export async function POST(req: NextRequest) {
             "No active subscription found for this account. Try refreshing — webhook may still be in flight.",
         },
         { status: 409 }
-      );
-    }
-    if (license.tier === tier) {
-      return NextResponse.json(
-        { error: `Already on the ${tier} plan.` },
-        { status: 400 }
       );
     }
     if (license.subscriptionStatus === "canceled") {
@@ -127,12 +122,35 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    return runBillingOperation({
+      subject: userId, email, resource: `subscription:${license.subscriptionId}`,
+      intent: { action: "plan", tier },
+      expected: { productId: newProductId, quantity: 1, scheduled: isDowngrade },
+      generation: { tier: license.tier, productId: license.productId, validUntil: license.validUntil, status: license.subscriptionStatus },
+    }, async ({ operationId, mutate }) => {
     const baseUrl = getDodoApiBaseUrl();
+    const providerResponse = await fetch(`${baseUrl}/subscriptions/${encodeURIComponent(license.subscriptionId)}`, {
+      headers: { Authorization: `Bearer ${apiKey}` }, cache: "no-store", signal: AbortSignal.timeout(15_000),
+    });
+    const provider = await providerResponse.json().catch(() => null);
+    if (!providerResponse.ok || !provider || !provider.product_id) {
+      return NextResponse.json({ error: "Could not verify your current subscription." }, { status: 502 });
+    }
+    if (license.dodoCustomerId && provider.customer?.customer_id !== license.dodoCustomerId) {
+      return NextResponse.json({ error: "Subscription does not match this account." }, { status: 409 });
+    }
+    if (provider.product_id === newProductId || provider.scheduled_change?.product_id === newProductId) {
+      return NextResponse.json({ success: true, tier, scheduled: provider.scheduled_change?.product_id === newProductId,
+        message: "This plan change has already been received." });
+    }
+    if (provider.product_id !== getProductId(license.tier) || provider.status !== "active") {
+      return NextResponse.json({ error: "Your subscription is still synchronizing or is not active. Refresh before changing plans." }, { status: 409 });
+    }
     const url = `${baseUrl}/subscriptions/${encodeURIComponent(
       license.subscriptionId
     )}/change-plan`;
 
-    const dodoResp = await fetch(url, {
+    const dodoResp = await mutate(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -156,6 +174,8 @@ export async function POST(req: NextRequest) {
         // state.
         on_payment_failure: "prevent_change",
         metadata: {
+          ...(provider.metadata && typeof provider.metadata === "object" ? provider.metadata : {}),
+          billingOperationId: operationId,
           tier,
           plan_change_from: license.tier || "unknown",
           accountEmail: email,
@@ -186,6 +206,7 @@ export async function POST(req: NextRequest) {
       message: isDowngrade
         ? "Your plan will switch at the end of the current billing period."
         : "Plan change submitted. Your dashboard will reflect the new plan within a few seconds.",
+    });
     });
   } catch (error: unknown) {
     console.error("[change-plan] Unexpected request failure.");

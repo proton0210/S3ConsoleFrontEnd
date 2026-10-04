@@ -17,6 +17,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
+import Footer from "@/components/sections/footer";
 import Header from "@/components/sections/header";
 import { TEAM_SEAT_PRICE_USD } from "@/lib/reddit";
 import {
@@ -72,10 +73,13 @@ export default function TeamPage() {
   const { isLoaded, isSignedIn } = useUser();
   const [team, setTeam] = useState<TeamOverview | null>(null);
   const [memberOf, setMemberOf] = useState<MemberOf | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [fetching, setLoading] = useState(true);
+  const loading = !isLoaded || (!!isSignedIn && fetching);
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+
+  const [pendingSeats, setPendingSeats] = useState<number | null>(null);
 
   const [inviteEmail, setInviteEmail] = useState("");
   const [busy, setBusy] = useState<string | null>(null); // "invite" | "seats" | member email
@@ -83,6 +87,7 @@ export default function TeamPage() {
   const refresh = useCallback(async () => {
     try {
       const resp = await fetch("/api/team", { cache: "no-store" });
+      setError(null);
       if (resp.status === 404) {
         setNotFound(true);
         setTeam(null);
@@ -100,16 +105,18 @@ export default function TeamPage() {
       }
       setMemberOf(null);
       setTeam(data);
-    } catch (err: any) {
-      setError(err?.message || "Failed to load team");
+      return data as TeamOverview;
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to load team");
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    if (isLoaded && isSignedIn) void refresh();
-    if (isLoaded && !isSignedIn) setLoading(false);
+    if (!isLoaded || !isSignedIn) return;
+    const timer = setTimeout(() => void refresh(), 0);
+    return () => clearTimeout(timer);
   }, [isLoaded, isSignedIn, refresh]);
 
   async function invite() {
@@ -135,8 +142,8 @@ export default function TeamPage() {
       );
       setInviteEmail("");
       await refresh();
-    } catch (err: any) {
-      setError(err?.message || "Invite failed");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Invite failed");
     } finally {
       setBusy(null);
     }
@@ -155,8 +162,8 @@ export default function TeamPage() {
       const data = await resp.json();
       if (!resp.ok) throw new Error(data?.error || "Resend failed");
       setNotice(`Invite re-sent to ${memberEmail}.`);
-    } catch (err: any) {
-      setError(err?.message || "Resend failed");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Resend failed");
     } finally {
       setBusy(null);
     }
@@ -179,15 +186,16 @@ export default function TeamPage() {
       if (!resp.ok) throw new Error(data?.error || "Remove failed");
       setNotice(`Removed ${memberEmail} — the seat is free again.`);
       await refresh();
-    } catch (err: any) {
-      setError(err?.message || "Remove failed");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Remove failed");
     } finally {
       setBusy(null);
     }
   }
 
   async function changeSeats(delta: number) {
-    if (!team) return;
+    if (!team || busy) return;
+    if (pendingSeats !== null) return;
     const next = team.seatsPurchased + delta;
     setBusy("seats");
     setError(null);
@@ -200,11 +208,23 @@ export default function TeamPage() {
       });
       const data = await resp.json();
       if (!resp.ok) throw new Error(data?.error || "Seat change failed");
+      setPendingSeats(next);
       setNotice(data?.message || "Seat change submitted.");
-      // Webhook writes the new count; poll once after a short delay.
-      setTimeout(() => void refresh(), 4000);
-    } catch (err: any) {
-      setError(err?.message || "Seat change failed");
+      // Keep controls locked until the authoritative webhook count arrives.
+      // A single delayed read can miss a slow webhook and charge twice.
+      const deadline = Date.now() + 30000;
+      while (Date.now() < deadline) {
+        const updated = await refresh();
+        if (updated?.seatsPurchased === next) {
+          setPendingSeats(null);
+          setNotice(`Your team now has ${next} seats.`);
+          return;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 2500));
+      }
+      setNotice("Your seat change is still processing. Refresh this page before requesting another change.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Seat change failed");
     } finally {
       setBusy(null);
     }
@@ -215,7 +235,7 @@ export default function TeamPage() {
       const resp = await fetch("/api/dodo/portal-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: team?.ownerEmail }),
+        body: JSON.stringify({ scope: "team" }),
       });
       const data = await resp.json();
       if (data?.link) window.location.href = data.link;
@@ -226,9 +246,9 @@ export default function TeamPage() {
   }
 
   return (
-    <>
+    <div className="theme-scope min-h-screen">
       <Header />
-      <main className="max-w-3xl mx-auto px-4 pt-28 pb-16">
+      <main className="max-w-3xl mx-auto px-4 pt-10 pb-24 sm:pt-14">
         <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
           <FaUsers className="text-primary" /> Team
         </h1>
@@ -243,7 +263,7 @@ export default function TeamPage() {
         )}
 
         {!loading && isLoaded && !isSignedIn && (
-          <div className="rounded-xl border border-border p-6">
+          <div className="surface rounded-2xl border border-border p-6">
             <p className="mb-4">Sign in with the email that owns the team subscription.</p>
             <Link href="/sign-in?redirect_url=/account/team">
               <Button>Sign in</Button>
@@ -252,7 +272,7 @@ export default function TeamPage() {
         )}
 
         {!loading && notFound && (
-          <div className="rounded-xl border border-border p-6">
+          <div className="surface rounded-2xl border border-border p-6">
             <p className="mb-2 font-medium">No team subscription on this account.</p>
             <p className="text-sm text-muted-foreground mb-4">
               Team plans give every member a full license with centralized
@@ -273,9 +293,9 @@ export default function TeamPage() {
 
         {/* Member view — signed-in user is on someone else's team */}
         {!loading && memberOf && (
-          <div className="rounded-xl border border-border p-6">
+          <div className="surface rounded-2xl border border-border p-6">
             <p className="mb-1 font-medium">
-              You're on <span className="text-primary">{memberOf.ownerEmail}</span>'s team
+              You&apos;re on <span className="text-primary">{memberOf.ownerEmail}</span>&apos;s team
             </p>
             <p className="text-sm text-muted-foreground mb-4">
               {memberOf.active
@@ -306,12 +326,12 @@ export default function TeamPage() {
         )}
 
         {error && (
-          <div className="mb-4 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800 flex items-center gap-2">
+          <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-300 flex items-center gap-2">
             <FaExclamationTriangle className="flex-shrink-0" /> {error}
           </div>
         )}
         {notice && (
-          <div className="mb-4 rounded-lg border border-green-300 bg-green-50 px-4 py-3 text-sm text-green-800 flex items-center gap-2">
+          <div className="mb-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-300 flex items-center gap-2">
             <FaCheckCircle className="flex-shrink-0" /> {notice}
           </div>
         )}
@@ -319,7 +339,7 @@ export default function TeamPage() {
         {team && (
           <>
             {/* Overview */}
-            <div className="rounded-xl border border-border p-6 mb-6">
+            <div className="surface rounded-2xl border border-border p-6 mb-6">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Seats</p>
@@ -341,7 +361,7 @@ export default function TeamPage() {
               <div className="mt-6 flex flex-wrap gap-3">
                 <Button
                   variant="outline"
-                  disabled={busy === "seats"}
+                  disabled={busy !== null || pendingSeats !== null || !team.effectiveActive || team.seatsPurchased >= 50}
                   onClick={() => changeSeats(1)}
                 >
                   {busy === "seats" ? <FaSpinner className="animate-spin mr-2" /> : null}
@@ -349,7 +369,7 @@ export default function TeamPage() {
                 </Button>
                 <Button
                   variant="outline"
-                  disabled={busy === "seats" || team.seatsPurchased <= Math.max(3, team.seatsUsed)}
+                  disabled={busy !== null || pendingSeats !== null || !team.effectiveActive || team.seatsPurchased <= Math.max(3, team.seatsUsed)}
                   onClick={() => changeSeats(-1)}
                 >
                   Remove a seat
@@ -361,7 +381,7 @@ export default function TeamPage() {
             </div>
 
             {/* Invite */}
-            <div className="rounded-xl border border-border p-6 mb-6">
+            <div className="surface rounded-2xl border border-border p-6 mb-6">
               <h2 className="font-semibold mb-3 flex items-center gap-2">
                 <FaEnvelope className="text-primary" /> Invite a member
               </h2>
@@ -381,7 +401,7 @@ export default function TeamPage() {
                 />
                 <Button
                   type="submit"
-                  disabled={busy === "invite" || !inviteEmail.includes("@") || team.seatsUsed >= team.seatsPurchased}
+                  disabled={busy !== null || !team.effectiveActive || !inviteEmail.includes("@") || team.seatsUsed >= team.seatsPurchased}
                 >
                   {busy === "invite" ? <FaSpinner className="animate-spin mr-2" /> : null}
                   Invite
@@ -395,7 +415,7 @@ export default function TeamPage() {
             </div>
 
             {/* Members */}
-            <div className="rounded-xl border border-border divide-y divide-border">
+            <div className="surface rounded-2xl border border-border divide-y divide-border">
               {team.members.map((m) => (
                 <div key={m.email} className="flex items-center justify-between px-6 py-4">
                   <div>
@@ -419,7 +439,7 @@ export default function TeamPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          disabled={busy === `resend:${m.email}`}
+                          disabled={busy !== null || !team.effectiveActive}
                           onClick={() => resendInvite(m.email)}
                           title="Re-send the invite email with their license key"
                         >
@@ -435,7 +455,7 @@ export default function TeamPage() {
                       <Button
                         variant="outline"
                         size="sm"
-                        disabled={busy === m.email}
+                        disabled={busy !== null}
                         onClick={() => remove(m.email)}
                       >
                         {busy === m.email ? (
@@ -452,6 +472,7 @@ export default function TeamPage() {
           </>
         )}
       </main>
-    </>
+      <Footer />
+    </div>
   );
 }

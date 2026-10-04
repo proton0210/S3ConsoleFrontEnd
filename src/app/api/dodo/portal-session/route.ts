@@ -18,7 +18,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { getDodoApiBaseUrl, getProductAppOrigin } from "@/lib/dodo";
-import { getLicenseForAccount } from "@/lib/license-api";
+import { getLicenseForAccount, getTeamByOwner } from "@/lib/license-api";
 
 function errorMessage(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
@@ -35,16 +35,20 @@ export async function POST(req: NextRequest) {
     // authorization input. Select the billing row from the Clerk account.
     const user = await currentUser();
     const email = user?.primaryEmailAddress?.emailAddress?.trim() || "";
-    if (!email) {
+    if (!email || user?.primaryEmailAddress?.verification?.status !== "verified") {
       return NextResponse.json(
         { error: "No primary email on authenticated account" },
         { status: 400 }
       );
     }
 
-    // 2. Look up dodoCustomerId for this license row.
+    const body = await req.json().catch(() => ({}));
+    const forTeam = body?.scope === "team";
+    // Team owners can retain a personal Lifetime license with a different
+    // Dodo customer. Resolve the billing entity explicitly from the session.
+
     const { response: licenseResponse, data: license } =
-      await getLicenseForAccount(email);
+      await (forTeam ? getTeamByOwner(email, userId) : getLicenseForAccount(email));
     if (licenseResponse.status === 404) {
       return NextResponse.json(
         { error: "License not found for this email" },
@@ -60,13 +64,16 @@ export async function POST(req: NextRequest) {
     }
 
     // Defense-in-depth: confirm the requesting Clerk user owns this license row.
-    if (license.clerkId && license.clerkId !== userId) {
+    if ((license.clerkId && license.clerkId !== userId) || (forTeam && license.ownerClerkId && license.ownerClerkId !== userId)) {
       return NextResponse.json(
         { error: "License does not belong to the authenticated user" },
         { status: 403 }
       );
     }
 
+    if (!forTeam && license.teamOwner && license.teamOwner.toLowerCase() !== email.toLowerCase()) {
+      return NextResponse.json({ error: "Team billing is managed by your team owner." }, { status: 403 });
+    }
     const dodoCustomerId = license.dodoCustomerId;
     if (!dodoCustomerId || typeof dodoCustomerId !== "string") {
       // Race: webhook hasn't landed yet, or this is a lifetime user with
@@ -94,7 +101,7 @@ export async function POST(req: NextRequest) {
     // for the inbound webhook (cancel / payment-method update / etc.) for a
     // few seconds before settling.
     const returnUrl = new URL(
-      "/account/billing?from=portal",
+      forTeam ? "/account/team?from=portal" : "/account/billing?from=portal",
       getProductAppOrigin(req.nextUrl.origin)
     ).toString();
 

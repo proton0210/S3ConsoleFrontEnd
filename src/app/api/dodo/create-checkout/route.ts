@@ -1,3 +1,4 @@
+import { purchaseGeneration, runBillingOperation } from "@/lib/billing-operation";
 import { NextRequest, NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import {
@@ -12,7 +13,7 @@ import {
   type LicenseTier,
 } from "@/lib/dodo";
 import { isMaintenanceMode } from "@/lib/maintenance";
-import { getLicenseForAccount } from "@/lib/license-api";
+import { getLicenseForAccount, getTeamByOwner } from "@/lib/license-api";
 import {
   BILLING_URL,
   checkoutAllowed,
@@ -71,7 +72,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const body: CreateCheckoutBody = await req.json();
+    const body: CreateCheckoutBody = await req.json().catch(() => null);
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return NextResponse.json({ error: "Invalid checkout request." }, { status: 400 });
+    }
     const { tier, seats, email, name, metadata, productId: legacyProductId, quantity } = body;
 
     // Resolve the signed-in Clerk user ONCE — used for name fallback, email
@@ -80,7 +84,7 @@ export async function POST(req: NextRequest) {
     const clerkUser = await currentUser();
     const clerkEmail =
       clerkUser?.primaryEmailAddress?.emailAddress || undefined;
-    if (!clerkEmail) {
+    if (!clerkEmail || clerkUser?.primaryEmailAddress?.verification?.status !== "verified") {
       return NextResponse.json(
         { error: "A verified account email is required to start checkout." },
         { status: 400 }
@@ -90,7 +94,7 @@ export async function POST(req: NextRequest) {
     // The body email controls only the Dodo receipt/customer prefill. Account
     // ownership always comes from the authenticated Clerk subject/email below.
     const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const bodyEmail = email?.trim();
+    const bodyEmail = typeof email === "string" ? email.trim() : undefined;
     const effectiveEmail =
       (bodyEmail && EMAIL_RE.test(bodyEmail) ? bodyEmail : undefined) ||
       clerkEmail;
@@ -104,7 +108,7 @@ export async function POST(req: NextRequest) {
     let customer: { email: string; name: string } | undefined;
     if (effectiveEmail) {
       let resolvedName =
-        name?.trim() ||
+        (typeof name === "string" ? name.trim() : "") ||
         clerkUser?.fullName?.trim() ||
         [clerkUser?.firstName, clerkUser?.lastName].filter(Boolean).join(" ").trim() ||
         "";
@@ -144,7 +148,7 @@ export async function POST(req: NextRequest) {
       ) {
         return NextResponse.json(
           {
-            error: `Team checkout requires between ${MIN_TEAM_SEATS} and ${MAX_TEAM_SEATS} seats. For larger teams, contact vidit@serverlesscreed.com.`,
+            error: `Team checkout requires between ${MIN_TEAM_SEATS} and ${MAX_TEAM_SEATS} seats. For larger teams, contact buckets@serverlesscreed.com.`,
           },
           { status: 400 }
         );
@@ -181,6 +185,7 @@ export async function POST(req: NextRequest) {
         );
       }
       productId = legacyProductId;
+      resolvedTier = getTierForProductId(productId);
     } else {
       return NextResponse.json(
         { error: "Missing tier (monthly|yearly|lifetime). Provide a tier in the request body." },
@@ -188,37 +193,60 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Existing customers change plans in place (billing page), never through
-    // a second checkout — that would leave two subscriptions billing in
-    // parallel, or sell Monthly to someone who already owns Lifetime.
-    const purchaseTier = resolvedTier ?? getTierForProductId(productId);
-    if (purchaseTier) {
-      try {
-        const { response: licenseResponse, data: license } =
-          await getLicenseForAccount(clerkEmail);
-        if (licenseResponse.ok && (!license.clerkId || license.clerkId === userId)) {
-          const current = currentPlanFromLicense(license);
-          if (!checkoutAllowed(current, purchaseTier)) {
-            return NextResponse.json(
-              {
-                error: checkoutBlockedMessage(current, purchaseTier),
-                code: "plan_already_owned",
-                currentPlan: current,
-                manageUrl: current === "team" ? TEAM_URL : BILLING_URL,
-              },
-              { status: 409 }
-            );
-          }
-        } else if (licenseResponse.status !== 404) {
-          // Fail open: a license-service outage shouldn't block new sales.
-          console.warn("[create-checkout] Plan check skipped: license lookup failed", {
-            status: licenseResponse.status,
-          });
-        }
-      } catch {
-        console.warn("[create-checkout] Plan check skipped: license service unreachable");
-      }
+    // Legacy product IDs must obey exactly the same quantity/plan rules.
+    const purchaseTier = resolvedTier;
+    const resolvedQuantity = purchaseTier === "team" ? (seats ?? quantity) : 1;
+    if (!purchaseTier || (purchaseTier === "team" &&
+      (!Number.isInteger(resolvedQuantity) || Number(resolvedQuantity) < MIN_TEAM_SEATS || Number(resolvedQuantity) > MAX_TEAM_SEATS))) {
+      return NextResponse.json({ error: `Team checkout requires between ${MIN_TEAM_SEATS} and ${MAX_TEAM_SEATS} seats.` }, { status: 400 });
     }
+    if (purchaseTier !== "team" && quantity !== undefined && quantity !== 1) {
+      return NextResponse.json({ error: "Individual plans include one license. Use a Team plan for multiple seats." }, { status: 400 });
+    }
+
+    // A failed lookup is not evidence that this account has no plan. Fail
+    // closed so an outage cannot sell a second subscription or erase Lifetime.
+    let generation: unknown;
+    const verifyCurrentPlan = async () => {
+    try {
+      const { response: licenseResponse, data: license } = await getLicenseForAccount(clerkEmail);
+      if (licenseResponse.ok) {
+        if (license.clerkId && license.clerkId !== userId) {
+          return NextResponse.json({ error: "License does not belong to authenticated user." }, { status: 403 });
+        }
+        const current = currentPlanFromLicense(license);
+        if (!checkoutAllowed(current, purchaseTier)) {
+          return NextResponse.json({
+            error: checkoutBlockedMessage(current, purchaseTier),
+            code: "plan_already_owned",
+            currentPlan: current,
+            manageUrl: current === "team" ? TEAM_URL : BILLING_URL,
+          }, { status: 409 });
+        }
+      } else if (licenseResponse.status !== 404) {
+        return NextResponse.json({ error: "Unable to verify your current plan. Please retry shortly." }, { status: 503 });
+      }
+      // Team ownership is separate from the personal license. An owner may
+      // retain Lifetime, so checking only that row would allow duplicate teams.
+      const { response: teamResponse, data: team } = await getTeamByOwner(clerkEmail, userId);
+      if (teamResponse.ok && team.ownerClerkId && team.ownerClerkId !== userId) {
+        return NextResponse.json({ error: "Team does not belong to authenticated user." }, { status: 403 });
+      }
+      if (teamResponse.ok && team.subscriptionId &&
+        !["canceled", "cancelled", "expired", "failed"].includes(team.subscriptionStatus)) {
+        return NextResponse.json({ error: "Your account already owns a Team subscription. Manage it from your Team page.", manageUrl: TEAM_URL }, { status: 409 });
+      }
+      if (!teamResponse.ok && teamResponse.status !== 404) {
+        return NextResponse.json({ error: "Unable to verify your team plan. Please retry shortly." }, { status: 503 });
+      }
+      generation = purchaseGeneration(license, team);
+    } catch {
+      return NextResponse.json({ error: "Unable to verify your current plan. Please retry shortly." }, { status: 503 });
+    }
+    return null;
+    };
+    const initialBlock = await verifyCurrentPlan();
+    if (initialBlock) return initialBlock;
 
     const baseUrl = getDodoApiBaseUrl();
 
@@ -243,17 +271,29 @@ export async function POST(req: NextRequest) {
       "tier",
       "accountEmail",
       "accountSubject",
+      "checkoutAttemptId",
+      "billingOperationId",
     ]);
     const clientMetadata = Object.fromEntries(
-      Object.entries(metadata || {}).filter(
-        ([key]) => !protectedMetadataKeys.has(key)
+      Object.entries(metadata && typeof metadata === "object" && !Array.isArray(metadata) ? metadata : {}).filter(
+        ([key, value]) => !protectedMetadataKeys.has(key) && typeof value === "string"
       )
     );
+    return runBillingOperation({
+      subject: userId, email: clerkEmail, resource: "checkout",
+      intent: { productId, quantity: resolvedQuantity }, generation,
+      expected: { productId, quantity: Number(resolvedQuantity) },
+    }, async ({ operationId: checkoutAttemptId, mutate }) => {
+    // A request may have waited while another checkout purchased a plan.
+    // Recheck under ownership, including TEAM authority before owner fan-out.
+    const currentBlock = await verifyCurrentPlan();
+    if (currentBlock) return currentBlock;
     const checkoutMetadata: Record<string, string> = {
       ...clientMetadata,
       ...(resolvedTier ? { tier: resolvedTier } : {}),
       ...(accountEmail ? { accountEmail } : {}),
       accountSubject: userId,
+      checkoutAttemptId,
       // Product marker — the Dodo account is shared across products and every
       // webhook endpoint receives every event; webhooks use this to drop the
       // other products' events. Keep last so client metadata can't spoof it.
@@ -267,10 +307,9 @@ export async function POST(req: NextRequest) {
     // endpoint instead requires billing to be supplied up-front in the request body.
     // Team tier is per-seat: the Dodo line-item quantity IS the seat count.
     // The webhook reads it back via resolveSeatCount() to set seatsPurchased.
-    const resolvedQuantity =
-      resolvedTier === "team"
-        ? (seats as number)
-        : Math.max(1, Number(quantity) || 1);
+    const returnUrl = new URL(getCheckoutReturnUrl(req.nextUrl?.origin));
+    returnUrl.searchParams.set("checkout_attempt_id", checkoutAttemptId);
+    returnUrl.searchParams.set("expected_tier", purchaseTier);
 
     const endpoint = `${baseUrl}/checkouts`;
     const payload: Record<string, unknown> = {
@@ -280,14 +319,14 @@ export async function POST(req: NextRequest) {
           quantity: resolvedQuantity,
         },
       ],
-      return_url: getCheckoutReturnUrl(req.nextUrl?.origin),
+      return_url: returnUrl.toString(),
       ...(customer ? { customer } : {}),
       ...(Object.keys(checkoutMetadata).length > 0
         ? { metadata: checkoutMetadata }
         : {}),
     };
 
-    const resp = await fetch(endpoint, {
+    const resp = await mutate(endpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -298,7 +337,7 @@ export async function POST(req: NextRequest) {
 
     const data = await resp.json().catch(() => ({}));
 
-    if (!resp.ok) {
+    if (!resp.ok || !data?.checkout_url) {
       // Log server-side for diagnostics; don't echo Dodo's internal error structure
       // back to the client beyond a high-level message.
       console.error("[create-checkout] Dodo error", {
@@ -308,7 +347,7 @@ export async function POST(req: NextRequest) {
         {
           error: data?.message || "Failed to create checkout session",
         },
-        { status: resp.status || 500 }
+        { status: resp.ok ? 502 : resp.status }
       );
     }
 
@@ -318,6 +357,7 @@ export async function POST(req: NextRequest) {
       session_id: data?.session_id,
       subscription_id: data?.subscription_id,
       tier: resolvedTier,
+    });
     });
   } catch (error: unknown) {
     console.error("[create-checkout] Unexpected request failure.");
