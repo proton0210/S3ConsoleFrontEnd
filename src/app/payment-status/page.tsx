@@ -39,6 +39,7 @@ type UiPhase =
   | "processing" // optimistic: payment may be in flight, polling
   | "succeeded" // verified paid by webhook
   | "failed" // Dodo reported failure
+  | "cancelled" // buyer backed out of the hosted checkout
   | "timeout"; // polled the full window, still no webhook write
 
 interface VerifiedLicense {
@@ -214,10 +215,17 @@ function PaymentStatusContent() {
     // wrongly flip to the timeout state for a few hundred ms.
     if (!authLoaded || !userLoaded) return;
 
-    // Honor Dodo's hard-fail hint immediately — no point polling.
+    // Honor Dodo's terminal hints immediately — no point polling. A cancelled
+    // checkout never produces a webhook write, so polling would only end on
+    // the "couldn't confirm" card ten minutes later.
     if (statusParam === "failed") {
       if (userId) clearCheckout(userId);
       setPhase("failed");
+      return;
+    }
+    if (statusParam === "cancelled" || statusParam === "canceled") {
+      if (userId) clearCheckout(userId);
+      setPhase("cancelled");
       return;
     }
 
@@ -332,6 +340,31 @@ function PaymentStatusContent() {
           >
             <Mail className="h-4 w-4" /> Contact support
           </a>
+        </div>
+      </Wrapper>
+    );
+  }
+
+  if (phase === "cancelled") {
+    return (
+      <Wrapper>
+        <StatusIcon tone="warning"><AlertTriangle className="h-7 w-7" /></StatusIcon>
+        <h1 className="mt-6 text-3xl font-semibold tracking-tight">
+          Checkout cancelled
+        </h1>
+        <p className="mx-auto mt-3 max-w-md text-muted-foreground">
+          Nothing was charged. You can pick a plan again whenever you&apos;re ready.
+        </p>
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+          <Button size="lg" onClick={() => router.push("/pricing")}>
+            Back to pricing<ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+          <Link
+            href="/account/billing"
+            className="inline-flex h-12 items-center rounded-xl border border-input bg-card px-6 text-[15px] font-medium transition-colors hover:bg-muted"
+          >
+            View billing dashboard
+          </Link>
         </div>
       </Wrapper>
     );
