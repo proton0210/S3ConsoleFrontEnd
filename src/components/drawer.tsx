@@ -7,8 +7,10 @@ import {
   Drawer,
   DrawerClose,
   DrawerContent,
+  DrawerDescription,
   DrawerFooter,
   DrawerHeader,
+  DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { siteConfig } from "@/lib/config";
@@ -42,6 +44,8 @@ export default function DrawerMenu() {
         )}
       >
         <DrawerHeader className="px-6 text-left">
+          <DrawerTitle className="sr-only">Menu</DrawerTitle>
+          <DrawerDescription className="sr-only">Site and account navigation</DrawerDescription>
           <div className="">
             <Link
               href="/"
