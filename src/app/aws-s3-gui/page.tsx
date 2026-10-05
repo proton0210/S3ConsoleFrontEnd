@@ -86,19 +86,19 @@ export default function AwsS3GuiPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
 
-      <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+      <main className="min-h-screen bg-background">
         {/* Hero */}
         <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-12">
-          <nav className="text-xs text-slate-500 mb-4" aria-label="Breadcrumb">
+          <nav className="text-xs text-muted-foreground mb-4" aria-label="Breadcrumb">
             <Link href="/" className="hover:text-primary">Home</Link>
             <span className="mx-2">/</span>
-            <span className="text-slate-700">AWS S3 GUI</span>
+            <span className="text-foreground/80">AWS S3 GUI</span>
           </nav>
 
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-slate-900 mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground mb-4">
             A cross-platform AWS S3 GUI for Mac, Windows, and Linux
           </h1>
-          <p className="text-lg text-slate-600 max-w-3xl mb-8">
+          <p className="text-lg text-muted-foreground max-w-3xl mb-8">
             Buckets by ServerlessCreed is a desktop S3 GUI for engineers who&apos;d rather click
             than memorize CLI flags. Browse, preview, upload, and manage S3
             objects with the keyboard shortcuts and drag-and-drop you expect
@@ -107,7 +107,7 @@ export default function AwsS3GuiPage() {
 
           <div className="flex flex-wrap gap-3 mb-6">
             <Link href="/downloads">
-              <Button size="lg" className="bg-primary hover:bg-primary/90 text-white">
+              <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">
                 <FaDownload className="mr-2 h-4 w-4" />
                 Download free trial
               </Button>
@@ -119,11 +119,11 @@ export default function AwsS3GuiPage() {
             </Link>
           </div>
 
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-600">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
             <span className="inline-flex items-center gap-1.5"><FaApple className="h-4 w-4" /> macOS</span>
             <span className="inline-flex items-center gap-1.5"><FaWindows className="h-4 w-4" /> Windows</span>
             <span className="inline-flex items-center gap-1.5"><FaLinux className="h-4 w-4" /> Linux</span>
-            <span className="text-slate-400">·</span>
+            <span className="text-muted-foreground/70">·</span>
             <span>14-day trial · No credit card</span>
           </div>
         </section>
@@ -131,15 +131,15 @@ export default function AwsS3GuiPage() {
         {/* Real app screenshot */}
         <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
           <figure>
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_40px_100px_-40px_rgb(20_15_10/0.35)]">
-            <div className="flex h-8 items-center gap-1.5 border-b border-slate-200 px-4">
+          <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-[0_40px_100px_-40px_rgb(20_15_10/0.35)]">
+            <div className="flex h-8 items-center gap-1.5 border-b border-border px-4">
               <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
               <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
               <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
             </div>
             <ProductShot name="workspace" priority themed={false} sizes="(max-width: 1200px) 100vw, 1150px" />
           </div>
-          <figcaption className="mt-3 text-center text-sm text-slate-500">
+          <figcaption className="mt-3 text-center text-sm text-muted-foreground">
             The Buckets desktop app with three AWS accounts open in tabs and the object inspector beside the file list (sample data).
           </figcaption>
           </figure>
@@ -147,10 +147,10 @@ export default function AwsS3GuiPage() {
 
         {/* What you get */}
         <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <h2 className="text-3xl font-bold text-slate-900 mb-3">
+          <h2 className="text-3xl font-bold text-foreground mb-3">
             Everything an S3 GUI should do — and more
           </h2>
-          <p className="text-slate-600 mb-10 max-w-3xl">
+          <p className="text-muted-foreground mb-10 max-w-3xl">
             If you live in S3, you deserve an interface that respects your time.
             Buckets keeps every everyday task one click away.
           </p>
@@ -189,14 +189,14 @@ export default function AwsS3GuiPage() {
             ].map(({ icon: Icon, title, body }) => (
               <div
                 key={title}
-                className="rounded-2xl border border-slate-200 bg-white p-6 hover:border-primary/40 transition-colors"
+                className="rounded-2xl border border-border bg-card p-6 hover:border-primary/40 transition-colors"
               >
                 <Icon className="h-5 w-5 text-primary mb-3" />
-                <h3 className="text-lg font-semibold text-slate-900 mb-1.5">
+                <h3 className="text-lg font-semibold text-foreground mb-1.5">
                   {title}
                 </h3>
                 <p
-                  className="text-sm text-slate-600 leading-relaxed"
+                  className="text-sm text-muted-foreground leading-relaxed"
                   dangerouslySetInnerHTML={{ __html: body }}
                 />
               </div>
@@ -206,11 +206,11 @@ export default function AwsS3GuiPage() {
 
         {/* Cross-link to /aws-s3-client */}
         <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="rounded-2xl bg-slate-50 border border-slate-200 p-8 md:p-10">
-            <h2 className="text-2xl font-bold text-slate-900 mb-2">
+          <div className="rounded-2xl bg-muted/60 border border-border p-8 md:p-10">
+            <h2 className="text-2xl font-bold text-foreground mb-2">
               Looking for the developer-focused angle?
             </h2>
-            <p className="text-slate-700 mb-4">
+            <p className="text-foreground/80 mb-4">
               Buckets by ServerlessCreed doubles as a full{" "}
               <Link href="/aws-s3-client" className="text-primary hover:underline font-medium">
                 AWS S3 client
@@ -229,20 +229,20 @@ export default function AwsS3GuiPage() {
 
         {/* FAQ */}
         <section className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <h2 className="text-3xl font-bold text-slate-900 mb-8 text-center">
+          <h2 className="text-3xl font-bold text-foreground mb-8 text-center">
             S3 GUI questions, answered
           </h2>
           <div className="space-y-3">
             {FAQS.map((f) => (
               <details
                 key={f.q}
-                className="group rounded-xl border border-slate-200 bg-white p-5 hover:border-primary/40 transition-colors"
+                className="group rounded-xl border border-border bg-card p-5 hover:border-primary/40 transition-colors"
               >
-                <summary className="flex min-h-[44px] cursor-pointer list-none items-center justify-between gap-4 py-1 font-semibold text-slate-900">
+                <summary className="flex min-h-[44px] cursor-pointer list-none items-center justify-between gap-4 py-1 font-semibold text-foreground">
                   <span>{f.q}</span>
                   <span className="text-primary group-open:rotate-45 transition-transform">+</span>
                 </summary>
-                <p className="text-slate-700 mt-3 leading-relaxed">{f.a}</p>
+                <p className="text-foreground/80 mt-3 leading-relaxed">{f.a}</p>
               </details>
             ))}
           </div>
@@ -250,16 +250,16 @@ export default function AwsS3GuiPage() {
 
         {/* CTA */}
         <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-          <h2 className="text-3xl font-bold text-slate-900 mb-3">
+          <h2 className="text-3xl font-bold text-foreground mb-3">
             See it for yourself
           </h2>
-          <p className="text-slate-600 mb-8 max-w-2xl mx-auto">
+          <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
             Free 14-day trial on Mac, Windows, and Linux. Full feature access.
             No credit card.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <Link href="/downloads">
-              <Button size="lg" className="bg-primary hover:bg-primary/90 text-white">
+              <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">
                 <FaDownload className="mr-2 h-4 w-4" />
                 Download Buckets by ServerlessCreed
               </Button>

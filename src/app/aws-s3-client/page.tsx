@@ -98,19 +98,19 @@ export default function AwsS3ClientPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
 
-      <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+      <main className="min-h-screen bg-background">
         {/* Hero */}
         <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-12">
-          <nav className="text-xs text-slate-500 mb-4" aria-label="Breadcrumb">
+          <nav className="text-xs text-muted-foreground mb-4" aria-label="Breadcrumb">
             <Link href="/" className="hover:text-primary">Home</Link>
             <span className="mx-2">/</span>
-            <span className="text-slate-700">AWS S3 Client</span>
+            <span className="text-foreground/80">AWS S3 Client</span>
           </nav>
 
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-slate-900 mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground mb-4">
             A cross-platform AWS S3 client for Mac, Windows, and Linux
           </h1>
-          <p className="text-lg text-slate-600 max-w-3xl mb-8">
+          <p className="text-lg text-muted-foreground max-w-3xl mb-8">
             Buckets by ServerlessCreed is a cross-platform desktop S3 client built for engineers who live
             in AWS. Browse buckets, generate presigned URLs, edit policies, and
             switch profiles in one place, with every workflow a click away.
@@ -118,7 +118,7 @@ export default function AwsS3ClientPage() {
 
           <div className="flex flex-wrap gap-3 mb-6">
             <Link href="/downloads">
-              <Button size="lg" className="bg-primary hover:bg-primary/90 text-white">
+              <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">
                 <FaDownload className="mr-2 h-4 w-4" />
                 Download free trial
               </Button>
@@ -130,11 +130,11 @@ export default function AwsS3ClientPage() {
             </Link>
           </div>
 
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-600">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
             <span className="inline-flex items-center gap-1.5"><FaApple className="h-4 w-4" /> macOS (Apple Silicon)</span>
             <span className="inline-flex items-center gap-1.5"><FaWindows className="h-4 w-4" /> Windows 10 &amp; 11</span>
             <span className="inline-flex items-center gap-1.5"><FaLinux className="h-4 w-4" /> Linux (.deb)</span>
-            <span className="text-slate-400">·</span>
+            <span className="text-muted-foreground/70">·</span>
             <span>14-day trial · No credit card</span>
           </div>
         </section>
@@ -142,15 +142,15 @@ export default function AwsS3ClientPage() {
         {/* Real app screenshot */}
         <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
           <figure>
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_40px_100px_-40px_rgb(20_15_10/0.35)]">
-            <div className="flex h-8 items-center gap-1.5 border-b border-slate-200 px-4">
+          <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-[0_40px_100px_-40px_rgb(20_15_10/0.35)]">
+            <div className="flex h-8 items-center gap-1.5 border-b border-border px-4">
               <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
               <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
               <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
             </div>
             <ProductShot name="searchall" priority themed={false} sizes="(max-width: 1200px) 100vw, 1150px" />
           </div>
-          <figcaption className="mt-3 text-center text-sm text-slate-500">
+          <figcaption className="mt-3 text-center text-sm text-muted-foreground">
             One search across every bucket in the account, grouped by bucket (sample data).
           </figcaption>
           </figure>
@@ -158,10 +158,10 @@ export default function AwsS3ClientPage() {
 
         {/* Features */}
         <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <h2 className="text-3xl font-bold text-slate-900 mb-3">
+          <h2 className="text-3xl font-bold text-foreground mb-3">
             Why developers pick Buckets by ServerlessCreed as their S3 client
           </h2>
-          <p className="text-slate-600 mb-10 max-w-3xl">
+          <p className="text-muted-foreground mb-10 max-w-3xl">
             Buckets by ServerlessCreed is built around how engineers actually work with AWS — multi-account
             SSO, IAM-aware tools, and focused desktop workflows.
           </p>
@@ -200,15 +200,15 @@ export default function AwsS3ClientPage() {
             ].map(({ icon: Icon, title, body }) => (
               <div
                 key={title}
-                className="rounded-2xl border border-slate-200 bg-white p-6 hover:border-primary/40 transition-colors"
+                className="rounded-2xl border border-border bg-card p-6 hover:border-primary/40 transition-colors"
               >
                 <Icon className="h-5 w-5 text-primary mb-3" />
                 <h3
-                  className="text-lg font-semibold text-slate-900 mb-1.5"
+                  className="text-lg font-semibold text-foreground mb-1.5"
                   dangerouslySetInnerHTML={{ __html: title }}
                 />
                 <p
-                  className="text-sm text-slate-600 leading-relaxed"
+                  className="text-sm text-muted-foreground leading-relaxed"
                   dangerouslySetInnerHTML={{ __html: body }}
                 />
               </div>
@@ -218,13 +218,13 @@ export default function AwsS3ClientPage() {
 
         {/* What's included */}
         <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <h2 className="text-3xl font-bold text-slate-900 mb-3">
+          <h2 className="text-3xl font-bold text-foreground mb-3">
             Everything included in Buckets by ServerlessCreed
           </h2>
-          <p className="text-slate-600 mb-8 max-w-3xl">
+          <p className="text-muted-foreground mb-8 max-w-3xl">
             One license unlocks every feature on every supported platform.
           </p>
-          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 rounded-2xl border border-slate-200 bg-white p-6">
+          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 rounded-2xl border border-border bg-card p-6">
             {[
               "Desktop apps for macOS, Windows, and Linux",
               "AWS SSO / IAM Identity Center sign-in",
@@ -237,7 +237,7 @@ export default function AwsS3ClientPage() {
               "Local-only credentials, direct to AWS",
               "14-day free trial, no credit card",
             ].map((item) => (
-              <li key={item} className="flex items-start gap-2.5 text-sm text-slate-800">
+              <li key={item} className="flex items-start gap-2.5 text-sm text-foreground">
                 <FaCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
                 {item}
               </li>
@@ -247,20 +247,20 @@ export default function AwsS3ClientPage() {
 
         {/* FAQ */}
         <section className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <h2 className="text-3xl font-bold text-slate-900 mb-8 text-center">
+          <h2 className="text-3xl font-bold text-foreground mb-8 text-center">
             Frequently asked questions
           </h2>
           <div className="space-y-3">
             {FAQS.map((f) => (
               <details
                 key={f.q}
-                className="group rounded-xl border border-slate-200 bg-white p-5 hover:border-primary/40 transition-colors"
+                className="group rounded-xl border border-border bg-card p-5 hover:border-primary/40 transition-colors"
               >
-                <summary className="flex min-h-[44px] cursor-pointer list-none items-center justify-between gap-4 py-1 font-semibold text-slate-900">
+                <summary className="flex min-h-[44px] cursor-pointer list-none items-center justify-between gap-4 py-1 font-semibold text-foreground">
                   <span>{f.q}</span>
                   <span className="text-primary group-open:rotate-45 transition-transform">+</span>
                 </summary>
-                <p className="text-slate-700 mt-3 leading-relaxed">{f.a}</p>
+                <p className="text-foreground/80 mt-3 leading-relaxed">{f.a}</p>
               </details>
             ))}
           </div>
@@ -268,17 +268,17 @@ export default function AwsS3ClientPage() {
 
         {/* CTA */}
         <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-          <h2 className="text-3xl font-bold text-slate-900 mb-3">
+          <h2 className="text-3xl font-bold text-foreground mb-3">
             Try Buckets by ServerlessCreed free for 14 days
           </h2>
-          <p className="text-slate-600 mb-8 max-w-2xl mx-auto">
+          <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
             Full feature access on macOS, Windows, and Linux. No credit card.
             Connect the AWS profiles you already have and try every feature on
             your own buckets.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <Link href="/downloads">
-              <Button size="lg" className="bg-primary hover:bg-primary/90 text-white">
+              <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">
                 <FaDownload className="mr-2 h-4 w-4" />
                 Download Buckets by ServerlessCreed
               </Button>

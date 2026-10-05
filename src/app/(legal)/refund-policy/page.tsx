@@ -7,7 +7,7 @@ export const metadata = {
 
 export default function RefundPolicyPage() {
   return (
-    <main className="max-w-3xl mx-auto px-6 py-16 prose prose-slate">
+    <main className="max-w-3xl mx-auto px-6 py-16 prose prose-neutral">
       <h1>Refund Policy</h1>
       <p>
         <em>Last updated: {LEGAL_VERSIONS.refund}</em>

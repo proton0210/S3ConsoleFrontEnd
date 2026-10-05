@@ -71,7 +71,7 @@ export default function PaymentStatusPage() {
       <Header />
       <Suspense
         fallback={
-          <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
+          <main className="min-h-screen flex items-center justify-center bg-background">
             <FaSpinner className="h-8 w-8 animate-spin text-primary" />
           </main>
         }
@@ -296,7 +296,7 @@ function PaymentStatusContent() {
 
   if (phase === "loading") {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
+      <main className="min-h-screen flex items-center justify-center bg-background">
         <FaSpinner className="h-8 w-8 animate-spin text-primary" />
       </main>
     );
@@ -305,20 +305,20 @@ function PaymentStatusContent() {
   if (phase === "failed") {
     return (
       <Wrapper accent="rose">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-rose-100 rounded-full mb-6">
-          <FaExclamationTriangle className="h-7 w-7 text-rose-600" />
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-red-500/10 rounded-full mb-6">
+          <FaExclamationTriangle className="h-7 w-7 text-red-600" />
         </div>
-        <h1 className="text-3xl font-bold text-slate-900 mb-3">
+        <h1 className="text-3xl font-bold text-foreground mb-3">
           Payment didn&apos;t go through
         </h1>
-        <p className="text-slate-600 mb-8">
+        <p className="text-muted-foreground mb-8">
           The checkout reported a failure. Check your billing dashboard and
           bank status before retrying, or contact us for help.
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3">
           <Button
             onClick={() => router.push("/pricing")}
-            className="bg-primary hover:bg-primary/90 text-white"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             Try again
           </Button>
@@ -326,7 +326,7 @@ function PaymentStatusContent() {
             href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(
               "Payment failed on Buckets by ServerlessCreed"
             )}`}
-            className="inline-flex items-center gap-2 text-sm text-slate-700 hover:text-primary underline"
+            className="inline-flex items-center gap-2 text-sm text-foreground/80 hover:text-primary underline"
           >
             <FaEnvelope className="h-3.5 w-3.5" /> Contact support
           </a>
@@ -341,17 +341,17 @@ function PaymentStatusContent() {
         <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-100 rounded-full mb-6">
           <FaEnvelope className="h-7 w-7 text-amber-600" />
         </div>
-        <h1 className="text-3xl font-bold text-slate-900 mb-3">
+        <h1 className="text-3xl font-bold text-foreground mb-3">
           We couldn&apos;t confirm this purchase yet
         </h1>
-        <p className="text-slate-600 mb-2">
+        <p className="text-muted-foreground mb-2">
           Payment confirmation or license activation may still be processing.
           You can check again or view your current license on the billing dashboard.
         </p>
-        <p className="text-slate-600 mb-8">
+        <p className="text-muted-foreground mb-8">
           Once payment and activation are confirmed, your license key goes to{" "}
           {email ? (
-            <span className="font-medium text-slate-800">{email}</span>
+            <span className="font-medium text-foreground">{email}</span>
           ) : (
             "your email"
           )}{" "}
@@ -360,14 +360,14 @@ function PaymentStatusContent() {
         <div className="flex flex-wrap items-center justify-center gap-3">
           <Button
             onClick={() => window.location.reload()}
-            className="bg-primary hover:bg-primary/90 text-white"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             <FaSyncAlt className="mr-2 h-4 w-4" />
             Check again
           </Button>
           <Link
             href="/account/billing"
-            className="inline-flex items-center text-sm text-slate-700 hover:text-primary underline"
+            className="inline-flex items-center text-sm text-foreground/80 hover:text-primary underline"
           >
             View billing dashboard
           </Link>
@@ -377,7 +377,7 @@ function PaymentStatusContent() {
                 ? `Payment pending on Buckets by ServerlessCreed (payment_id=${paymentIdParam})`
                 : "Payment pending on Buckets by ServerlessCreed"
             )}`}
-            className="inline-flex items-center gap-2 text-sm text-slate-700 hover:text-primary underline"
+            className="inline-flex items-center gap-2 text-sm text-foreground/80 hover:text-primary underline"
           >
             Email support
           </a>
@@ -392,17 +392,17 @@ function PaymentStatusContent() {
         <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-6">
           <FaCheck className="h-10 w-10 text-green-600" />
         </div>
-        <h1 className="text-4xl font-bold text-slate-900 mb-3">
+        <h1 className="text-4xl font-bold text-foreground mb-3">
           Payment successful
         </h1>
-        <p className="text-lg text-slate-600 mb-8">
+        <p className="text-lg text-muted-foreground mb-8">
           Thank you for upgrading to Buckets by ServerlessCreed Pro. Your account is active.
         </p>
 
         <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl p-6 mb-8 text-left">
           <div className="flex items-center justify-center gap-2 mb-4">
             <FaCrown className="h-5 w-5 text-primary" />
-            <span className="text-lg font-semibold text-slate-900">
+            <span className="text-lg font-semibold text-foreground">
               {license.tier
                 ? `${capitalize(license.tier)} plan`
                 : "Pro license"}{" "}
@@ -411,10 +411,10 @@ function PaymentStatusContent() {
           </div>
           {license.key && (
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
                 License key
               </p>
-              <p className="font-mono text-sm text-slate-900 break-all">
+              <p className="font-mono text-sm text-foreground break-all">
                 {license.key}
               </p>
             </div>
@@ -450,7 +450,7 @@ function PaymentStatusContent() {
             <Button
               onClick={() => router.push("/account/team")}
               size="lg"
-              className="bg-primary hover:bg-primary/90 text-white"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               Invite your team
             </Button>
@@ -458,7 +458,7 @@ function PaymentStatusContent() {
             <Button
               onClick={() => router.push("/downloads")}
               size="lg"
-              className="bg-primary hover:bg-primary/90 text-white"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               Open downloads
             </Button>
@@ -466,14 +466,14 @@ function PaymentStatusContent() {
           {license.tier === "team" && (
             <Link
               href="/downloads"
-              className="inline-flex items-center text-sm text-slate-700 hover:text-primary underline"
+              className="inline-flex items-center text-sm text-foreground/80 hover:text-primary underline"
             >
               Downloads
             </Link>
           )}
           <Link
             href="/account/billing"
-            className="inline-flex items-center text-sm text-slate-700 hover:text-primary underline"
+            className="inline-flex items-center text-sm text-foreground/80 hover:text-primary underline"
           >
             View billing
           </Link>
@@ -542,20 +542,20 @@ function PaymentStatusContent() {
         <span className="absolute inset-2 rounded-full bg-primary/15" />
         <FaSpinner className="relative h-8 w-8 animate-spin text-primary" />
       </div>
-      <h1 className="text-3xl font-bold text-slate-900 mb-3">{heading}</h1>
-      <p className="text-slate-600 mb-8 max-w-md mx-auto">{subhead}</p>
+      <h1 className="text-3xl font-bold text-foreground mb-3">{heading}</h1>
+      <p className="text-muted-foreground mb-8 max-w-md mx-auto">{subhead}</p>
 
       <ProgressStepper />
 
       {stage === "relaxed" && (
         <div className="mt-8 bg-primary/5 border border-primary/15 rounded-lg p-4 text-left max-w-md mx-auto">
-          <p className="text-sm font-semibold text-slate-900 mb-1 flex items-center gap-2">
+          <p className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
             <FaEnvelope className="h-3.5 w-3.5 text-primary" />
             Feel free to close this tab
           </p>
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-muted-foreground">
             We&apos;ll email your license key to{" "}
-            <span className="font-medium text-slate-800">{email}</span> the
+            <span className="font-medium text-foreground">{email}</span> the
             moment your payment settles. Your license will also appear on the{" "}
             <Link
               href="/account/billing"
@@ -569,7 +569,7 @@ function PaymentStatusContent() {
       )}
 
       {stage !== "relaxed" && (
-        <p className="mt-6 text-sm text-slate-500">
+        <p className="mt-6 text-sm text-muted-foreground">
           You can leave this page open — we&apos;ll update it the moment we hear back.
         </p>
       )}
@@ -604,7 +604,7 @@ function ProgressStepper() {
             {prev && (
               <span
                 className={`absolute right-1/2 left-0 top-1/2 -translate-y-1/2 h-0.5 ${
-                  leftFilled ? "bg-primary/70" : "bg-slate-200"
+                  leftFilled ? "bg-primary/70" : "bg-border"
                 }`}
                 aria-hidden
               />
@@ -612,10 +612,10 @@ function ProgressStepper() {
             <div
               className={`relative mx-auto z-10 inline-flex items-center justify-center w-9 h-9 rounded-full border-2 transition-colors ${
                 s.state === "done"
-                  ? "bg-primary border-primary text-white"
+                  ? "bg-primary border-primary text-primary-foreground"
                   : s.state === "active"
-                    ? "border-primary text-primary bg-white"
-                    : "border-slate-300 text-slate-400 bg-white"
+                    ? "border-primary text-primary bg-card"
+                    : "border-border text-muted-foreground/70 bg-card"
               }`}
             >
               {s.state === "done" ? (
@@ -629,7 +629,7 @@ function ProgressStepper() {
             {next && (
               <span
                 className={`absolute left-1/2 right-0 top-1/2 -translate-y-1/2 h-0.5 ${
-                  rightFilled ? "bg-primary/70" : "bg-slate-200"
+                  rightFilled ? "bg-primary/70" : "bg-border"
                 }`}
                 aria-hidden
               />
@@ -638,8 +638,8 @@ function ProgressStepper() {
           <span
             className={`mt-2 text-xs font-medium ${
               s.state === "done" || s.state === "active"
-                ? "text-slate-900"
-                : "text-slate-400"
+                ? "text-foreground"
+                : "text-muted-foreground/70"
             }`}
           >
             {s.label}
@@ -658,17 +658,19 @@ function Wrapper({
   children: React.ReactNode;
   accent: "green" | "rose" | "amber" | "slate";
 }) {
+  // Soft status tint over the shared warm background (matches the premium
+  // theme used across the site instead of full-bleed coloured gradients).
   const bgClass: Record<typeof accent, string> = {
-    green: "from-green-50 to-green-100",
-    rose: "from-rose-50 to-rose-100",
-    amber: "from-amber-50 to-amber-100",
-    slate: "from-slate-50 to-slate-100",
+    green: "from-emerald-500/[0.07] to-background",
+    rose: "from-red-500/[0.06] to-background",
+    amber: "from-amber-500/[0.08] to-background",
+    slate: "from-primary/[0.06] to-background",
   };
   return (
     <main
-      className={`min-h-screen flex items-center justify-center bg-gradient-to-br ${bgClass[accent]} px-4 py-16`}
+      className={`min-h-screen flex items-center justify-center bg-background bg-gradient-to-b ${bgClass[accent]} px-4 py-16`}
     >
-      <div className="bg-white rounded-2xl shadow-2xl p-10 md:p-12 max-w-2xl w-full mx-auto text-center">
+      <div className="surface shadow-frame rounded-2xl p-10 md:p-12 max-w-2xl w-full mx-auto text-center">
         {children}
       </div>
     </main>

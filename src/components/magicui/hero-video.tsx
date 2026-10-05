@@ -80,7 +80,7 @@ export default function HeroVideoDialog({
   return (
     <div className={cn("relative", className)}>
       <div
-        className="relative cursor-pointer group rounded-md p-2 ring-1 ring-slate-200/50 backdrop-blur-md"
+        className="relative cursor-pointer group rounded-md p-2 ring-1 ring-border/50 backdrop-blur-md"
         onClick={() => setIsVideoOpen(true)}
       >
         <Image
