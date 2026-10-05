@@ -9,7 +9,7 @@ function load(file, imports = {}, globals = {}) {
     if (name in imports) return imports[name];
     if (name === '@/lib/billing-operation') return { purchaseGeneration: () => ({}), runBillingOperation: (_request, execute) => execute({ operationId: 'server-attempt', mutate: globals.fetch }).catch(() => ({ status: 500 })) };
     throw new Error(`Unexpected import ${name}`);
-  }, URL, console, process: { env: { DODO_API_KEY: 'mock-only' } }, ...globals });
+  }, URL, AbortSignal, console, process: { env: { DODO_API_KEY: 'mock-only' } }, ...globals });
   vm.runInContext(ts.transpileModule(fs.readFileSync(file, 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   }).outputText, context);
@@ -73,6 +73,7 @@ const post = body => checkout.POST({ json: async () => body, nextUrl: { origin: 
   // separate personal Lifetime customer; members cannot open owner billing.
   let portalUrl;
   const portal = load('src/app/api/dodo/portal-session/route.ts', {
+    '@/lib/invoice-access': load('src/lib/invoice-access.ts'),
     'next/server': { NextResponse: { json: (data, init = {}) => ({ status: init.status || 200, data }) } },
     '@clerk/nextjs/server': {
       auth: async () => ({ userId:'owner' }),
@@ -80,9 +81,9 @@ const post = body => checkout.POST({ json: async () => body, nextUrl: { origin: 
     },
     '@/lib/dodo': { getDodoApiBaseUrl:() => 'https://mock.invalid', getProductAppOrigin:() => 'https://buckets.example' },
     '@/lib/license-api': { getLicenseForAccount: async () => license, getTeamByOwner: async () => team },
-  }, { fetch: async url => { portalUrl = new URL(url); return { ok:true, json:async () => ({ link:'https://portal.example' }) }; } });
+  }, { fetch: async url => { portalUrl = new URL(url); return { ok:true, json:async () => ({ link:'https://customer.dodopayments.com/session/test' }) }; } });
   reset(); license=fixture(200,{ tier:'lifetime',dodoCustomerId:'personal-customer' });
-  team=fixture(200,{ dodoCustomerId:'team-customer', ownerClerkId:'owner' });
+  team=fixture(200,{ dodoCustomerId:'team-customer', ownerEmail:'Owner@example.com', ownerClerkId:'owner' });
   assert.equal((await portal.POST({ json:async () => ({ scope:'team', email:'attacker@example.com' }),nextUrl:{origin:'https://buckets.example'} })).status,200);
   assert.match(portalUrl.pathname,/team-customer/);
   assert.match(portalUrl.searchParams.get('return_url'),/account\/team/);

@@ -85,6 +85,7 @@ export default function Header() {
             </Link>
           </SignedOut>
           <SignedIn>
+                    <Link href="/account/invoices" className={buttonVariants({ variant: "ghost", size: "sm" })}>Invoices</Link>
             <Link
               href="/account/billing"
               className={cn(

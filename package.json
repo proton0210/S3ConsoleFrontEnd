@@ -17,7 +17,8 @@
     "test:billing-operations": "node scripts/test-billing-operation.mjs",
     "test:security": "node --test scripts/test-braces-security.mjs",
     "build:info": "node scripts/write-build-info.mjs",
-    "test:build-info": "node --test scripts/test-build-info.mjs"
+    "test:build-info": "node --test scripts/test-build-info.mjs",
+    "test:invoices": "node --test scripts/test-invoice-access.cjs"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.1116.0",

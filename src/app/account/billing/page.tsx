@@ -28,7 +28,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { Button, buttonVariants } from "@/components/ui/button";
-import Header from "@/components/sections/header";
 import Footer from "@/components/sections/footer";
 import { cn } from "@/lib/utils";
 import { TEAM_SEAT_PRICE_USD } from "@/lib/reddit";
@@ -231,7 +230,6 @@ function StatusBadge({
 function BillingShell({ children }: { children: ReactNode }) {
   return (
     <div className="theme-scope min-h-screen">
-      <Header />
       <main className="relative isolate overflow-hidden">
         <div aria-hidden className="bg-glow pointer-events-none absolute inset-x-0 top-0 -z-10 h-[520px] opacity-70" />
         <div aria-hidden className="bg-grid pointer-events-none absolute inset-x-0 top-0 -z-10 h-[520px]" />
@@ -888,6 +886,8 @@ export default function BillingDashboardPage() {
               </p>
             </section>
           )}
+
+          <section className="rounded-2xl border border-border bg-card p-6"><h2 className="font-semibold">Invoices &amp; receipts</h2><p className="mt-2 text-sm text-muted-foreground">Find purchase history for your own billing accounts, including Lifetime and team purchases.</p><Link href="/account/invoices" className="mt-4 inline-block text-sm font-medium underline">View invoices &amp; receipts</Link></section>
 
           {/* Manage */}
           {!isLifetime && !isTeam && (

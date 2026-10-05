@@ -5,6 +5,7 @@ frontend:
       commands:
         - npm ci --legacy-peer-deps
         - npm run test:security
+        - npm run test:invoices
         - npm run test:build-info
         - npm audit --audit-level=high
         - npm run validate-env

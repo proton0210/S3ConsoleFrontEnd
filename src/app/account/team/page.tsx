@@ -18,7 +18,6 @@ import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import Footer from "@/components/sections/footer";
-import Header from "@/components/sections/header";
 import { TEAM_SEAT_PRICE_USD } from "@/lib/reddit";
 import {
   FaCheckCircle,
@@ -247,7 +246,6 @@ export default function TeamPage() {
 
   return (
     <div className="theme-scope min-h-screen">
-      <Header />
       <main className="max-w-3xl mx-auto px-4 pt-10 pb-24 sm:pt-14">
         <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
           <FaUsers className="text-primary" /> Team

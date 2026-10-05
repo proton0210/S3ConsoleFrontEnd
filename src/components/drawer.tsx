@@ -124,6 +124,9 @@ export default function DrawerMenu() {
             </Link>
           </SignedOut>
           <SignedIn>
+            <Link href="/account/billing" onClick={() => setOpen(false)} className={buttonVariants({ variant: "outline" })}>Billing</Link>
+            <Link href="/account/invoices" onClick={() => setOpen(false)} className={buttonVariants({ variant: "outline" })}>Invoices &amp; receipts</Link>
+            <Link href="/account/team" onClick={() => setOpen(false)} className={buttonVariants({ variant: "outline" })}>Team</Link>
             {!isDownloadsPage && (
               <Link
                 href="/downloads"

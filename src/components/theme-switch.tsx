@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
  * both light and dark. The toggle only appears on these so it never
  * promises a dark mode that a light-only page can't show.
  */
-export const THEMED_ROUTES = new Set(["/", "/pricing", "/downloads", "/account/billing"]);
+export const THEMED_ROUTES = new Set(["/", "/pricing", "/downloads", "/account/billing", "/account/invoices", "/account/team"]);
 
 const noopSubscribe = () => () => {};
 
