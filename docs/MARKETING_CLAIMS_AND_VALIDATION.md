@@ -21,7 +21,7 @@ Positioning (September 26, 2026): the website does not compare Buckets with othe
 
 Target hypothesis: consultants and small platform teams who manage S3 across accounts every week. Validate this hypothesis with paying users before treating it as established demand.
 
-Current individual pricing (updated September 25, 2026) is $5/month, $49/year, and $99 lifetime; Team is $99/seat/year with a three-seat minimum. Existing entitlement behavior is unchanged. Lifetime receipts are one-time cash, not MRR. Low hosting costs do not eliminate support and maintenance costs.
+Current individual pricing (updated September 25, 2026) is $5/month, $49/year, and $99 lifetime; Team is $49/seat/year (the Yearly price per seat, repriced October 5, 2026 from $99) with a three-seat minimum. Existing entitlement behavior is unchanged. Lifetime receipts are one-time cash, not MRR. Low hosting costs do not eliminate support and maintenance costs.
 
 Do not publish assumed hours saved, guaranteed recovery time, avoided-incident savings, or a fixed return on investment. If illustrating a calculation, label every input as hypothetical. Prefer measured results with context and customer permission.
 

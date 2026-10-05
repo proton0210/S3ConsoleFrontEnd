@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
-import { getLicenseForAccount } from "@/lib/license-api";
+import { getLicenseForAccount, getTeamByOwner } from "@/lib/license-api";
+import { teamSeatPriceForProduct } from "@/lib/dodo";
 
 export async function GET() {
   try {
@@ -35,11 +36,27 @@ export async function GET() {
       );
     }
 
-    const userData: Record<string, any> = {
+    const userData: Record<string, unknown> & { machines: unknown[]; teamSeatPriceUsd?: number | null } = {
       ...data,
       licenseCount: typeof data.licenseCount === "number" ? data.licenseCount : 2,
       machines: Array.isArray(data.machines) ? data.machines : [],
     };
+
+    // Team owners: show the per-seat price their Team product actually
+    // charges (teams on the retired $99 product keep that rate). Purely
+    // informational — on a lookup failure the billing page shows no price.
+    const isTeamOwner = data.tier === "team" && typeof data.teamOwner === "string" &&
+      data.teamOwner.toLowerCase() === email.toLowerCase();
+    if (isTeamOwner) {
+      // Unknown until the team lookup reports its product: never show a guess.
+      userData.teamSeatPriceUsd = null;
+      try {
+        const team = await getTeamByOwner(data.teamOwner, userId);
+        if (team.response.ok) userData.teamSeatPriceUsd = teamSeatPriceForProduct(team.data.productId);
+      } catch {
+        // Leave the price unset.
+      }
+    }
 
     return NextResponse.json({
       success: true,

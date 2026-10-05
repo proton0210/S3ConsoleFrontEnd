@@ -57,8 +57,18 @@ export type LicenseTier = "monthly" | "yearly" | "lifetime" | "team";
  * MUST match the team product's price in the Dodo dashboard: Dodo is what
  * actually charges (product price × quantity); this constant is only what we
  * SHOW. If you change the Dodo product price, change this one number.
+ *
+ * $49 matches Yearly per seat: Team is never a worse deal than buying
+ * individual licenses, and its extra value is company-owned, reassignable
+ * seats on one invoice.
  */
-export const TEAM_SEAT_PRICE_USD = 99;
+export const TEAM_SEAT_PRICE_USD = 49;
+
+/**
+ * Per-seat price of the retired Team product (before October 2026). Teams
+ * still renewing on that product are shown this rate, not today's list price.
+ */
+export const RETIRED_TEAM_SEAT_PRICE_USD = 99;
 
 const TIER_VALUE_USD: Record<LicenseTier, number> = {
   monthly: 5,

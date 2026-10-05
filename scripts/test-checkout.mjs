@@ -26,7 +26,7 @@ function reset() {
   license = fixture(404); team = fixture(404); verified = 'verified'; subject = 'owner'; providerCalls = 0;
   checkoutResult = { ok: true, status: 200, json: async () => ({ checkout_url: 'https://checkout.example/session' }) };
 }
-const checkout = load('src/app/api/dodo/create-checkout/route.ts', {
+const checkoutImports = {
   'node:crypto': { randomUUID: () => 'server-attempt' },
   'next/server': { NextResponse: { json: (data, init = {}) => ({ status: init.status || 200, data }) } },
   '@clerk/nextjs/server': {
@@ -34,7 +34,7 @@ const checkout = load('src/app/api/dodo/create-checkout/route.ts', {
     currentUser: async () => ({ primaryEmailAddress: { emailAddress: 'Owner@example.com', verification: { status: verified } } }),
   },
   '@/lib/dodo': {
-    getProductId: tier => `product-${tier}`, getConfiguredProductIds: () => ['product-team', 'product-lifetime'],
+    getProductId: tier => `product-${tier}`, getPurchasableProductIds: () => ['product-team', 'product-lifetime'],
     getDodoApiBaseUrl: () => 'https://mock.invalid', getCheckoutReturnUrl: () => 'https://buckets.example/payment-status',
     getTierForProductId: product => product.replace('product-', ''), isLicenseTier: tier => ['monthly','yearly','lifetime','team'].includes(tier),
     MIN_TEAM_SEATS: 3, MAX_TEAM_SEATS: 50,
@@ -42,7 +42,9 @@ const checkout = load('src/app/api/dodo/create-checkout/route.ts', {
   '@/lib/maintenance': { isMaintenanceMode: () => false },
   '@/lib/license-api': { getLicenseForAccount: async () => { if (license instanceof Error) throw license; return license; }, getTeamByOwner: async () => team },
   '@/lib/plan-options': options,
-}, { fetch: async (_, init) => { providerCalls++; payload = JSON.parse(init.body); return checkoutResult; } });
+};
+const providerFetch = async (_, init) => { providerCalls++; payload = JSON.parse(init.body); return checkoutResult; };
+const checkout = load('src/app/api/dodo/create-checkout/route.ts', checkoutImports, { fetch: providerFetch });
 const post = body => checkout.POST({ json: async () => body, nextUrl: { origin: 'https://buckets.example' } });
 (async () => {
   for (const bad of [fixture(503), new Error('outage'), fixture(200, { clerkId: 'someone-else' })]) {
@@ -64,6 +66,23 @@ const post = body => checkout.POST({ json: async () => body, nextUrl: { origin: 
   reset(); team = fixture(503); assert.equal((await post({ tier: 'team', seats: 3 })).status,503);
   for (const quantity of [undefined, 1, 2, 2.5, 51, '3']) {
     reset(); assert.equal((await post({ productId:'product-team', quantity })).status,400); assert.equal(providerCalls,0);
+  }
+  // The retired $99 Team product is not in the purchasable list, so it can never be sold again.
+  reset(); assert.equal((await post({ productId:'pdt_0Ngjrw1D8wTdKaMz9Xd6X', quantity:3 })).status,400); assert.equal(providerCalls,0);
+  // Same route with the REAL product mapping: an env still naming the retired
+  // $99 product fails closed and never reaches the provider; the configured
+  // $49 product is what gets sold.
+  for (const [teamProduct, expected] of [['pdt_0Ngjrw1D8wTdKaMz9Xd6X', 500], ['pdt_team_49', 200]]) {
+    const env = { DODO_API_KEY: 'mock-only', BUCKETS_DODO_PRODUCT_ID_TEAM: teamProduct };
+    const realDodo = load('src/lib/dodo.ts', { 'server-only': {}, '@/lib/reddit': load('src/lib/reddit.ts') }, { process: { env } });
+    const real = load('src/app/api/dodo/create-checkout/route.ts', { ...checkoutImports, '@/lib/dodo': realDodo }, { fetch: providerFetch, process: { env } });
+    reset(); payload = undefined;
+    assert.equal((await real.POST({ json: async () => ({ tier: 'team', seats: 3 }), nextUrl: { origin: 'https://buckets.example' } })).status, expected);
+    if (expected === 500) assert.equal(providerCalls, 0);
+    else assert.deepEqual(payload.product_cart, [{ product_id: 'pdt_team_49', quantity: 3 }]);
+    reset();
+    assert.equal((await real.POST({ json: async () => ({ productId: 'pdt_0Ngjrw1D8wTdKaMz9Xd6X', quantity: 3 }), nextUrl: { origin: 'https://buckets.example' } })).status, 400);
+    assert.equal(providerCalls, 0);
   }
   reset(); assert.equal((await post({ productId:'product-team', quantity:3 })).status,200); assert.equal(payload.metadata.tier,'team');
   reset(); assert.equal((await post({ tier:'lifetime', quantity:2 })).status,400);

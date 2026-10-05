@@ -144,14 +144,14 @@ export const siteConfig = {
       period: "per seat / year · 3+ seats",
       yearlyPrice: null,
       features: [
-        "Everything in Yearly, per seat",
+        "Same price per seat as Yearly",
+        "Seats belong to your company — reassign anytime",
         "Each member uses 2 machines",
         "One invoice for the whole team",
-        "Invite & remove members anytime",
-        "Add seats as you grow",
+        "Add seats as you grow, prorated",
         "Priority email support",
       ],
-      description: "Centralized billing and seat management for teams.",
+      description: "Company-owned seats on one invoice. Reassign them as your team changes.",
       buttonText: "Choose Team",
       isPopular: false,
     },
@@ -235,12 +235,13 @@ export const siteConfig = {
       question: "What does each plan include?",
       answer: (
         <span>
-          All plans (Monthly $5, Yearly $49, Lifetime $99, Team $99/seat/yr)
+          All plans (Monthly $5, Yearly $49, Lifetime $99, Team ${TEAM_SEAT_PRICE_USD}/seat/yr)
           include identical features and let each license holder use Buckets
           on up to 2 machines. The difference is how you pay: monthly
           auto-renews each month, yearly saves 18% vs monthly, lifetime is a
           one-time payment with no recurring billing, and Team gives every
-          member their own license with centralized billing and seat
+          member their own license at the Yearly price per seat, with
+          company-owned seats you can reassign, one invoice and seat
           management (3-seat minimum).
         </span>
       ),

@@ -73,6 +73,24 @@ productVars.forEach(({ label, options }) => {
   }
 });
 
+// The original $99/seat/year Team product is retired (keep in sync with
+// RETIRED_PRODUCT_IDS in src/lib/dodo.ts). The site now shows $49/seat, so a
+// build whose Team product is still the retired one would advertise a price
+// checkout cannot charge — fail the build and keep the current site live.
+const retiredTeamProductIds = [
+  'pdt_0Ngjrw1D8wTdKaMz9Xd6X',
+  ...['BUCKETS_DODO_LEGACY_PRODUCT_IDS_TEAM', 'S3CONSOLE_DODO_LEGACY_PRODUCT_IDS_TEAM']
+    .flatMap((name) => (process.env[name] || '').split(',').map((id) => id.trim()).filter(Boolean)),
+];
+const teamProductIds = ['BUCKETS_DODO_PRODUCT_ID_TEAM', 'S3CONSOLE_DODO_PRODUCT_ID_TEAM']
+  .map((name) => process.env[name])
+  .filter(Boolean);
+if (teamProductIds.length > 0 && !teamProductIds.some((id) => !retiredTeamProductIds.includes(id))) {
+  missing.push(
+    'BUCKETS_DODO_PRODUCT_ID_TEAM - still the retired $99 Team product; set it to the $49/seat/year Team product created in Dodo'
+  );
+}
+
 if (
   process.env.NODE_ENV === 'production' &&
   process.env.NEXT_PUBLIC_APP_URL !== 'https://buckets.serverlesscreed.com'

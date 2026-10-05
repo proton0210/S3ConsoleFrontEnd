@@ -83,7 +83,7 @@ const policy=load('src/lib/plan-options.ts',{});
 const route = () => load('src/app/api/dodo/create-checkout/route.ts',{
   'next/server':next,'@/lib/billing-operation':instance(),
   '@clerk/nextjs/server':{auth:async()=>({userId:'user_owner'}),currentUser:async()=>({primaryEmailAddress:{emailAddress:'owner@example.com',verification:{status:'verified'}}})},
-  '@/lib/dodo':{getProductId:t=>`prod-${t}`,getConfiguredProductIds:()=>[],getDodoApiBaseUrl:()=> 'https://mock.invalid',getCheckoutReturnUrl:()=> 'https://buckets.example/payment-status',getTierForProductId:p=>p.replace('prod-',''),isLicenseTier:t=>['monthly','yearly','lifetime','team'].includes(t),MIN_TEAM_SEATS:3,MAX_TEAM_SEATS:50},
+  '@/lib/dodo':{getProductId:t=>`prod-${t}`,getPurchasableProductIds:()=>[],getDodoApiBaseUrl:()=> 'https://mock.invalid',getCheckoutReturnUrl:()=> 'https://buckets.example/payment-status',getTierForProductId:p=>p.replace('prod-',''),isLicenseTier:t=>['monthly','yearly','lifetime','team'].includes(t),MIN_TEAM_SEATS:3,MAX_TEAM_SEATS:50},
   '@/lib/maintenance':{isMaintenanceMode:()=>false},'@/lib/plan-options':policy,
   '@/lib/license-api':{getLicenseForAccount:async()=>license,getTeamByOwner:async()=>team},
 });

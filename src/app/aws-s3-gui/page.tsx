@@ -6,6 +6,7 @@
  * interface angle that "GUI" searchers care about.
  */
 import Link from "next/link";
+import { TEAM_SEAT_PRICE_USD } from "@/lib/reddit";
 import { ProductShot } from "@/components/product-shot";
 import Script from "next/script";
 import Header from "@/components/sections/header";
@@ -43,7 +44,7 @@ const FAQS = [
   },
   {
     q: "Is Buckets by ServerlessCreed free?",
-    a: "Buckets by ServerlessCreed offers a 14-day free trial with full feature access on every platform. After the trial, choose Monthly ($5), Yearly ($49), Lifetime ($99 one-time) or Team ($99 per seat per year).",
+    a: `Buckets by ServerlessCreed offers a 14-day free trial with full feature access on every platform. After the trial, choose Monthly ($5), Yearly ($49), Lifetime ($99 one-time) or Team ($${TEAM_SEAT_PRICE_USD} per seat per year).`,
   },
 ];
 

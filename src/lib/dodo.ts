@@ -11,6 +11,7 @@
  * Dodo webhook traffic — the Dodo dashboard points at the Lambda URL.
  */
 import "server-only";
+import { RETIRED_TEAM_SEAT_PRICE_USD, TEAM_SEAT_PRICE_USD } from "@/lib/reddit";
 
 export type LicenseTier = "monthly" | "yearly" | "lifetime" | "team";
 
@@ -21,7 +22,50 @@ const TIERS = ["monthly", "yearly", "lifetime", "team"] as const;
  * can send a Buckets buyer into the Tables authentication session. */
 export const CANONICAL_APP_ORIGIN = "https://buckets.serverlesscreed.com";
 
-export function getConfiguredProductIds(tier?: LicenseTier): string[] {
+/**
+ * Retired Dodo products that existing subscriptions still renew on. They are
+ * recognized (billing views, tier lookups) but never sold: new checkouts and
+ * plan changes only target current products. Mirrors RETIRED_PRODUCT_IDS in
+ * backend-s3Console/src/lib/dodoTier.ts.
+ *
+ * Team: the original $99/seat/year product, replaced by the $49/seat/year
+ * product in October 2026. Extra IDs can be appended via the comma-separated
+ * BUCKETS_DODO_LEGACY_PRODUCT_IDS_<TIER> env var.
+ */
+const RETIRED_PRODUCT_IDS: Readonly<Record<LicenseTier, readonly string[]>> = {
+  monthly: [],
+  yearly: [],
+  lifetime: [],
+  team: ["pdt_0Ngjrw1D8wTdKaMz9Xd6X"],
+};
+
+const unique = <T>(value: T, index: number, values: readonly T[]) =>
+  values.indexOf(value) === index;
+
+function splitIds(value: string | undefined): string[] {
+  return (value ?? "").split(",").map((id) => id.trim()).filter(Boolean);
+}
+
+function retiredProductIds(tier: LicenseTier): string[] {
+  const suffix = tier.toUpperCase();
+  return [
+    ...RETIRED_PRODUCT_IDS[tier],
+    ...splitIds(process.env[`BUCKETS_DODO_LEGACY_PRODUCT_IDS_${suffix}`]),
+    ...splitIds(process.env[`S3CONSOLE_DODO_LEGACY_PRODUCT_IDS_${suffix}`]),
+  ].filter(unique);
+}
+
+/** True when `productId` is a retired product (existing subscribers only). */
+export function isRetiredProductId(productId: unknown): boolean {
+  return typeof productId === "string" && !!productId &&
+    TIERS.some((tier) => retiredProductIds(tier).includes(productId));
+}
+
+/**
+ * Products that can be SOLD for a tier: the configured current products,
+ * never a retired one (even if an env var still points at it).
+ */
+export function getPurchasableProductIds(tier?: LicenseTier): string[] {
   const tiers = tier ? [tier] : TIERS;
   return tiers
     .flatMap((value) => {
@@ -32,8 +76,41 @@ export function getConfiguredProductIds(tier?: LicenseTier): string[] {
       ];
     })
     .filter((value, index, values): value is string =>
-      !!value && values.indexOf(value) === index
+      !!value && unique(value, index, values) && !isRetiredProductId(value)
     );
+}
+
+/**
+ * Every product that belongs to a tier (current first, then retired). Use this
+ * to RECOGNIZE a product, e.g. map a live subscription back to its tier.
+ */
+export function getConfiguredProductIds(tier?: LicenseTier): string[] {
+  const tiers = tier ? [tier] : TIERS;
+  return tiers
+    .flatMap((value) => {
+      const suffix = value.toUpperCase();
+      return [
+        process.env[`BUCKETS_DODO_PRODUCT_ID_${suffix}`],
+        process.env[`S3CONSOLE_DODO_PRODUCT_ID_${suffix}`],
+        ...retiredProductIds(value),
+      ];
+    })
+    .filter((value, index, values): value is string =>
+      !!value && unique(value, index, values)
+    );
+}
+
+/**
+ * Per-seat price a team actually pays, given its Dodo product. `null` when the
+ * product is unknown (e.g. a team row without a product id) — callers then
+ * show no price rather than guess.
+ */
+export function teamSeatPriceForProduct(productId: unknown): number | null {
+  if (isRetiredProductId(productId)) return RETIRED_TEAM_SEAT_PRICE_USD;
+  if (typeof productId === "string" && getPurchasableProductIds("team").includes(productId)) {
+    return TEAM_SEAT_PRICE_USD;
+  }
+  return null;
 }
 
 /** Reverse lookup: which tier a Dodo product id belongs to (null if not ours). */
@@ -52,10 +129,12 @@ export function isLicenseTier(value: unknown): value is LicenseTier {
  * the wrong product.
  */
 export function getProductId(tier: LicenseTier): string {
-  const productId = getConfiguredProductIds(tier)[0];
+  const productId = getPurchasableProductIds(tier)[0];
   if (!productId) {
+    // Fails closed if the env still names a retired product: selling it would
+    // charge a price the website no longer shows.
     throw new Error(
-      `BUCKETS_DODO_PRODUCT_ID_${tier.toUpperCase()} or its legacy S3CONSOLE alias is not set. Configure tier products in the Dodo dashboard and Amplify env.`
+      `BUCKETS_DODO_PRODUCT_ID_${tier.toUpperCase()} or its legacy S3CONSOLE alias is not set to a current product. Configure tier products in the Dodo dashboard and Amplify env.`
     );
   }
   return productId;

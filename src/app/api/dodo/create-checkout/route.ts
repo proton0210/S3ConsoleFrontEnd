@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import {
   getProductId,
-  getConfiguredProductIds,
+  getPurchasableProductIds,
   getDodoApiBaseUrl,
   getCheckoutReturnUrl,
   getTierForProductId,
@@ -177,7 +177,8 @@ export async function POST(req: NextRequest) {
       // products: an arbitrary id would create a checkout for another product
       // in the shared Dodo account stamped with OUR metadata.app, which the
       // webhooks would then mis-route (cross-product license minting).
-      const ownProducts = getConfiguredProductIds();
+      // Retired products (e.g. the old $99 Team product) are not for sale.
+      const ownProducts = getPurchasableProductIds();
       if (!ownProducts.includes(legacyProductId)) {
         return NextResponse.json(
           { error: "Unknown productId." },

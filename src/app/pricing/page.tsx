@@ -10,6 +10,7 @@ import { FaCheck, FaSpinner } from "react-icons/fa";
 import Header from "@/components/sections/header";
 import Footer from "@/components/sections/footer";
 import { CurrentPlanBanner, PlanActionButton } from "@/components/plan-action";
+import { TEAM_SEAT_PRICE_USD } from "@/lib/reddit";
 import { useCurrentPlan } from "@/lib/hooks/use-current-plan";
 import { planActionFor } from "@/lib/plan-options";
 
@@ -76,17 +77,17 @@ const TIERS: TierConfig[] = [
   {
     id: "team",
     name: "Team",
-    price: "$99",
+    price: `$${TEAM_SEAT_PRICE_USD}`,
     period: "per seat / year",
     priceNote: "3-seat minimum · up to 50 seats",
-    description: "One license, one invoice, whole team.",
+    description: "Company-owned seats on one invoice.",
     badge: "For Teams",
     features: [
-      "Everything in Yearly, per seat",
+      "Same price per seat as Yearly",
+      "Seats belong to your company — reassign anytime",
       "Each member uses 2 machines",
       "One invoice for the whole team",
-      "Invite & remove members anytime",
-      "Add seats as you grow",
+      "Add seats as you grow, prorated",
     ],
   },
 ];

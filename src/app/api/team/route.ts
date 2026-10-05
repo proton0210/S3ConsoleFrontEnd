@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import { getLicenseForAccount, getTeamByOwner } from "@/lib/license-api";
+import { teamSeatPriceForProduct } from "@/lib/dodo";
 
 /**
  * GET /api/team — team overview for the signed-in owner.
@@ -67,7 +68,14 @@ export async function GET() {
       }
     }
 
-    return NextResponse.json(data, { status: resp.status });
+    // Owners see the per-seat price their Team product actually charges (teams
+    // on the retired $99 product keep that rate); null when unknown.
+    return NextResponse.json(
+      resp.ok && data && typeof data === "object" && !Array.isArray(data)
+        ? { ...data, seatPriceUsd: teamSeatPriceForProduct(data.productId) }
+        : data,
+      { status: resp.status },
+    );
   } catch {
     return NextResponse.json({ error: "Unable to load your team. Please retry shortly." }, { status: 503 });
   }
