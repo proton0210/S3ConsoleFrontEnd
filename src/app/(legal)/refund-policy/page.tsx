@@ -2,6 +2,7 @@
 import { LEGAL_VERSIONS } from "@/lib/legalVersions";
 
 export const metadata = {
+  alternates: { canonical: "/refund-policy" },
   title: "Refund Policy — Buckets by ServerlessCreed",
 };
 

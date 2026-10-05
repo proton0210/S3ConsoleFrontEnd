@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import LegalDocPage from "@/components/legal/LegalDocPage";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/eula" },
   title: "End-User License Agreement — Buckets by ServerlessCreed",
   description:
     "Buckets by ServerlessCreed End-User License Agreement (EULA): software-use rights, restrictions, activation, and intellectual property.",

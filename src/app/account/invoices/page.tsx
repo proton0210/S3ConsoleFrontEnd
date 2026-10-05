@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
+import { AlertTriangle, ArrowUpRight, Building2, Loader2, Lock, Mail, Receipt, RefreshCw, User, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AccountHeader, AccountMain, EmptyState, Notice, NoticeStack, Panel, Skeleton, StatusBadge } from "@/components/account/kit";
 import { isInvoicePortalUrl, type InvoiceAccount, type InvoiceScope } from "@/lib/invoice-access";
 
 export default function InvoicesPage() {
@@ -60,20 +62,101 @@ function InvoiceHistory() {
       if (mounted.current) setOpening(null);
     }
   }
-  return <main className="mx-auto max-w-4xl px-4 py-10 sm:py-14">
-    <h1 className="text-3xl font-semibold tracking-tight">Invoices &amp; receipts</h1>
-    <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">Find receipts for your Buckets purchases, including Lifetime and past subscriptions. Dodo provides the official invoice history.</p>
-    {!isLoaded || (isSignedIn && loading) ? <p role="status" className="mt-8 text-muted-foreground">Loading invoice access…</p> : !isSignedIn ?
-      <div className="mt-8 rounded-2xl border border-border bg-card p-6"><p>Sign in to view your invoices.</p><Link href="/sign-in?redirect_url=%2Faccount%2Finvoices" className="mt-4 inline-block font-medium underline">Sign in</Link></div> : <>
-      {error && <div role="alert" className="mt-6 rounded-xl border border-destructive/40 bg-destructive/5 p-4"><p>{error}</p><Button variant="outline" className="mt-3" onClick={() => void refresh()} disabled={opening !== null}>Retry</Button></div>}
-      {accounts?.length === 0 && <section className="mt-8 rounded-2xl border border-border bg-card p-6"><h2 className="font-semibold">No billing records yet</h2><p className="mt-2 text-sm text-muted-foreground">A trial has no invoice. If you purchased with another email, sign in with that account or contact support.</p><Link href="/pricing" className="mt-4 inline-block text-sm font-medium underline">View plans</Link></section>}
-      <div className="mt-8 grid gap-5 sm:grid-cols-2">{accounts?.map(account => <section key={account.scope} className="rounded-2xl border border-border bg-card p-6">
-        <h2 className="text-lg font-semibold">{account.label}</h2>
-        {account.status === "available" ? <><p className="mt-2 text-sm leading-6 text-muted-foreground">Open your secure billing account to view and download invoices. Past purchases remain accessible after a subscription ends.</p><Button className="mt-5 w-full" disabled={opening !== null} onClick={() => void openHistory(account.scope)}>{opening === account.scope ? "Opening…" : "Open invoice history"}</Button></> : account.status === "managed_by_owner" ? <p className="mt-2 text-sm leading-6 text-muted-foreground">Team invoices and payment details are available to the team owner. Ask your owner for a copy; your team seat does not grant billing access.</p> : <p className="mt-2 text-sm leading-6 text-muted-foreground">No online billing record is linked yet. Older licenses may not have Dodo invoices. Contact support if you need a receipt for an earlier purchase.</p>}
-      </section>)}</div>
-      {!!accounts?.some(account => account.status === "available") && <p className="mt-5 text-xs leading-5 text-muted-foreground">Dodo&apos;s portal shows the billing account&apos;s history and payment controls. It may include other purchases made under the same billing account; these links do not filter its invoices by product.</p>}
-      <Button variant="outline" className="mt-6" onClick={() => void refresh()} disabled={loading || opening !== null}>Refresh invoice access</Button>
+  const SCOPE_ICON = { personal: User, team: Users } as const;
+  return <AccountMain>
+    <AccountHeader
+      title="Invoices &"
+      accent="receipts"
+      description="Receipts for your Buckets purchases, including Lifetime and past subscriptions. Dodo Payments keeps the official invoice history."
+    >
+      {isSignedIn && (
+        <Button variant="outline" size="sm" onClick={() => void refresh()} disabled={loading || opening !== null} aria-label="Refresh invoice access">
+          <RefreshCw className={`mr-1.5 h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />Refresh
+        </Button>
+      )}
+    </AccountHeader>
+
+    {!isLoaded || (isSignedIn && loading) ? (
+      <div aria-busy="true" aria-label="Loading invoice access" className="mt-8 grid gap-5 md:grid-cols-2">
+        <Skeleton className="h-52 rounded-2xl" />
+        <Skeleton className="h-52 rounded-2xl" />
+      </div>
+    ) : !isSignedIn ? (
+      <div className="mt-8">
+        <EmptyState icon={Lock} title="Sign in to view your invoices" actions={
+          <Button asChild size="lg"><Link href="/sign-in?redirect_url=%2Faccount%2Finvoices">Sign in</Link></Button>
+        }>
+          Invoices are tied to the account that made the purchase.
+        </EmptyState>
+      </div>
+    ) : <>
+      <div className="mt-8">
+        <NoticeStack>
+          {error && (
+            <Notice key="error" tone="danger" icon={AlertTriangle} title="We couldn't open your invoices" action={
+              <Button variant="outline" size="sm" onClick={() => void refresh()} disabled={opening !== null}><RefreshCw className="mr-1.5 h-3.5 w-3.5" />Retry</Button>
+            }>
+              {error}
+            </Notice>
+          )}
+        </NoticeStack>
+      </div>
+
+      {accounts?.length === 0 && (
+        <EmptyState icon={Receipt} title="No billing records yet" actions={
+          <>
+            <Button asChild size="lg"><Link href="/pricing">View plans</Link></Button>
+            <Button asChild size="lg" variant="outline"><a href="mailto:buckets@serverlesscreed.com?subject=Buckets%20invoice">Contact support</a></Button>
+          </>
+        }>
+          A trial has no invoice. If you purchased with another email, sign in with that account or contact support.
+        </EmptyState>
+      )}
+
+      {!!accounts?.length && (
+        <div className="grid gap-5 md:grid-cols-2">
+          {accounts.map(account => {
+            const Icon = SCOPE_ICON[account.scope] ?? Building2;
+            return (
+              <Panel key={account.scope} className="flex flex-col p-6 sm:p-7">
+                <div className="flex items-start justify-between gap-3">
+                  <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[hsl(var(--acct-accent)/0.10)] text-[hsl(var(--acct-accent-ink))]">
+                    <Icon className="h-5 w-5" aria-hidden />
+                  </span>
+                  {account.status === "available"
+                    ? <StatusBadge tone="success" dot>Available</StatusBadge>
+                    : account.status === "managed_by_owner"
+                      ? <StatusBadge tone="neutral">Team owner only</StatusBadge>
+                      : <StatusBadge tone="neutral">Not linked</StatusBadge>}
+                </div>
+                <h2 className="mt-5 text-lg font-semibold tracking-tight">{account.label}</h2>
+                {account.status === "available" ? (
+                  <>
+                    <p className="mt-1.5 flex-1 text-sm leading-6 text-muted-foreground">View and download invoices in your secure billing account. Past purchases stay available after a subscription ends.</p>
+                    <Button className="mt-6 h-11 w-full" disabled={opening !== null} onClick={() => void openHistory(account.scope)}>
+                      {opening === account.scope
+                        ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Opening…</>
+                        : <>Open invoice history<ArrowUpRight className="ml-1.5 h-4 w-4" /></>}
+                    </Button>
+                  </>
+                ) : account.status === "managed_by_owner" ? (
+                  <p className="mt-1.5 text-sm leading-6 text-muted-foreground">Team invoices and payment details are available to the team owner. Ask your owner for a copy; your team seat does not grant billing access.</p>
+                ) : (
+                  <p className="mt-1.5 text-sm leading-6 text-muted-foreground">No online billing record is linked yet. Older licenses may not have Dodo invoices. Contact support if you need a receipt for an earlier purchase.</p>
+                )}
+              </Panel>
+            );
+          })}
+        </div>
+      )}
+      {!!accounts?.some(account => account.status === "available") && (
+        <p className="mt-5 max-w-3xl text-xs leading-5 text-muted-foreground">Dodo&apos;s portal shows the billing account&apos;s history and payment controls. It may include other purchases made under the same billing account; these links do not filter its invoices by product.</p>
+      )}
     </>}
-    <p className="mt-8 text-sm text-muted-foreground">Need help with a receipt? <a href="mailto:buckets@serverlesscreed.com?subject=Buckets%20invoice" className="font-medium underline">buckets@serverlesscreed.com</a></p>
-  </main>;
+
+    <div className="mt-10 flex flex-col gap-2 border-t border-border pt-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+      <span>Need help with a receipt or a company invoice?</span>
+      <a href="mailto:buckets@serverlesscreed.com?subject=Buckets%20invoice" className="inline-flex items-center gap-2 font-medium text-foreground hover:text-[hsl(var(--acct-accent-ink))]"><Mail className="h-4 w-4" aria-hidden />buckets@serverlesscreed.com</a>
+    </div>
+  </AccountMain>;
 }

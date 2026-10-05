@@ -56,7 +56,11 @@ function AccountTicker() {
   const [i, setI] = useState(0);
   useEffect(() => {
     if (calm) return;
-    const id = setInterval(() => setI((n) => (n + 1) % ACCOUNTS.length), 2800);
+    // Skip ticks while the tab is hidden: animations pause there, and queued
+    // flips would otherwise pile up and overlap when the tab returns.
+    const id = setInterval(() => {
+      if (!document.hidden) setI((n) => (n + 1) % ACCOUNTS.length);
+    }, 2800);
     return () => clearInterval(id);
   }, [calm]);
 
@@ -65,7 +69,7 @@ function AccountTicker() {
       aria-label="any of your AWS accounts"
       className="relative inline-flex h-[1.55em] w-[8.8em] items-center overflow-hidden rounded-lg border border-primary/25 bg-primary/[0.07] align-middle font-semibold text-foreground [perspective:600px]"
     >
-      <AnimatePresence initial={false}>
+      <AnimatePresence initial={false} mode="wait">
         <motion.span
           key={ACCOUNTS[i]}
           aria-hidden

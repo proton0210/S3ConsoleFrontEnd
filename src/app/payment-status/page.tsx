@@ -17,15 +17,19 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth, useUser } from "@clerk/nextjs";
 import confetti from "canvas-confetti";
 import {
-  FaCheck,
-  FaCrown,
-  FaExclamationTriangle,
-  FaSpinner,
-  FaEnvelope,
-  FaSyncAlt,
-} from "react-icons/fa";
+  AlertTriangle,
+  ArrowRight,
+  Check,
+  Clock,
+  Download,
+  Loader2,
+  Mail,
+  RefreshCw,
+  Users,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/sections/header";
+import { CopyField } from "@/components/account/kit";
 import { trackReddit, tierValue } from "@/lib/reddit";
 import { clearCheckout } from "@/lib/checkout-client";
 import { paymentSignInUrl, waitForNextPoll, fetchPaymentConfirmation } from "@/lib/payment-confirmation";
@@ -71,8 +75,8 @@ export default function PaymentStatusPage() {
       <Header />
       <Suspense
         fallback={
-          <main className="min-h-screen flex items-center justify-center bg-background">
-            <FaSpinner className="h-8 w-8 animate-spin text-primary" />
+          <main className="theme-scope flex min-h-[calc(100vh-4rem)] items-center justify-center bg-background text-foreground">
+            <p role="status" className="text-sm text-muted-foreground">Checking your purchase…</p>
           </main>
         }
       >
@@ -296,39 +300,37 @@ function PaymentStatusContent() {
 
   if (phase === "loading") {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-background">
-        <FaSpinner className="h-8 w-8 animate-spin text-primary" />
-      </main>
+      <Wrapper>
+        <div role="status" aria-label="Loading payment status" className="flex flex-col items-center py-6">
+          <Loader2 className="h-8 w-8 animate-spin text-[hsl(var(--acct-accent-ink))]" />
+          <p className="mt-4 text-sm text-muted-foreground">Checking your purchase…</p>
+        </div>
+      </Wrapper>
     );
   }
 
   if (phase === "failed") {
     return (
-      <Wrapper accent="rose">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-red-500/10 rounded-full mb-6">
-          <FaExclamationTriangle className="h-7 w-7 text-red-600" />
-        </div>
-        <h1 className="text-3xl font-bold text-foreground mb-3">
+      <Wrapper>
+        <StatusIcon tone="danger"><AlertTriangle className="h-7 w-7" /></StatusIcon>
+        <h1 className="mt-6 text-3xl font-semibold tracking-tight">
           Payment didn&apos;t go through
         </h1>
-        <p className="text-muted-foreground mb-8">
+        <p className="mx-auto mt-3 max-w-md text-muted-foreground">
           The checkout reported a failure. Check your billing dashboard and
           bank status before retrying, or contact us for help.
         </p>
-        <div className="flex flex-wrap items-center justify-center gap-3">
-          <Button
-            onClick={() => router.push("/pricing")}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground"
-          >
-            Try again
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+          <Button size="lg" onClick={() => router.push("/pricing")}>
+            Try again<ArrowRight className="ml-2 h-4 w-4" />
           </Button>
           <a
             href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(
               "Payment failed on Buckets by ServerlessCreed"
             )}`}
-            className="inline-flex items-center gap-2 text-sm text-foreground/80 hover:text-primary underline"
+            className="inline-flex h-12 items-center gap-2 rounded-xl border border-input bg-card px-6 text-[15px] font-medium transition-colors hover:bg-muted"
           >
-            <FaEnvelope className="h-3.5 w-3.5" /> Contact support
+            <Mail className="h-4 w-4" /> Contact support
           </a>
         </div>
       </Wrapper>
@@ -337,18 +339,16 @@ function PaymentStatusContent() {
 
   if (phase === "timeout") {
     return (
-      <Wrapper accent="amber">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-100 rounded-full mb-6">
-          <FaEnvelope className="h-7 w-7 text-amber-600" />
-        </div>
-        <h1 className="text-3xl font-bold text-foreground mb-3">
+      <Wrapper>
+        <StatusIcon tone="warning"><Clock className="h-7 w-7" /></StatusIcon>
+        <h1 className="mt-6 text-3xl font-semibold tracking-tight">
           We couldn&apos;t confirm this purchase yet
         </h1>
-        <p className="text-muted-foreground mb-2">
+        <p className="mx-auto mt-3 max-w-md text-muted-foreground">
           Payment confirmation or license activation may still be processing.
           You can check again or view your current license on the billing dashboard.
         </p>
-        <p className="text-muted-foreground mb-8">
+        <p className="mx-auto mt-3 max-w-md text-sm text-muted-foreground">
           Once payment and activation are confirmed, your license key goes to{" "}
           {email ? (
             <span className="font-medium text-foreground">{email}</span>
@@ -357,123 +357,111 @@ function PaymentStatusContent() {
           )}{" "}
           and appears on your billing dashboard.
         </p>
-        <div className="flex flex-wrap items-center justify-center gap-3">
-          <Button
-            onClick={() => window.location.reload()}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground"
-          >
-            <FaSyncAlt className="mr-2 h-4 w-4" />
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+          <Button size="lg" onClick={() => window.location.reload()}>
+            <RefreshCw className="mr-2 h-4 w-4" />
             Check again
           </Button>
           <Link
             href="/account/billing"
-            className="inline-flex items-center text-sm text-foreground/80 hover:text-primary underline"
+            className="inline-flex h-12 items-center rounded-xl border border-input bg-card px-6 text-[15px] font-medium transition-colors hover:bg-muted"
           >
             View billing dashboard
           </Link>
-          <a
-            href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(
-              paymentIdParam
-                ? `Payment pending on Buckets by ServerlessCreed (payment_id=${paymentIdParam})`
-                : "Payment pending on Buckets by ServerlessCreed"
-            )}`}
-            className="inline-flex items-center gap-2 text-sm text-foreground/80 hover:text-primary underline"
-          >
-            Email support
-          </a>
         </div>
+        <a
+          href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(
+            paymentIdParam
+              ? `Payment pending on Buckets by ServerlessCreed (payment_id=${paymentIdParam})`
+              : "Payment pending on Buckets by ServerlessCreed"
+          )}`}
+          className="mt-5 inline-flex items-center gap-2 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+        >
+          <Mail className="h-3.5 w-3.5" />Email support
+        </a>
       </Wrapper>
     );
   }
 
   if (phase === "succeeded" && license) {
     return (
-      <Wrapper accent="green">
-        <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-6">
-          <FaCheck className="h-10 w-10 text-green-600" />
-        </div>
-        <h1 className="text-4xl font-bold text-foreground mb-3">
-          Payment successful
+      <Wrapper>
+        <StatusIcon tone="success"><Check className="h-8 w-8" /></StatusIcon>
+        <h1 className="mt-6 text-3xl font-semibold tracking-tight sm:text-4xl">
+          You&apos;re all set
         </h1>
-        <p className="text-lg text-muted-foreground mb-8">
-          Thank you for upgrading to Buckets by ServerlessCreed Pro. Your account is active.
+        <p className="mx-auto mt-3 max-w-md text-muted-foreground">
+          Payment confirmed — thank you for choosing Buckets by ServerlessCreed.
         </p>
 
-        <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl p-6 mb-8 text-left">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <FaCrown className="h-5 w-5 text-primary" />
-            <span className="text-lg font-semibold text-foreground">
-              {license.tier
-                ? `${capitalize(license.tier)} plan`
-                : "Pro license"}{" "}
-              · Active
+        <div className="mt-8 rounded-2xl border border-border bg-muted/40 p-5 text-left">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-semibold">
+              {license.tier ? `Buckets ${capitalize(license.tier)}` : "Buckets Pro"}
+            </p>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">
+              <span className="h-1.5 w-1.5 rounded-full bg-current" />Active
             </span>
           </div>
           {license.key && (
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-                License key
-              </p>
-              <p className="font-mono text-sm text-foreground break-all">
-                {license.key}
-              </p>
+            <div className="mt-4">
+              <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">License key</p>
+              <CopyField value={license.key} label="Copy license key" className="mt-1.5 bg-card" />
             </div>
           )}
         </div>
 
         {license.tier === "team" && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8 text-left">
-            <p className="text-sm font-semibold text-blue-900 mb-2">
-              Your team is ready — invite your members
-            </p>
-            <p className="text-sm text-blue-800">
-              You hold the first seat. Invite teammates by email from the team
-              dashboard — each gets their own license key, valid on up to 2
-              machines, delivered straight to their inbox.
-            </p>
+          <div className="mt-4 flex items-start gap-3 rounded-2xl border border-[hsl(var(--acct-accent)/0.3)] bg-[hsl(var(--acct-accent)/0.06)] p-5 text-left">
+            <Users className="mt-0.5 h-5 w-5 shrink-0 text-[hsl(var(--acct-accent-ink))]" />
+            <div>
+              <p className="text-sm font-semibold">Your team is ready — invite your members</p>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                You hold the first seat. Invite teammates by email from the team
+                dashboard — each gets their own license key, valid on up to 2
+                machines, delivered straight to their inbox.
+              </p>
+            </div>
           </div>
         )}
 
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-8 text-left">
-          <p className="text-sm font-semibold text-amber-900 mb-2">
-            Activate on your machine
-          </p>
-          <ol className="text-sm text-amber-800 list-decimal list-inside space-y-1">
-            <li>Open the Buckets by ServerlessCreed desktop app</li>
-            <li>Enter your email and the license key above</li>
-            <li>You can activate up to {license.licenseCount ?? 2} machines with the same key</li>
+        <div className="mt-4 rounded-2xl border border-border p-5 text-left text-sm">
+          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">Activate on your machine</p>
+          <ol className="mt-3 space-y-3">
+            {[
+              "Open the Buckets desktop app",
+              "Enter your email and the license key above",
+              `Activate up to ${license.licenseCount ?? 2} machines with the same key`,
+            ].map((step, i) => (
+              <li key={step} className="flex items-start gap-3">
+                <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--acct-accent)/0.12)] text-xs font-semibold text-[hsl(var(--acct-accent-ink))]">{i + 1}</span>
+                <span className="pt-0.5">{step}</span>
+              </li>
+            ))}
           </ol>
         </div>
 
-        <div className="flex flex-wrap items-center justify-center gap-3">
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           {license.tier === "team" ? (
-            <Button
-              onClick={() => router.push("/account/team")}
-              size="lg"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
-              Invite your team
+            <Button size="lg" onClick={() => router.push("/account/team")}>
+              <Users className="mr-2 h-4 w-4" />Invite your team
             </Button>
           ) : (
-            <Button
-              onClick={() => router.push("/downloads")}
-              size="lg"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
-              Open downloads
+            <Button size="lg" onClick={() => router.push("/downloads")}>
+              <Download className="mr-2 h-4 w-4" />Open downloads
             </Button>
           )}
           {license.tier === "team" && (
             <Link
               href="/downloads"
-              className="inline-flex items-center text-sm text-foreground/80 hover:text-primary underline"
+              className="inline-flex h-12 items-center rounded-xl border border-input bg-card px-6 text-[15px] font-medium transition-colors hover:bg-muted"
             >
               Downloads
             </Link>
           )}
           <Link
             href="/account/billing"
-            className="inline-flex items-center text-sm text-foreground/80 hover:text-primary underline"
+            className="inline-flex h-12 items-center rounded-xl px-4 text-[15px] font-medium text-muted-foreground transition-colors hover:text-foreground"
           >
             View billing
           </Link>
@@ -536,31 +524,28 @@ function PaymentStatusContent() {
             : "Card 3DS or bank confirmation is taking longer than usual. We're still working on it.";
 
   return (
-    <Wrapper accent="slate">
-      <div className="relative inline-flex items-center justify-center w-20 h-20 mb-6">
-        <span className="absolute inset-0 rounded-full bg-primary/10 animate-ping" />
-        <span className="absolute inset-2 rounded-full bg-primary/15" />
-        <FaSpinner className="relative h-8 w-8 animate-spin text-primary" />
+    <Wrapper>
+      <div className="relative mx-auto inline-flex h-20 w-20 items-center justify-center">
+        <span className="absolute inset-0 animate-ping rounded-full bg-[hsl(var(--acct-accent)/0.12)] motion-reduce:animate-none" />
+        <span className="absolute inset-2 rounded-full bg-[hsl(var(--acct-accent)/0.14)]" />
+        <Loader2 className="relative h-8 w-8 animate-spin text-[hsl(var(--acct-accent-ink))]" />
       </div>
-      <h1 className="text-3xl font-bold text-foreground mb-3">{heading}</h1>
-      <p className="text-muted-foreground mb-8 max-w-md mx-auto">{subhead}</p>
+      <h1 className="mt-6 text-3xl font-semibold tracking-tight" aria-live="polite">{heading}</h1>
+      <p className="mx-auto mt-3 max-w-md text-muted-foreground">{subhead}</p>
 
       <ProgressStepper />
 
       {stage === "relaxed" && (
-        <div className="mt-8 bg-primary/5 border border-primary/15 rounded-lg p-4 text-left max-w-md mx-auto">
-          <p className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
-            <FaEnvelope className="h-3.5 w-3.5 text-primary" />
+        <div className="mx-auto mt-8 max-w-md rounded-2xl border border-[hsl(var(--acct-accent)/0.25)] bg-[hsl(var(--acct-accent)/0.05)] p-4 text-left">
+          <p className="flex items-center gap-2 text-sm font-semibold">
+            <Mail className="h-4 w-4 text-[hsl(var(--acct-accent-ink))]" />
             Feel free to close this tab
           </p>
-          <p className="text-sm text-muted-foreground">
+          <p className="mt-1 text-sm leading-6 text-muted-foreground">
             We&apos;ll email your license key to{" "}
             <span className="font-medium text-foreground">{email}</span> the
             moment your payment settles. Your license will also appear on the{" "}
-            <Link
-              href="/account/billing"
-              className="text-primary hover:underline"
-            >
+            <Link href="/account/billing" className="font-medium text-foreground underline underline-offset-2">
               billing dashboard
             </Link>
             .
@@ -569,7 +554,7 @@ function PaymentStatusContent() {
       )}
 
       {stage !== "relaxed" && (
-        <p className="mt-6 text-sm text-muted-foreground">
+        <p className="mt-8 text-sm text-muted-foreground">
           You can leave this page open — we&apos;ll update it the moment we hear back.
         </p>
       )}
@@ -589,88 +574,73 @@ function ProgressStepper() {
     { label: "Activating license", state: "pending" as const },
   ];
   return (
-    <ol className="flex items-start justify-between gap-2 max-w-md mx-auto">
+    <ol className="mx-auto mt-10 flex max-w-md items-start justify-between gap-2">
       {steps.map((s, i) => {
         const prev = steps[i - 1];
         const next = steps[i + 1];
         const leftFilled = prev && (prev.state === "done" || prev.state === "active");
         const rightFilled = s.state === "done" || (s.state === "active" && next);
         return (
-        <li
-          key={s.label}
-          className="flex-1 flex flex-col items-center text-center"
-        >
-          <div className="relative w-full flex items-center">
-            {prev && (
-              <span
-                className={`absolute right-1/2 left-0 top-1/2 -translate-y-1/2 h-0.5 ${
-                  leftFilled ? "bg-primary/70" : "bg-border"
+          <li key={s.label} className="flex flex-1 flex-col items-center text-center">
+            <div className="relative flex w-full items-center">
+              {prev && (
+                <span
+                  className={`absolute left-0 right-1/2 top-1/2 h-0.5 -translate-y-1/2 ${leftFilled ? "bg-[hsl(var(--acct-accent)/0.7)]" : "bg-border"}`}
+                  aria-hidden
+                />
+              )}
+              <div
+                className={`relative z-10 mx-auto inline-flex h-9 w-9 items-center justify-center rounded-full border-2 transition-colors ${
+                  s.state === "done"
+                    ? "border-[hsl(var(--acct-accent))] bg-[hsl(var(--acct-accent))] text-white"
+                    : s.state === "active"
+                      ? "border-[hsl(var(--acct-accent))] bg-card text-[hsl(var(--acct-accent-ink))]"
+                      : "border-border bg-card text-muted-foreground"
                 }`}
-                aria-hidden
-              />
-            )}
-            <div
-              className={`relative mx-auto z-10 inline-flex items-center justify-center w-9 h-9 rounded-full border-2 transition-colors ${
-                s.state === "done"
-                  ? "bg-primary border-primary text-primary-foreground"
-                  : s.state === "active"
-                    ? "border-primary text-primary bg-card"
-                    : "border-border text-muted-foreground/70 bg-card"
-              }`}
-            >
-              {s.state === "done" ? (
-                <FaCheck className="h-3.5 w-3.5" />
-              ) : s.state === "active" ? (
-                <FaSpinner className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <span className="text-xs font-semibold">{i + 1}</span>
+              >
+                {s.state === "done" ? (
+                  <Check className="h-4 w-4" />
+                ) : s.state === "active" ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <span className="text-xs font-semibold">{i + 1}</span>
+                )}
+              </div>
+              {next && (
+                <span
+                  className={`absolute left-1/2 right-0 top-1/2 h-0.5 -translate-y-1/2 ${rightFilled ? "bg-[hsl(var(--acct-accent)/0.7)]" : "bg-border"}`}
+                  aria-hidden
+                />
               )}
             </div>
-            {next && (
-              <span
-                className={`absolute left-1/2 right-0 top-1/2 -translate-y-1/2 h-0.5 ${
-                  rightFilled ? "bg-primary/70" : "bg-border"
-                }`}
-                aria-hidden
-              />
-            )}
-          </div>
-          <span
-            className={`mt-2 text-xs font-medium ${
-              s.state === "done" || s.state === "active"
-                ? "text-foreground"
-                : "text-muted-foreground/70"
-            }`}
-          >
-            {s.label}
-          </span>
-        </li>
+            <span className={`mt-2 text-xs font-medium ${s.state === "pending" ? "text-muted-foreground" : "text-foreground"}`}>
+              {s.label}
+            </span>
+          </li>
         );
       })}
     </ol>
   );
 }
 
-function Wrapper({
-  children,
-  accent,
-}: {
-  children: React.ReactNode;
-  accent: "green" | "rose" | "amber" | "slate";
-}) {
-  // Soft status tint over the shared warm background (matches the premium
-  // theme used across the site instead of full-bleed coloured gradients).
-  const bgClass: Record<typeof accent, string> = {
-    green: "from-emerald-500/[0.07] to-background",
-    rose: "from-red-500/[0.06] to-background",
-    amber: "from-amber-500/[0.08] to-background",
-    slate: "from-primary/[0.06] to-background",
-  };
+function StatusIcon({ tone, children }: { tone: "success" | "danger" | "warning"; children: React.ReactNode }) {
+  const tones = {
+    success: "bg-emerald-500/10 text-emerald-700 ring-emerald-500/20 dark:text-emerald-300",
+    danger: "bg-red-500/10 text-red-700 ring-red-500/20 dark:text-red-300",
+    warning: "bg-amber-500/10 text-amber-700 ring-amber-500/25 dark:text-amber-300",
+  } as const;
   return (
-    <main
-      className={`min-h-screen flex items-center justify-center bg-background bg-gradient-to-b ${bgClass[accent]} px-4 py-16`}
-    >
-      <div className="surface shadow-frame rounded-2xl p-10 md:p-12 max-w-2xl w-full mx-auto text-center">
+    <span className={`mx-auto inline-flex h-16 w-16 items-center justify-center rounded-2xl ring-8 ${tones[tone]}`}>
+      {children}
+    </span>
+  );
+}
+
+function Wrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <main className="theme-scope relative isolate flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center bg-background px-4 py-16 text-foreground">
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[32rem] bg-[radial-gradient(60%_60%_at_50%_0%,hsl(var(--acct-accent)/0.12),transparent_70%)]" />
+      <div className="mx-auto w-full max-w-xl rounded-3xl border border-border bg-card p-8 text-center shadow-[0_1px_2px_hsl(var(--foreground)/0.04),0_30px_60px_-30px_hsl(var(--foreground)/0.25)] sm:p-12">
         {children}
       </div>
     </main>

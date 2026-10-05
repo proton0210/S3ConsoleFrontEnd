@@ -23,31 +23,57 @@
 "use client";
 
 import { createCheckout } from "@/lib/checkout-client";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth, useUser } from "@clerk/nextjs";
+import {
+  AlertTriangle,
+  ArrowRight,
+  ArrowUpRight,
+  CalendarClock,
+  Check,
+  CheckCircle2,
+  CreditCard,
+  Download,
+  Infinity as InfinityIcon,
+  LifeBuoy,
+  Loader2,
+  RefreshCw,
+  Receipt,
+  RotateCcw,
+  ShieldCheck,
+  Sparkles,
+  Users,
+  XCircle,
+} from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
-import Footer from "@/components/sections/footer";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AccountHeader,
+  AccountMain,
+  ActionTile,
+  CopyField,
+  EmptyState,
+  Fact,
+  Meter,
+  Notice,
+  NoticeStack,
+  Panel,
+  SectionTitle,
+  Skeleton,
+  StatusBadge,
+  relativeDays,
+} from "@/components/account/kit";
 import { cn } from "@/lib/utils";
 import { TEAM_SEAT_PRICE_USD } from "@/lib/reddit";
-import {
-  FaArrowDown,
-  FaArrowUp,
-  FaBan,
-  FaCalendarAlt,
-  FaCheckCircle,
-  FaCrown,
-  FaEnvelope,
-  FaExclamationTriangle,
-  FaInfinity,
-  FaInfoCircle,
-  FaReceipt,
-  FaSpinner,
-  FaSync,
-  FaUndo,
-  FaUsers,
-} from "react-icons/fa";
 
 type Tier = "monthly" | "yearly" | "lifetime" | "team";
 type SoloTier = Exclude<Tier, "team">;
@@ -69,6 +95,10 @@ interface UserData {
   machines?: string[];
   revoked?: boolean;
   disputed?: boolean;
+  /** Team seats: the owner's email (equals `email` for the owner). */
+  teamOwner?: string | null;
+  /** Team owners: per-seat price their Team product actually charges. */
+  teamSeatPriceUsd?: number | null;
 }
 
 /** Live Dodo state (see /api/dodo/subscription). */
@@ -89,6 +119,12 @@ const TIER_LABELS: Record<Tier, { name: string; price: string; cadence: string; 
 
 const PLAN_ORDER: SoloTier[] = ["monthly", "yearly", "lifetime"];
 const RANK: Record<SoloTier, number> = { monthly: 0, yearly: 1, lifetime: 2 };
+const PERKS: Record<SoloTier, string> = {
+  monthly: "$60 a year if you stay",
+  yearly: "Save $11 a year vs monthly",
+  lifetime: "Never renews — updates included",
+};
+const SUPPORT_EMAIL = "buckets@serverlesscreed.com";
 
 function errorText(e: unknown, fallback: string): string {
   return e instanceof Error && e.message ? e.message : fallback;
@@ -106,138 +142,10 @@ function formatDate(value?: number | string | null): string {
   return date.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
 }
 
-/* ------------------------------------------------------------------ */
-/* Small themed building blocks                                        */
-/* ------------------------------------------------------------------ */
-
-type Tone = "success" | "warning" | "danger" | "info" | "neutral" | "brand";
-
-const PILL_TONES: Record<Tone, string> = {
-  success: "bg-emerald-500/10 text-emerald-700 ring-emerald-500/25 dark:text-emerald-400",
-  warning: "bg-amber-500/10 text-amber-800 ring-amber-500/30 dark:text-amber-300",
-  danger: "bg-red-500/10 text-red-700 ring-red-500/25 dark:text-red-400",
-  info: "bg-sky-500/10 text-sky-800 ring-sky-500/25 dark:text-sky-300",
-  neutral: "bg-foreground/[0.05] text-muted-foreground ring-border",
-  brand: "bg-primary/10 text-primary ring-primary/25",
-};
-
-const NOTICE_TONES: Record<Tone, { box: string; icon: string }> = {
-  success: {
-    box: "border-emerald-500/25 bg-emerald-500/[0.07] text-emerald-900 dark:text-emerald-200",
-    icon: "text-emerald-600 dark:text-emerald-400",
-  },
-  warning: {
-    box: "border-amber-500/30 bg-amber-500/[0.08] text-amber-900 dark:text-amber-200",
-    icon: "text-amber-600 dark:text-amber-400",
-  },
-  danger: {
-    box: "border-red-500/25 bg-red-500/[0.07] text-red-800 dark:text-red-200",
-    icon: "text-red-600 dark:text-red-400",
-  },
-  info: {
-    box: "border-sky-500/25 bg-sky-500/[0.07] text-sky-900 dark:text-sky-200",
-    icon: "text-sky-600 dark:text-sky-400",
-  },
-  neutral: { box: "surface text-foreground", icon: "text-muted-foreground" },
-  brand: {
-    box: "border-primary/30 bg-primary/[0.07] text-foreground",
-    icon: "text-primary",
-  },
-};
-
-function Pill({ tone, icon, children }: { tone: Tone; icon?: ReactNode; children: ReactNode }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset",
-        PILL_TONES[tone]
-      )}
-    >
-      {icon}
-      {children}
-    </span>
-  );
-}
-
-function Notice({
-  tone,
-  icon,
-  title,
-  children,
-  action,
-}: {
-  tone: Tone;
-  icon: ReactNode;
-  title?: ReactNode;
-  children?: ReactNode;
-  action?: ReactNode;
-}) {
-  const t = NOTICE_TONES[tone];
-  return (
-    <div className={cn("flex items-start gap-3 rounded-xl border px-4 py-3.5 text-sm", t.box)}>
-      <span className={cn("mt-0.5 flex-shrink-0", t.icon)}>{icon}</span>
-      <div className="min-w-0 flex-1">
-        {title && <p className="font-semibold">{title}</p>}
-        {children && <div className={cn(title && "mt-0.5", "opacity-90")}>{children}</div>}
-      </div>
-      {action && <div className="flex-shrink-0">{action}</div>}
-    </div>
-  );
-}
-
-function FieldLabel({ icon, children }: { icon?: ReactNode; children: ReactNode }) {
-  return (
-    <dt className="mb-1.5 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-      {icon}
-      {children}
-    </dt>
-  );
-}
-
-function CardTitle({ icon, children }: { icon: ReactNode; children: ReactNode }) {
-  return (
-    <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
-      <span className="text-primary">{icon}</span>
-      {children}
-    </h3>
-  );
-}
-
-function StatusBadge({
-  tier,
-  status,
-  revoked,
-  cancelsOn,
-}: {
-  tier?: Tier;
-  status?: SubStatus;
-  revoked?: boolean;
-  cancelsOn?: string | null;
-}) {
-  if (revoked) return <Pill tone="danger" icon={<FaBan className="h-3 w-3" />}>Revoked</Pill>;
-  if (tier === "lifetime")
-    return <Pill tone="brand" icon={<FaInfinity className="h-3 w-3" />}>Active · never expires</Pill>;
-  if (status === "past_due")
-    return <Pill tone="warning" icon={<FaExclamationTriangle className="h-3 w-3" />}>Payment past due</Pill>;
-  if (status === "canceled") return <Pill tone="neutral" icon={<FaBan className="h-3 w-3" />}>Canceled</Pill>;
-  if (status === "active" && cancelsOn)
-    return <Pill tone="warning" icon={<FaCalendarAlt className="h-3 w-3" />}>Cancels {cancelsOn}</Pill>;
-  if (status === "active") return <Pill tone="success" icon={<FaCheckCircle className="h-3 w-3" />}>Active</Pill>;
-  return <Pill tone="neutral">Pending</Pill>;
-}
-
-/** Page chrome shared by every state: premium theme, header, glow, footer. */
-function BillingShell({ children }: { children: ReactNode }) {
-  return (
-    <div className="theme-scope min-h-screen">
-      <main className="relative isolate overflow-hidden">
-        <div aria-hidden className="bg-glow pointer-events-none absolute inset-x-0 top-0 -z-10 h-[520px] opacity-70" />
-        <div aria-hidden className="bg-grid pointer-events-none absolute inset-x-0 top-0 -z-10 h-[520px]" />
-        <div className="mx-auto max-w-5xl px-4 pb-24 pt-10 sm:px-6 sm:pt-14 lg:px-8">{children}</div>
-      </main>
-      <Footer />
-    </div>
-  );
+function toMs(value?: number | string | null): number | null {
+  if (!value) return null;
+  const ms = new Date(value).getTime();
+  return Number.isNaN(ms) ? null : ms;
 }
 
 /* ------------------------------------------------------------------ */
@@ -258,6 +166,7 @@ export default function BillingDashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const pollAbort = useRef<AbortController | null>(null);
+  const [confirm, setConfirm] = useState<"monthly" | "yearly" | "lifetime" | null>(null);
 
   /**
    * Initial load. If the customer just returned from the Dodo portal
@@ -413,13 +322,7 @@ export default function BillingDashboardPage() {
     if (!userData?.email) return;
     // Lifetime is a one-time product, so it needs a fresh checkout. Once the
     // payment lands, the webhook cancels the old subscription server-side so
-    // the customer is never charged again for it.
-    const ok = window.confirm(
-      `Upgrade to Lifetime for ${TIER_LABELS.lifetime.price} (one-time)?\n\n` +
-        `You'll finish payment on our secure checkout. Your current ${TIER_LABELS[currentTier].name} ` +
-        `subscription is canceled automatically once the payment is confirmed, so you won't be billed for it again.`
-    );
-    if (!ok) return;
+    // the customer is never charged again for it. (Confirmed in the dialog.)
     try {
       setPlanLoading("lifetime");
       setError(null);
@@ -441,16 +344,7 @@ export default function BillingDashboardPage() {
   async function handleChangePlan(currentTier: Tier, target: "monthly" | "yearly", renewsOn: string) {
     if (!userData?.email) return;
     const info = TIER_LABELS[target];
-    const isDowngrade = currentTier === "yearly" && target === "monthly";
-    const ok = window.confirm(
-      isDowngrade
-        ? `Switch to the Monthly plan (${info.price} ${info.cadence})?\n\n` +
-            `You keep Yearly until ${renewsOn}. After that you'll be billed ${info.price} each month instead of renewing yearly. ` +
-            `You can undo this any time before then.`
-        : `Upgrade to the Yearly plan (${info.price} ${info.cadence})?\n\n` +
-            `It takes effect now. You'll be charged for the year today, minus a credit for the unused part of your current month.`
-    );
-    if (!ok) return;
+    // Confirmed in the dialog before we get here.
 
     try {
       setPlanLoading(target);
@@ -524,36 +418,52 @@ export default function BillingDashboardPage() {
   /* -------------------------------- Loading ------------------------------- */
   if (loading) {
     return (
-      <BillingShell>
-        <div className="flex min-h-[50vh] items-center justify-center">
-          <FaSpinner className="h-7 w-7 animate-spin text-primary" aria-label="Loading billing" />
+      <AccountMain>
+        <AccountHeader title="Plan &" accent="billing" description="Your Buckets plan, renewals, payment method and invoices in one place." />
+        <div aria-busy="true" aria-label="Loading billing" className="mt-8 space-y-5">
+          <div className="rounded-3xl bg-[hsl(var(--acct-hero))] p-6 sm:p-8">
+            <Skeleton className="h-3 w-24 bg-white/10" />
+            <Skeleton className="mt-4 h-9 w-56 bg-white/10" />
+            <Skeleton className="mt-6 h-12 w-32 bg-white/10" />
+            <div className="mt-8 grid gap-6 border-t border-white/10 pt-6 sm:grid-cols-3">
+              {[0, 1, 2].map((i) => <Skeleton key={i} className="h-10 bg-white/10" />)}
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-3">
+            {[0, 1, 2].map((i) => <Skeleton key={i} className="h-[76px] rounded-2xl" />)}
+          </div>
         </div>
-      </BillingShell>
+      </AccountMain>
     );
   }
 
   /* ------------------------------ Not a customer -------------------------- */
   if (!userData?.paid) {
     return (
-      <BillingShell>
-        <div className="surface mx-auto mt-6 max-w-xl rounded-2xl p-10 text-center">
-          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-inset ring-primary/20">
-            <FaCrown className="h-6 w-6 text-primary" />
-          </div>
-          <h1 className="text-2xl font-semibold tracking-[-0.03em] text-foreground">No active plan yet</h1>
-          <p className="mx-auto mt-2 max-w-sm text-muted-foreground">
-            You&apos;re signed in but haven&apos;t picked a plan. Every plan unlocks the full Buckets app on up to
-            two machines.
-          </p>
-          <Link
-            href="/pricing"
-            className={cn(buttonVariants({ size: "lg" }), "mt-7 h-11 rounded-full px-7 font-semibold")}
+      <AccountMain>
+        <AccountHeader title="Plan &" accent="billing" description="Pick a plan to get started — every plan unlocks the full Buckets app." />
+        <div className="mt-8 space-y-5">
+          <NoticeStack>
+            {error && (
+              <Notice key="error" tone="danger" icon={AlertTriangle} title="We couldn't load your billing details" action={
+                <Button variant="outline" size="sm" onClick={handleRefresh} disabled={refreshing}><RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", refreshing && "animate-spin")} />Try again</Button>
+              }>
+                {error}
+              </Notice>
+            )}
+          </NoticeStack>
+          <EmptyState
+            icon={Receipt}
+            title="No active plan yet"
+            actions={<>
+              <Link href="/pricing" className={cn(buttonVariants({ size: "lg" }), "gap-2")}>See plans &amp; pricing <ArrowRight className="h-4 w-4" /></Link>
+              <a href={`mailto:${SUPPORT_EMAIL}`} className={buttonVariants({ variant: "outline", size: "lg" })}>Already paid? Contact us</a>
+            </>}
           >
-            See plans &amp; pricing
-          </Link>
-          {error && <p className="mt-6 text-sm text-destructive">{error}</p>}
+            You&apos;re signed in but haven&apos;t picked a plan. Every plan unlocks the full Buckets app on up to two machines.
+          </EmptyState>
         </div>
-      </BillingShell>
+      </AccountMain>
     );
   }
 
@@ -563,9 +473,22 @@ export default function BillingDashboardPage() {
   // Lifetime product, so don't show them its price.
   const isEarly = !userData.tier || (userData.tier === "lifetime" && userData.productId === "legacy");
   const tier = (userData.tier as Tier) || "lifetime";
+  const isTeamMember = tier === "team" && !!userData.teamOwner && userData.teamOwner.toLowerCase() !== userData.email.toLowerCase();
   const tierInfo = isEarly
-    ? { name: "Early Access", price: "Pro", cadence: "early supporter", blurb: "Yours for good" }
-    : TIER_LABELS[tier] || TIER_LABELS.lifetime;
+    ? { name: "Early Access", price: "", cadence: "Early supporter", blurb: "Yours for good" }
+    : tier === "team"
+      // Owners see what their Team product actually charges per seat (teams
+      // on a retired product keep their rate); members don't pay, and an
+      // unknown product shows no price rather than a guess.
+      // `null` = unknown product (no guess); not reported = list price.
+      ? isTeamMember
+        ? { ...TIER_LABELS.team, price: "", cadence: "Seat provided by your team" }
+        : typeof userData.teamSeatPriceUsd === "number"
+          ? { ...TIER_LABELS.team, price: `$${userData.teamSeatPriceUsd}` }
+          : userData.teamSeatPriceUsd === null
+            ? { ...TIER_LABELS.team, price: "", cadence: "Billed per seat, yearly" }
+            : TIER_LABELS.team
+      : TIER_LABELS[tier] || TIER_LABELS.lifetime;
   const isLifetime = tier === "lifetime";
   const isTeam = tier === "team";
   const isRecurringSolo = tier === "monthly" || tier === "yearly";
@@ -587,369 +510,401 @@ export default function BillingDashboardPage() {
     isRecurringSolo && !isCanceled && !cancelScheduled
       ? TIER_LABELS[scheduled && scheduled.tier !== tier ? scheduled.tier : tier]
       : null;
+  const devicesUsed = userData.machines?.length || 0;
+  const devicesLimit = userData.licenseCount || 2;
+
+  const statusBadge = userData.revoked
+    ? <StatusBadge tone="hero-danger" icon={XCircle}>Revoked</StatusBadge>
+    : isLifetime
+      ? <StatusBadge tone="hero-brand" icon={InfinityIcon}>{isEarly ? "Early supporter" : "Owned forever"}</StatusBadge>
+      : isPastDue
+        ? <StatusBadge tone="hero-warning" icon={AlertTriangle}>Payment due</StatusBadge>
+        : isCanceled
+          ? <StatusBadge tone="hero-neutral" icon={XCircle}>Canceled</StatusBadge>
+          : cancelScheduled
+            ? <StatusBadge tone="hero-neutral" icon={CalendarClock}>Ends {periodEndLabel}</StatusBadge>
+            : userData.subscriptionStatus === "active"
+              ? <StatusBadge tone="hero-success" dot>{isTeamMember ? "Active seat" : "Active · auto-renews"}</StatusBadge>
+              : <StatusBadge tone="hero-neutral">Pending</StatusBadge>;
+
+  const confirmCopy = confirm && {
+    yearly: {
+      title: "Upgrade to Yearly?",
+      body: "It takes effect now, with a credit for the unused part of your current month.",
+      cta: "Upgrade now",
+      icon: Sparkles,
+      rows: [["Due today", "Prorated difference"], ["Then", "$49 every year"]] as Array<[string, string]>,
+    },
+    monthly: {
+      title: "Switch to Monthly at renewal?",
+      body: "You can undo this any time before the switch.",
+      cta: "Schedule switch",
+      icon: CalendarClock,
+      rows: [["Due today", "Nothing"], ["Yearly until", periodEndLabel], ["Then", "$5 every month"]] as Array<[string, string]>,
+    },
+    lifetime: {
+      title: "Upgrade to Lifetime?",
+      body: `You'll finish payment on our secure checkout. Your ${TIER_LABELS[tier].name} subscription is canceled automatically once the payment is confirmed, so you won't be billed for it again.`,
+      cta: "Continue to checkout",
+      icon: InfinityIcon,
+      rows: [["Due at checkout", "$99 once"], ["Renewals", "None, ever"]] as Array<[string, string]>,
+    },
+  }[confirm];
+
+  async function runConfirm() {
+    const target = confirm;
+    if (!target) return;
+    setConfirm(null);
+    if (target === "lifetime") await handleLifetimeUpgrade(tier);
+    else await handleChangePlan(tier, target, periodEndLabel);
+  }
 
   return (
-    <BillingShell>
-      {/* Page header */}
-      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden />
-            Account
-          </p>
-          <h1 className="mt-5 text-4xl font-semibold tracking-[-0.04em] md:text-5xl">
-            <span className="text-gradient">Billing &amp; plan</span>
-          </h1>
-          <p className="mt-3 max-w-xl text-muted-foreground">
-            Your Buckets plan, renewals, payment method and invoices in one place.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={handleRefresh}
-          disabled={refreshing || busy}
-          className="inline-flex h-9 items-center gap-2 rounded-full border border-border px-4 text-sm text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground disabled:opacity-50"
-        >
-          <FaSync className={cn("h-3.5 w-3.5", refreshing && "animate-spin")} />
-          Refresh
-        </button>
-      </div>
+    <AccountMain>
+      <AccountHeader
+        title="Plan &"
+        accent="billing"
+        description={isLifetime
+          ? "Your license, devices and receipts. Nothing to renew, nothing more to buy."
+          : isTeamMember
+            ? "Your seat, license key and devices. Your team owner handles billing."
+            : "Your Buckets plan, renewals, payment method and invoices in one place."}
+      >
+        <Button variant="outline" size="sm" onClick={handleRefresh} disabled={refreshing || busy} aria-label="Refresh billing status">
+          <RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", refreshing && "animate-spin")} />Refresh
+        </Button>
+      </AccountHeader>
 
       {/* Notices */}
-      <div className="mb-6 space-y-3 empty:hidden">
-        {error && (
-          <Notice tone="danger" icon={<FaExclamationTriangle className="h-4 w-4" />}>
-            {error}
-          </Notice>
-        )}
-        {successMessage && (
-          <Notice tone="success" icon={<FaCheckCircle className="h-4 w-4" />}>
-            {successMessage}
-          </Notice>
-        )}
-        {isTeam && (
-          <Notice tone="info" icon={<FaUsers className="h-4 w-4" />} title="You're on a Team plan">
-            Seats and members are managed on the{" "}
-            <Link href="/account/team" className="font-medium underline underline-offset-2">
-              Team page
-            </Link>
-            .
-          </Notice>
-        )}
-        {isPastDue && (
-          <Notice
-            tone="warning"
-            icon={<FaExclamationTriangle className="h-4 w-4" />}
-            title="Your last payment didn't go through"
-            action={
-              <Button
-                size="sm"
-                onClick={handleManageSubscription}
-                disabled={portalLoading}
-                className="h-8 rounded-full px-3.5 text-xs font-semibold"
-              >
-                {portalLoading ? <FaSpinner className="h-3 w-3 animate-spin" /> : "Update payment"}
-              </Button>
-            }
-          >
-            Update your payment method in the billing portal to keep your plan active.
-            {userData.gracePeriodUntil && <> Access continues until {formatDate(userData.gracePeriodUntil)}.</>}
-          </Notice>
-        )}
-        {cancelScheduled && (
-          <Notice
-            tone="warning"
-            icon={<FaCalendarAlt className="h-4 w-4" />}
-            title={`Your plan ends on ${periodEndLabel}`}
-          >
-            Cancellation is scheduled, so you won&apos;t be charged again. You keep full access until then. Changed
-            your mind? Resume it from the billing portal.
-          </Notice>
-        )}
-        {isCanceled && !isLifetime && (
-          <Notice tone="neutral" icon={<FaBan className="h-4 w-4" />} title="Subscription canceled">
-            {userData.validUntil ? <>You keep access until {formatDate(userData.validUntil)}.</> : <>Access has ended.</>}{" "}
-            <Link href="/pricing" className="font-medium text-primary underline-offset-2 hover:underline">
-              Choose a plan
-            </Link>{" "}
-            to subscribe again.
-          </Notice>
-        )}
-        {scheduled && scheduled.tier !== tier && !cancelScheduled && (
-          <Notice
-            tone="brand"
-            icon={<FaArrowDown className="h-4 w-4" />}
-            title={`Switching to ${TIER_LABELS[scheduled.tier].name} on ${scheduledLabel}`}
-            action={
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => handleUndoScheduledChange(tier)}
-                disabled={busy}
-                className="h-8 rounded-full border-border bg-transparent px-3 text-xs font-semibold hover:bg-foreground/5"
-              >
-                {planLoading === "undo" ? (
-                  <FaSpinner className="mr-1.5 h-3 w-3 animate-spin" />
-                ) : (
-                  <FaUndo className="mr-1.5 h-3 w-3" />
-                )}
-                Keep {tierInfo.name}
-              </Button>
-            }
-          >
-            You stay on {tierInfo.name} until then, and you&apos;ll be billed {TIER_LABELS[scheduled.tier].price}{" "}
-            {TIER_LABELS[scheduled.tier].cadence} after.
-          </Notice>
-        )}
+      <div className="mt-8">
+        <NoticeStack>
+          {error && <Notice key="error" tone="danger" icon={AlertTriangle} title="Something needs attention" onDismiss={() => setError(null)}>{error}</Notice>}
+          {successMessage && <Notice key="success" tone="success" icon={CheckCircle2} title={successMessage} onDismiss={() => setSuccessMessage(null)} />}
+          {isTeamMember && (
+            <Notice key="member" tone="brand" icon={Users} title="Your seat is part of a team plan">
+              Billing is handled by <span className="font-medium text-foreground">{userData.teamOwner}</span>. Ask them to change seats or plans.
+            </Notice>
+          )}
+          {isPastDue && (
+            <Notice key="past-due" tone="warning" icon={AlertTriangle} title="Your last payment didn't go through"
+              action={
+                <Button size="sm" onClick={handleManageSubscription} disabled={portalLoading}>
+                  {portalLoading ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <CreditCard className="mr-1.5 h-3.5 w-3.5" />}Update payment
+                </Button>
+              }
+            >
+              Update your payment method in the billing portal to keep your plan active.
+              {userData.gracePeriodUntil && <> Access continues until {formatDate(userData.gracePeriodUntil)}.</>}
+            </Notice>
+          )}
+          {cancelScheduled && (
+            <Notice key="ending" tone="neutral" icon={CalendarClock} title={`Your plan ends on ${periodEndLabel}`}
+              action={
+                <Button size="sm" onClick={handleManageSubscription} disabled={portalLoading}>
+                  {portalLoading ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="mr-1.5 h-3.5 w-3.5" />}Resume
+                </Button>
+              }
+            >
+              Cancellation is scheduled, so you won&apos;t be charged again. You keep full access until then — resume any time from the billing portal.
+            </Notice>
+          )}
+          {isCanceled && !isLifetime && (
+            <Notice key="canceled" tone="neutral" icon={XCircle} title="Subscription canceled"
+              action={<Link href="/pricing" className={buttonVariants({ size: "sm" })}>Choose a plan</Link>}
+            >
+              {userData.validUntil ? <>You keep access until {formatDate(userData.validUntil)}.</> : <>Access has ended.</>} Your license key stays the same if you subscribe again.
+            </Notice>
+          )}
+          {scheduled && scheduled.tier !== tier && !cancelScheduled && (
+            <Notice key="scheduled" tone="brand" icon={CalendarClock}
+              title={`Switching to ${TIER_LABELS[scheduled.tier].name} on ${scheduledLabel}`}
+              action={
+                <Button size="sm" variant="outline" onClick={() => handleUndoScheduledChange(tier)} disabled={busy}>
+                  {planLoading === "undo" ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="mr-1.5 h-3.5 w-3.5" />}
+                  Keep {tierInfo.name}
+                </Button>
+              }
+            >
+              You stay on {tierInfo.name} until then, and you&apos;ll be billed {TIER_LABELS[scheduled.tier].price} {TIER_LABELS[scheduled.tier].cadence} after.
+            </Notice>
+          )}
+        </NoticeStack>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Plan summary */}
-        <section className="surface self-start overflow-hidden rounded-2xl lg:col-span-2">
-          <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border px-6 py-6 md:px-8">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                Current plan · Buckets Pro
-              </p>
-              <div className="mt-2 flex flex-wrap items-center gap-3">
-                <h2 className="text-2xl font-semibold tracking-[-0.03em] text-foreground">{tierInfo.name}</h2>
-                <StatusBadge
-                  tier={tier}
-                  status={userData.subscriptionStatus}
-                  revoked={userData.revoked}
-                  cancelsOn={cancelScheduled ? periodEndLabel : null}
-                />
-              </div>
-              <div className="mt-4 flex items-baseline gap-2">
-                <span className="text-5xl font-semibold tracking-[-0.04em] text-foreground">{tierInfo.price}</span>
-                <span className="text-sm text-muted-foreground">{tierInfo.cadence}</span>
-              </div>
-              <p className="mt-2 text-xs text-muted-foreground">
-                {isEarly
-                  ? "Thanks for backing Buckets early — your access never expires."
-                  : "List price. Your receipts in the billing portal show exactly what you were charged."}
-              </p>
+      {/* Plan hero */}
+      <section
+        aria-labelledby="current-plan"
+        className="relative mt-6 overflow-hidden rounded-3xl bg-[hsl(var(--acct-hero))] text-[hsl(var(--acct-hero-fg))] shadow-[0_30px_60px_-30px_hsl(var(--acct-hero)/0.7)] dark:ring-1 dark:ring-white/10"
+      >
+        <div aria-hidden className="pointer-events-none absolute -right-24 -top-32 h-72 w-96 rounded-full bg-[radial-gradient(closest-side,hsl(var(--acct-accent)/0.45),transparent)]" />
+        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,hsl(0_0%_100%/0.04),transparent_40%)]" />
+        <div className="relative grid gap-8 p-6 sm:p-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] lg:gap-12">
+          <div className="flex flex-col">
+            <div className="flex flex-wrap items-center gap-3">
+              <p id="current-plan" className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/55">Current plan</p>
+              {statusBadge}
             </div>
-            <div className="hidden h-12 w-12 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-inset ring-primary/20 sm:flex">
-              {isLifetime ? (
-                <FaInfinity className="h-5 w-5 text-primary" />
-              ) : isTeam ? (
-                <FaUsers className="h-5 w-5 text-primary" />
-              ) : (
-                <FaCrown className="h-5 w-5 text-primary" />
-              )}
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-[2.5rem] sm:leading-[1.1]">
+              Buckets <span className="acct-hero-accent">{tierInfo.name}</span>
+            </h2>
+            {isEarly ? (
+              <p className="mt-5 max-w-sm text-sm leading-6 text-white/70">
+                Thanks for backing Buckets early — every feature and every future update, yours for good.
+              </p>
+            ) : (
+              <p className="mt-5 flex items-baseline gap-1.5">
+                {tierInfo.price && <span className="text-5xl font-semibold tracking-[-0.04em]">{tierInfo.price}</span>}
+                <span className="text-sm text-white/60">{tierInfo.cadence}</span>
+              </p>
+            )}
+            <div className="mt-auto hidden pt-8 lg:block">
+              <Link href="/downloads" className="inline-flex items-center gap-1.5 text-sm font-semibold text-white/80 transition-colors hover:text-white">
+                License &amp; downloads <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+              </Link>
             </div>
           </div>
 
-          <dl className="grid grid-cols-1 gap-6 px-6 py-6 sm:grid-cols-2 md:px-8">
-            <div>
-              <FieldLabel icon={<FaCalendarAlt className="h-3 w-3" />}>
-                {isLifetime
-                  ? "Renewal"
-                  : isCanceled || cancelScheduled
-                  ? "Access until"
-                  : isPastDue
-                  ? "Payment due"
-                  : "Renews on"}
-              </FieldLabel>
-              <dd className="text-sm text-foreground">{isLifetime ? "Never — yours for good" : periodEndLabel}</dd>
-            </div>
-
-            <div>
-              <FieldLabel icon={<FaReceipt className="h-3 w-3" />}>Next charge</FieldLabel>
-              <dd className="text-sm text-foreground">
-                {nextCharge ? (
-                  <>
-                    {nextCharge.price} <span className="text-muted-foreground">{nextCharge.cadence}</span>
-                    {periodEnd && <span className="text-muted-foreground"> · {periodEndLabel}</span>}
-                  </>
-                ) : isTeam ? (
-                  <span className="text-muted-foreground">See the Team page</span>
-                ) : (
-                  <span className="text-muted-foreground">None</span>
-                )}
-              </dd>
-            </div>
-
-            <div>
-              <FieldLabel icon={<FaEnvelope className="h-3 w-3" />}>Billing email</FieldLabel>
-              <dd className="break-all text-sm text-foreground">{userData.email}</dd>
-            </div>
-
-            <div>
-              <FieldLabel>Devices</FieldLabel>
-              <dd className="text-sm text-foreground">
-                <span className="font-semibold">{userData.machines?.length || 0}</span> of{" "}
-                {userData.licenseCount || 2} activated
-              </dd>
-            </div>
-
-            <div>
-              <FieldLabel>License key</FieldLabel>
-              <dd className="break-all font-mono text-xs text-foreground/80">{userData.key || "—"}</dd>
-            </div>
-
-            {!isLifetime && (
+          <div className="flex flex-col gap-6 lg:border-l lg:border-white/10 lg:pl-12">
+            <dl className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
+              <Fact
+                onDark
+                label={isLifetime ? "Renewal" : isCanceled || cancelScheduled ? "Access until" : isPastDue ? "Payment due" : isTeamMember ? "Team renews" : "Renews on"}
+                hint={isLifetime ? null : relativeDays(toMs(periodEnd))}
+              >
+                {isLifetime ? "Never — yours for good" : periodEndLabel}
+              </Fact>
+              <Fact onDark label="Next charge" hint={nextCharge && periodEnd ? periodEndLabel : null}>
+                {nextCharge
+                  ? <>{nextCharge.price} <span className="text-white/60">{nextCharge.cadence}</span></>
+                  : isTeam
+                    ? <span className="text-white/60">{isTeamMember ? "Paid by your team" : "See the Team page"}</span>
+                    : <span className="text-white/60">None</span>}
+              </Fact>
+              <Fact onDark label="Billing email"><span className="break-all">{userData.email}</span></Fact>
+              <Fact onDark label="Devices" hint={devicesUsed >= devicesLimit ? "All activations in use" : `${devicesLimit - devicesUsed} activation${devicesLimit - devicesUsed === 1 ? "" : "s"} left`}>
+                <span className="flex items-center gap-3">
+                  <span className="shrink-0">{devicesUsed} of {devicesLimit}</span>
+                  <Meter onDark used={devicesUsed} total={devicesLimit} label={`${devicesUsed} of ${devicesLimit} devices activated`} className="w-full max-w-[9rem]" />
+                </span>
+              </Fact>
+            </dl>
+            {userData.key && (
               <div>
-                <FieldLabel>Subscription ID</FieldLabel>
-                <dd className="break-all font-mono text-xs text-foreground/80">{userData.subscriptionId || "—"}</dd>
+                <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-white/50">License key</p>
+                <CopyField onDark value={userData.key} label="Copy license key" className="mt-1.5" />
               </div>
             )}
-          </dl>
-
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-foreground/[0.02] px-6 py-4 md:px-8">
-            <p className="text-xs text-muted-foreground">
-              {isLifetime
-                ? isEarly
-                  ? "Early Access — no recurring charges."
-                  : "One-time purchase — no recurring charges."
-                : "Renewals are charged automatically."}{" "}
-              Payments are processed securely by Dodo Payments.
-            </p>
-            <Link href="/downloads" className="text-xs font-semibold text-primary hover:underline">
-              License &amp; devices →
+            {!isLifetime && userData.subscriptionId && !isTeamMember && (
+              <p className="truncate text-xs text-white/45">Subscription <span className="font-mono">{userData.subscriptionId}</span></p>
+            )}
+            <Link href="/downloads" className="inline-flex items-center gap-1.5 text-sm font-semibold text-white/80 transition-colors hover:text-white lg:hidden">
+              License &amp; downloads <ArrowRight className="h-3.5 w-3.5" aria-hidden />
             </Link>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Change plan */}
-          {canChangePlan && (
-            <section className="surface rounded-2xl p-6">
-              <CardTitle icon={<FaArrowUp className="h-3.5 w-3.5" />}>Change plan</CardTitle>
-              <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                Upgrades apply right away with a credit for unused time. Downgrades start at your next renewal.
-              </p>
-              <ul className="mt-4 space-y-2.5">
-                {PLAN_ORDER.map((opt) => {
-                  const info = TIER_LABELS[opt];
-                  const isCurrent = opt === tier;
-                  const isScheduled = scheduled?.tier === opt && !isCurrent;
-                  const direction = RANK[opt] > RANK[tier as SoloTier] ? "up" : "down";
-                  return (
-                    <li
-                      key={opt}
-                      className={cn(
-                        "flex items-center justify-between gap-3 rounded-xl border px-3.5 py-3",
-                        isCurrent ? "border-primary/40 bg-primary/[0.06]" : "border-border"
-                      )}
+      {/* Quick actions */}
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {isTeamMember ? (
+          <ActionTile icon={Users} title="Billing by your team" description={`Managed by ${userData.teamOwner}`} disabled />
+        ) : isTeam ? (
+          <ActionTile
+            icon={Users}
+            title="Team seats & billing"
+            description="Members, seats, card and invoices"
+            href="/account/team"
+            trailing={<ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" aria-hidden />}
+          />
+        ) : isLifetime ? (
+          <ActionTile
+            icon={Download}
+            title="Download Buckets"
+            description="Mac, Windows and Linux"
+            href="/downloads"
+            trailing={<ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" aria-hidden />}
+          />
+        ) : (
+          <ActionTile
+            icon={CreditCard}
+            title="Payment & renewal"
+            description="Card, invoices, cancel or resume"
+            onClick={handleManageSubscription}
+            disabled={portalLoading}
+            busy={portalLoading}
+            trailing={portalLoading
+              ? <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" aria-hidden />
+              : <ArrowUpRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden />}
+          />
+        )}
+        <ActionTile
+          icon={Receipt}
+          title="Invoices & receipts"
+          description="Every purchase on this account"
+          href="/account/invoices"
+          trailing={<ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" aria-hidden />}
+        />
+        {isLifetime || isTeamMember ? (
+          <ActionTile
+            icon={Users}
+            title={isTeamMember ? "Your team" : "Team seats"}
+            description={isTeamMember ? "See your seat details" : "Start or manage company-owned seats"}
+            href="/account/team"
+            trailing={<ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" aria-hidden />}
+          />
+        ) : (
+          <ActionTile
+            icon={Download}
+            title="Download Buckets"
+            description="Mac, Windows and Linux"
+            href="/downloads"
+            trailing={<ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" aria-hidden />}
+          />
+        )}
+      </div>
+
+      {/* Change plan */}
+      {canChangePlan && (
+        <section aria-labelledby="change-plan" className="mt-12">
+          <SectionTitle
+            id="change-plan"
+            title="Change plan"
+            description="Upgrades apply right away with a credit for unused time. Downgrades start at your next renewal. You're never billed twice."
+          />
+          <div className="mt-5 grid gap-4 md:grid-cols-3">
+            {PLAN_ORDER.map((opt) => {
+              const info = TIER_LABELS[opt];
+              const isCurrent = opt === tier;
+              const isScheduled = scheduled?.tier === opt && !isCurrent;
+              const direction = RANK[opt] > RANK[tier as SoloTier] ? "up" : "down";
+              return (
+                <Panel
+                  as="div"
+                  key={opt}
+                  className={cn(
+                    "relative flex flex-col p-6 transition-all duration-300",
+                    isCurrent
+                      ? "border-[hsl(var(--acct-accent)/0.55)] ring-1 ring-[hsl(var(--acct-accent)/0.35)]"
+                      : "hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-24px_hsl(var(--foreground)/0.35)]"
+                  )}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-semibold">{info.name}</p>
+                    {isCurrent && <StatusBadge tone="brand" icon={Check}>Current</StatusBadge>}
+                    {isScheduled && <StatusBadge tone="neutral" icon={CalendarClock}>From {scheduledLabel}</StatusBadge>}
+                    {!isCurrent && !isScheduled && opt === "lifetime" && <StatusBadge tone="brand" icon={Sparkles}>Best value</StatusBadge>}
+                  </div>
+                  <p className="mt-4 flex items-baseline gap-1.5">
+                    <span className="text-4xl font-semibold tracking-[-0.04em]">{info.price}</span>
+                    <span className="text-sm text-muted-foreground">{info.cadence}</span>
+                  </p>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{info.blurb}</p>
+                  <p className="mt-1 flex-1 text-xs font-medium text-[hsl(var(--acct-accent-ink))]">{PERKS[opt]}</p>
+                  {isCurrent ? (
+                    <Button variant="outline" className="mt-6 h-11 w-full" disabled>Current plan</Button>
+                  ) : isScheduled ? (
+                    <Button variant="outline" className="mt-6 h-11 w-full" disabled>Scheduled</Button>
+                  ) : (
+                    <Button
+                      className="mt-6 h-11 w-full"
+                      variant={direction === "up" ? "default" : "outline"}
+                      disabled={busy}
+                      onClick={() => setConfirm(opt)}
                     >
-                      <div className="min-w-0">
-                        <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                          {info.name}
-                          {isCurrent && (
-                            <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold text-primary-foreground">
-                              Current
-                            </span>
-                          )}
-                        </p>
-                        <p className="mt-0.5 text-xs text-muted-foreground">
-                          {info.price} {info.cadence} · {info.blurb}
-                        </p>
-                      </div>
-                      {isCurrent ? null : isScheduled ? (
-                        <span className="whitespace-nowrap text-[11px] font-medium text-muted-foreground">
-                          From {scheduledLabel}
-                        </span>
-                      ) : (
-                        <Button
-                          size="sm"
-                          variant={direction === "up" ? "default" : "outline"}
-                          disabled={busy}
-                          onClick={() =>
-                            opt === "lifetime"
-                              ? handleLifetimeUpgrade(tier)
-                              : handleChangePlan(tier, opt, periodEndLabel)
-                          }
-                          className={cn(
-                            "h-8 shrink-0 rounded-full px-3.5 text-xs font-semibold",
-                            direction === "down" && "border-border bg-transparent hover:bg-foreground/5"
-                          )}
-                        >
-                          {planLoading === opt ? (
-                            <FaSpinner className="h-3 w-3 animate-spin" />
-                          ) : direction === "up" ? (
-                            "Upgrade"
-                          ) : (
-                            "Downgrade"
-                          )}
-                        </Button>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-              <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
-                You&apos;re never billed twice: plan changes update your existing subscription, and Lifetime cancels
-                it automatically once paid.
-              </p>
-            </section>
-          )}
+                      {planLoading === opt && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      {direction === "up" ? `Upgrade to ${info.name}` : "Switch at renewal"}
+                    </Button>
+                  )}
+                </Panel>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
-          <section className="rounded-2xl border border-border bg-card p-6"><h2 className="font-semibold">Invoices &amp; receipts</h2><p className="mt-2 text-sm text-muted-foreground">Find purchase history for your own billing accounts, including Lifetime and team purchases.</p><Link href="/account/invoices" className="mt-4 inline-block text-sm font-medium underline">View invoices &amp; receipts</Link></section>
-
-          {/* Manage */}
-          {!isLifetime && !isTeam && (
-            <section className="surface rounded-2xl p-6">
-              <CardTitle icon={<FaReceipt className="h-3.5 w-3.5" />}>Payment &amp; invoices</CardTitle>
-              <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                Update your card, download invoices, or cancel or resume your subscription in Dodo&apos;s secure
-                portal.
-              </p>
-              <Button
-                onClick={handleManageSubscription}
-                disabled={portalLoading}
-                className="mt-4 h-10 w-full rounded-full bg-foreground font-semibold text-background hover:bg-foreground/90"
-              >
-                {portalLoading ? (
-                  <>
-                    <FaSpinner className="mr-2 h-4 w-4 animate-spin" />
-                    Opening…
-                  </>
-                ) : (
-                  "Open billing portal"
-                )}
-              </Button>
-            </section>
-          )}
-
-          {/* Lifetime */}
-          {isLifetime && (
-            <section className="rounded-2xl border border-primary/40 bg-gradient-to-b from-primary/[0.12] to-transparent p-6 shadow-[0_30px_80px_-30px_hsl(var(--primary)/0.35)]">
-              <CardTitle icon={<FaInfinity className="h-3.5 w-3.5" />}>
-                {isEarly ? "Early Access" : "Lifetime access"}
-              </CardTitle>
-              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+      {/* Lifetime note */}
+      {isLifetime && (
+        <Panel className="mt-10 flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+          <div className="flex items-start gap-3">
+            <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[hsl(var(--acct-accent)/0.10)] text-[hsl(var(--acct-accent-ink))]">
+              <InfinityIcon className="h-[18px] w-[18px]" aria-hidden />
+            </span>
+            <div>
+              <h2 className="text-[15px] font-semibold">{isEarly ? "Early Access" : "Lifetime access"}</h2>
+              <p className="mt-0.5 text-sm leading-6 text-muted-foreground">
                 {isEarly
-                  ? "You have every Buckets Pro feature for good as an early supporter. No renewals, nothing to upgrade, and every future update is included."
+                  ? "Every Buckets Pro feature for good as an early supporter. No renewals, nothing to upgrade."
                   : "You own Buckets Pro for good. No renewals, no recurring charges, and every future update is included."}
               </p>
-              <Link href="/downloads" className={cn(buttonVariants(), "mt-4 h-10 w-full rounded-full font-semibold")}>
-                Go to downloads
-              </Link>
-              <Link href="/account/team" className="mt-4 block text-center text-xs font-semibold text-primary hover:underline">
-                Manage or start a team
-              </Link>
-            </section>
-          )}
-
-          {/* Help */}
-          <section className="surface rounded-2xl p-6">
-            <CardTitle icon={<FaInfoCircle className="h-3.5 w-3.5" />}>Need help?</CardTitle>
-            <p className="mt-1 text-xs leading-5 text-muted-foreground">
-              Questions about a charge or refunds within 30 days? Email us and we&apos;ll sort it out fast.
-            </p>
-            <a
-              href="mailto:buckets@serverlesscreed.com"
-              className="mt-3 inline-flex items-center gap-2 text-xs font-semibold text-primary hover:underline"
-            >
-              <FaEnvelope className="h-3 w-3" />
-              buckets@serverlesscreed.com
+            </div>
+          </div>
+          {userData.dodoCustomerId ? (
+            <Button variant="outline" className="shrink-0" onClick={handleManageSubscription} disabled={portalLoading}>
+              {portalLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Receipt className="mr-2 h-4 w-4" />}Receipts
+            </Button>
+          ) : (
+            <a href={`mailto:${SUPPORT_EMAIL}?subject=Buckets%20receipt`} className={cn(buttonVariants({ variant: "outline" }), "shrink-0")}>
+              <Receipt className="mr-2 h-4 w-4" />Request a receipt
             </a>
-          </section>
-        </div>
+          )}
+        </Panel>
+      )}
+
+      {/* Renewal settings */}
+      {isRecurringSolo && !isCanceled && !userData.revoked && (
+        <Panel className="mt-10 flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+          <div className="min-w-0">
+            <h2 className="text-[15px] font-semibold">{cancelScheduled ? "Renewal is off" : "Auto-renewal is on"}</h2>
+            <p className="mt-0.5 text-sm leading-6 text-muted-foreground">
+              {cancelScheduled
+                ? <>Your plan ends on {periodEndLabel}. Resume it in the billing portal to keep Buckets running without a gap.</>
+                : <>Cancel any time in the billing portal and keep access until {periodEndLabel}.</>}
+            </p>
+          </div>
+          <Button variant={cancelScheduled ? "outline" : "ghost"} className={cn("shrink-0", !cancelScheduled && "text-muted-foreground hover:bg-red-500/10 hover:text-red-700 dark:hover:text-red-300")} onClick={handleManageSubscription} disabled={portalLoading}>
+            {cancelScheduled ? <><RotateCcw className="mr-2 h-4 w-4" />Resume subscription</> : "Cancel subscription"}
+          </Button>
+        </Panel>
+      )}
+
+      {/* Help */}
+      <div className="mt-10 flex flex-col gap-3 border-t border-border pt-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+        <span className="inline-flex items-center gap-2">
+          <ShieldCheck className="h-4 w-4 text-[hsl(var(--acct-accent-ink))]" aria-hidden />
+          Payments by Dodo Payments · questions about a charge or a refund within 30 days? We&apos;ll sort it out fast.
+        </span>
+        <a href={`mailto:${SUPPORT_EMAIL}`} className="inline-flex items-center gap-2 font-medium text-foreground hover:text-[hsl(var(--acct-accent-ink))]">
+          <LifeBuoy className="h-4 w-4" aria-hidden />{SUPPORT_EMAIL}
+        </a>
       </div>
-    </BillingShell>
+
+      <Dialog open={!!confirmCopy} onOpenChange={(open) => { if (!open) setConfirm(null); }}>
+        <DialogContent className="theme-scope rounded-3xl border-border bg-card p-0 sm:max-w-md sm:rounded-3xl">
+          {confirmCopy && (
+            <div className="p-6">
+              <DialogHeader className="space-y-0 text-left">
+                <span className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[hsl(var(--acct-accent)/0.10)] text-[hsl(var(--acct-accent-ink))]">
+                  <confirmCopy.icon className="h-5 w-5" />
+                </span>
+                <DialogTitle className="text-xl tracking-tight">{confirmCopy.title}</DialogTitle>
+                <DialogDescription className="pt-1.5 text-sm leading-6">{confirmCopy.body}</DialogDescription>
+              </DialogHeader>
+              <dl className="mt-5 divide-y divide-border rounded-2xl border border-border bg-muted/40 text-sm">
+                {confirmCopy.rows.map(([k, v]) => (
+                  <div key={k} className="flex items-center justify-between gap-4 px-4 py-2.5">
+                    <dt className="text-muted-foreground">{k}</dt>
+                    <dd className="text-right font-medium">{v}</dd>
+                  </div>
+                ))}
+              </dl>
+              <DialogFooter className="mt-6 flex-col-reverse gap-2 sm:flex-row sm:gap-2">
+                <Button variant="outline" onClick={() => setConfirm(null)}>Not now</Button>
+                <Button onClick={() => void runConfirm()}>{confirmCopy.cta}</Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </AccountMain>
   );
 }

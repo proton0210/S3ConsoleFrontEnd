@@ -90,6 +90,7 @@ function clientFixture(options = {}) {
     'next/navigation': { useRouter: () => ({ replace: url => redirects.push(url) }), useSearchParams: () => query },
     '@clerk/nextjs': { useAuth: () => ({ isLoaded: true, userId: options.signedOut ? null : 'user-a' }), useUser: () => ({ isLoaded: true, user: { primaryEmailAddress: { emailAddress: owner } } }) },
     'canvas-confetti': () => {}, 'react-icons/fa': {}, '@/components/ui/button': {}, '@/components/sections/header': () => null,
+    'lucide-react': new Proxy({}, { get: (_, name) => `icon:${String(name)}` }), '@/components/account/kit': { CopyField: 'copy-field' },
     '@/lib/reddit': {}, '@/lib/payment-confirmation': policy, '@/lib/checkout-client': { clearCheckout: () => {} },
   });
   const tree = compiled.default();

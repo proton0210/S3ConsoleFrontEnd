@@ -228,6 +228,42 @@
   }
 }
 
+/* ---- Account & billing UI tokens ----
+   The account kit (src/components/account/kit.tsx) is shared with Tables;
+   each site maps these tokens to its own brand. */
+@layer base {
+  :root {
+    --acct-accent: var(--primary);         /* fills, meters, focus */
+    --acct-accent-ink: var(--primary);     /* accent text on light surfaces */
+    --acct-hero: 240 10% 9%;               /* plan hero card */
+    --acct-hero-fg: 240 10% 96%;
+    --acct-hero-accent: 28 92% 62%;        /* accent fills on the hero */
+  }
+  /* Redeclared on the dark scope so var(--primary) resolves to the dark primary
+     (custom properties resolve var() where they are declared, not where used). */
+  [data-theme="dark"] .theme-scope {
+    --acct-accent: var(--primary);
+    --acct-accent-ink: var(--primary);
+    --acct-hero: 240 9% 9%;
+  }
+}
+@layer components {
+  /* One or two words inside an account page title */
+  .acct-title-accent {
+    background-image: linear-gradient(90deg, hsl(var(--brand-from, 18 85% 44%)), hsl(var(--brand-to, 34 92% 41%)));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  /* Plan name on the dark plan hero */
+  .acct-hero-accent {
+    background-image: linear-gradient(90deg, hsl(18 90% 62%), hsl(38 92% 66%));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
 @layer utilities {
   .no-scrollbar { scrollbar-width: none; }
   .no-scrollbar::-webkit-scrollbar { display: none; }

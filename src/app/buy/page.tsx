@@ -14,7 +14,9 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { compositeLegalVersion } from "@/lib/legalVersions";
 import { sendGAEvent } from "@next/third-parties/google";
-import { trackReddit, tierValue } from "@/lib/reddit";
+import { trackReddit, tierValue, TEAM_SEAT_PRICE_USD } from "@/lib/reddit";
+import { AlertTriangle, ArrowLeft, ArrowRight, Check, Loader2, Lock, Minus, Plus, RotateCcw, ShieldCheck } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useCurrentPlan } from "@/lib/hooks/use-current-plan";
 import {
   BILLING_URL,
@@ -52,6 +54,12 @@ function BuyPageContent() {
   // selector — a pre-stamped ?atv= must not race them past it with the
   // default seat count.
   const [termsAccepted, setTermsAccepted] = useState<boolean>(
+    Boolean(queryAtv) && sp.get("tier") !== "team"
+  );
+  // Checkout starts only from an explicit "Continue" — ticking the terms box
+  // alone never navigates away. A desktop-app link with ?atv= (terms already
+  // accepted in the app) still continues straight away, except for Team.
+  const [confirmed, setConfirmed] = useState<boolean>(
     Boolean(queryAtv) && sp.get("tier") !== "team"
   );
   // Team checkout: seat count from ?seats= (pricing card deep-link), clamped;
@@ -102,7 +110,7 @@ function BuyPageContent() {
     // Hold the redirect until the user has accepted ToS. The desktop app
     // pre-stamps `atv` to skip this gate — magic-link visitors see the
     // checkbox below before we kick them to Dodo.
-    if (!termsAccepted) return;
+    if (!termsAccepted || !confirmed) return;
 
     // Every checkout must be attached to a Clerk account, including Lifetime
     // and emailed purchase links. A receipt email is not authentication.
@@ -151,195 +159,249 @@ function BuyPageContent() {
         if (err instanceof CheckoutError && err.manageUrl) setManageUrl(err.manageUrl);
         setError(err instanceof Error ? err.message : "Unexpected error");
         setStatus("error");
+        setConfirmed(false);
       }
     })();
     return () => {
       canceled = true;
     };
-  }, [tier, seats, email, name, isLoaded, termsAccepted, queryAtv, planLoading, blocked, userId, router]);
+  }, [tier, seats, email, name, isLoaded, termsAccepted, confirmed, queryAtv, planLoading, blocked, userId, router]);
 
   if (!isValidTier(tier)) {
-    return <div className="theme-scope min-h-screen flex flex-col items-center justify-center gap-4">
-      <p>Invalid plan. Please pick a plan from the pricing page.</p>
-      <Link href="/pricing" className="text-primary underline">Back to pricing</Link>
-    </div>;
-  }
-
-  // Magic-link visitors land here without `atv` — show a one-tap consent
-  // gate so we capture acceptance *before* sending them to Dodo.
-  const needsConsent = !termsAccepted && isValidTier(tier) && !blocked;
-
-  if (blocked && isValidTier(tier)) {
-    const href = currentPlan === "team" ? TEAM_URL : BILLING_URL;
     return (
-      <div className="theme-scope min-h-screen flex items-center justify-center bg-background px-4">
-        <div className="max-w-md rounded-lg border border-border surface p-6 text-center shadow-sm">
-          <h1 className="text-lg font-semibold text-foreground">You already have Buckets Pro</h1>
-          <p className="mt-2 text-sm text-muted-foreground">{checkoutBlockedMessage(currentPlan, tier)}</p>
-          <a
-            href={href}
-            className="mt-5 inline-flex items-center justify-center rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-          >
-            {currentPlan === "team" ? "Go to your team" : "Go to Billing"}
+      <CheckoutFrame>
+        <StatusCard tone="danger" icon={<AlertTriangle className="h-6 w-6" />} title="That plan doesn't exist">
+          <p>Please pick a plan from the pricing page.</p>
+          <a href="/pricing" className="mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-input bg-card px-4 text-sm font-semibold transition-colors hover:bg-muted">
+            <ArrowLeft className="h-4 w-4" />Back to pricing
           </a>
-          <p className="mt-4 text-xs text-muted-foreground">
-            <a href="/downloads" className="underline hover:text-primary">
-              Download Buckets
-            </a>
-          </p>
-        </div>
-      </div>
+        </StatusCard>
+      </CheckoutFrame>
     );
   }
 
+  // Visitors without `atv` review the order and accept the terms here, so we
+  // capture acceptance *before* sending them to Dodo.
+  const needsConsent = !confirmed && !blocked && !planLoading;
+  const order = ORDER[tier];
+  const total = tier === "team" ? TEAM_SEAT_PRICE_USD * seats : null;
+
   return (
-    <div className="theme-scope min-h-screen flex items-center justify-center bg-background px-4">
-      <div className="text-center max-w-md">
-        {needsConsent && status !== "error" ? (
-          <div className="text-left surface border border-border rounded-lg p-6 shadow-sm">
-            <h1 className="text-lg font-semibold text-foreground mb-2">
-              Confirm and continue to checkout
-            </h1>
-            <p className="text-sm text-muted-foreground mb-4">
-              Before we send you to our payment partner, please review and
-              accept our terms.
-            </p>
+    <CheckoutFrame>
+      {needsConsent && status !== "error" && order ? (
+        <form
+          className="overflow-hidden rounded-3xl border border-border bg-card shadow-[0_1px_2px_hsl(var(--foreground)/0.04),0_30px_60px_-30px_hsl(var(--foreground)/0.25)]"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (termsAccepted) setConfirmed(true);
+          }}
+        >
+          <div className="p-6 sm:p-8">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Your order</p>
+            <div className="mt-3 flex items-start justify-between gap-4">
+              <div>
+                <h1 className="text-2xl font-semibold tracking-tight">Buckets <span className="acct-title-accent">{order.name}</span></h1>
+                <p className="mt-1 text-sm text-muted-foreground">{order.summary}</p>
+              </div>
+              <p className="shrink-0 text-right">
+                <span className="text-3xl font-semibold tracking-[-0.03em]">${tier === "team" ? TEAM_SEAT_PRICE_USD : order.price}</span>
+                <span className="block text-xs text-muted-foreground">{order.cadence}</span>
+              </p>
+            </div>
+
             {tier === "team" && (
-              <div className="mb-4 rounded-lg border border-border bg-background p-4">
-                <label
-                  htmlFor="buy-seats"
-                  className="block text-sm font-medium text-foreground mb-2"
-                >
-                  Team seats (minimum {MIN_TEAM_SEATS})
-                </label>
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    aria-label="Remove a seat"
-                    onClick={() => setSeats((s) => Math.max(MIN_TEAM_SEATS, s - 1))}
-                    className="h-8 w-8 rounded border border-border text-foreground hover:bg-foreground/5"
-                  >
-                    −
-                  </button>
-                  <input
-                    id="buy-seats"
-                    type="number"
-                    min={MIN_TEAM_SEATS}
-                    max={MAX_TEAM_SEATS}
-                    value={seats}
-                    onChange={(e) => {
-                      const v = Number(e.target.value);
-                      if (Number.isInteger(v)) {
-                        setSeats(Math.min(MAX_TEAM_SEATS, Math.max(MIN_TEAM_SEATS, v)));
-                      }
-                    }}
-                    className="w-16 bg-background rounded border border-border px-2 py-1 text-center text-foreground"
-                  />
-                  <button
-                    type="button"
-                    aria-label="Add a seat"
-                    onClick={() => setSeats((s) => Math.min(MAX_TEAM_SEATS, s + 1))}
-                    className="h-8 w-8 rounded border border-border text-foreground hover:bg-foreground/5"
-                  >
-                    +
-                  </button>
-                  <span className="text-sm text-muted-foreground ml-1">
-                    ${(tierValue("team") ?? 0) * seats}/year total
-                  </span>
+              <div className="mt-6 rounded-2xl border border-border bg-muted/40 p-4">
+                <div className="flex items-center justify-between gap-4">
+                  <label htmlFor="buy-seats" className="text-sm font-medium">
+                    Seats
+                    <span className="block text-xs font-normal text-muted-foreground">Minimum {MIN_TEAM_SEATS}, add more any time</span>
+                  </label>
+                  <div className="flex items-center rounded-xl border border-input bg-card">
+                    <button
+                      type="button"
+                      aria-label="Remove a seat"
+                      disabled={seats <= MIN_TEAM_SEATS}
+                      onClick={() => setSeats((s) => Math.max(MIN_TEAM_SEATS, s - 1))}
+                      className="inline-flex h-10 w-10 items-center justify-center rounded-l-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-40"
+                    >
+                      <Minus className="h-4 w-4" />
+                    </button>
+                    <input
+                      id="buy-seats"
+                      type="number"
+                      inputMode="numeric"
+                      min={MIN_TEAM_SEATS}
+                      max={MAX_TEAM_SEATS}
+                      value={seats}
+                      onChange={(e) => {
+                        const v = Number(e.target.value);
+                        if (Number.isInteger(v)) {
+                          setSeats(Math.min(MAX_TEAM_SEATS, Math.max(MIN_TEAM_SEATS, v)));
+                        }
+                      }}
+                      className="h-10 w-14 border-x border-input bg-transparent text-center text-sm font-semibold tabular-nums outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                    />
+                    <button
+                      type="button"
+                      aria-label="Add a seat"
+                      disabled={seats >= MAX_TEAM_SEATS}
+                      onClick={() => setSeats((s) => Math.min(MAX_TEAM_SEATS, s + 1))}
+                      className="inline-flex h-10 w-10 items-center justify-center rounded-r-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-40"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  You can add seats later from your account; invite teammates
-                  by email after purchase.
+                <p className="mt-3 text-xs leading-5 text-muted-foreground">
+                  Invite teammates by email after purchase. Need more than {MAX_TEAM_SEATS} seats?{" "}
+                  <a href="mailto:buckets@serverlesscreed.com" className="underline underline-offset-2 hover:text-foreground">Contact us</a>.
                 </p>
               </div>
             )}
-            <label
-              htmlFor="buy-terms"
-              className="flex items-start gap-2 text-sm text-foreground cursor-pointer select-none"
-            >
+
+            <ul className="mt-6 space-y-2.5">
+              {order.includes.map((line) => (
+                <li key={line} className="flex items-start gap-2.5 text-sm">
+                  <span className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--acct-accent)/0.14)] text-[hsl(var(--acct-accent-ink))]">
+                    <Check className="h-3 w-3" />
+                  </span>
+                  {line}
+                </li>
+              ))}
+            </ul>
+
+            <div className="mt-6 flex items-baseline justify-between border-t border-border pt-5">
+              <span className="text-sm font-medium">{tier === "lifetime" ? "Total" : "Total today"}</span>
+              <span className="text-right">
+                <span className="text-xl font-semibold tabular-nums">${total ?? order.price}</span>
+                <span className="ml-1 text-sm text-muted-foreground">{tier === "team" ? `for ${seats} seats / year` : order.cadence}</span>
+              </span>
+            </div>
+            <p className="mt-1 text-right text-xs text-muted-foreground">The final amount, including any tax, is shown at checkout.</p>
+          </div>
+
+          <div className="border-t border-border bg-muted/30 p-6 sm:px-8">
+            <label htmlFor="buy-terms" className="flex cursor-pointer select-none items-start gap-3 text-sm leading-6">
               <input
                 id="buy-terms"
                 type="checkbox"
                 checked={termsAccepted}
                 onChange={(e) => setTermsAccepted(e.target.checked)}
-                className="mt-0.5 flex-shrink-0 rounded border-border text-primary focus:ring-primary"
+                className="mt-1 h-4 w-4 shrink-0 rounded border-input accent-[hsl(var(--primary))]"
               />
-              <span>
+              <span className="text-muted-foreground">
                 I agree to the{" "}
-                <a
-                  href="/terms"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline text-primary hover:text-primary/80"
-                >
-                  Terms of Service
-                </a>
-                ,{" "}
-                <a
-                  href="/privacy"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline text-primary hover:text-primary/80"
-                >
-                  Privacy Policy
-                </a>
-                , and{" "}
-                <a
-                  href="/eula"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline text-primary hover:text-primary/80"
-                >
-                  EULA
-                </a>
-                .
+                <a href="/terms" target="_blank" rel="noopener noreferrer" className="font-medium text-foreground underline underline-offset-2">Terms of Service</a>,{" "}
+                <a href="/privacy" target="_blank" rel="noopener noreferrer" className="font-medium text-foreground underline underline-offset-2">Privacy Policy</a>, and{" "}
+                <a href="/eula" target="_blank" rel="noopener noreferrer" className="font-medium text-foreground underline underline-offset-2">EULA</a>.
               </span>
             </label>
+            <button
+              type="submit"
+              disabled={!termsAccepted}
+              className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 text-[15px] font-semibold text-primary-foreground shadow-[0_1px_0_0_hsl(0_0%_100%/0.12)_inset,0_8px_20px_-8px_hsl(var(--foreground)/0.45)] transition-all hover:-translate-y-px hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-45"
+            >
+              <Lock className="h-4 w-4" />Continue to secure checkout<ArrowRight className="h-4 w-4" />
+            </button>
+            <p className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+              <span className="inline-flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5" />Payments by Dodo Payments</span>
+              <span className="inline-flex items-center gap-1.5"><RotateCcw className="h-3.5 w-3.5" />30-day refund</span>
+            </p>
           </div>
-        ) : null}
-        {!needsConsent && status === "loading" && (
-          <>
-            <div className="mb-4 inline-block h-8 w-8 rounded-full border-4 border-border border-t-primary animate-spin" />
-            <p className="text-foreground">Setting up your checkout…</p>
-          </>
-        )}
-        {status === "redirecting" && (
-          <>
-            <p className="text-foreground">Redirecting to checkout…</p>
-            <p className="text-xs text-muted-foreground mt-2">
-              If nothing happens, refresh this page or go to{" "}
-              <a className="underline" href="/pricing">
-                /pricing
-              </a>
-              .
-            </p>
-          </>
-        )}
-        {status === "error" && (
-          <>
-            <p className="text-destructive font-medium mb-2">{error}</p>
-            <p className="text-sm text-muted-foreground">
-              {manageUrl ? (
-                <a className="underline" href={manageUrl}>
-                  Manage your plan →
-                </a>
-              ) : (
-                <a className="underline" href="/pricing">
-                  ← Back to pricing
-                </a>
-              )}
-            </p>
-          </>
-        )}
-        <div className="mt-8 flex items-center justify-center gap-4 text-xs text-muted-foreground">
-          <Link href="/" className="hover:text-primary underline">
-            Home
-          </Link>
-          <a href="/pricing" className="hover:text-primary underline">
-            Pricing
+        </form>
+      ) : null}
+
+      {!needsConsent && (status === "loading" || status === "redirecting") && !blocked && (
+        <StatusCard
+          icon={<Loader2 className="h-6 w-6 animate-spin" />}
+          title={status === "redirecting" ? "Taking you to secure checkout…" : "Preparing your checkout…"}
+        >
+          {status === "redirecting" ? (
+            <>If nothing happens in a few seconds, refresh this page or go back to <a className="font-medium text-foreground underline underline-offset-2" href="/pricing">pricing</a>.</>
+          ) : "This only takes a moment."}
+        </StatusCard>
+      )}
+
+      {blocked && (
+        <StatusCard icon={<Check className="h-6 w-6" />} title="You already have Buckets Pro">
+          <p>{checkoutBlockedMessage(currentPlan, tier)}</p>
+          <a href={currentPlan === "team" ? TEAM_URL : BILLING_URL} className="mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
+            {currentPlan === "team" ? "Go to your team" : "Go to billing"}<ArrowRight className="h-4 w-4" />
           </a>
-        </div>
-      </div>
+          <a href="/downloads" className="mt-3 inline-block text-xs font-medium text-muted-foreground underline underline-offset-2 hover:text-foreground">Download Buckets</a>
+        </StatusCard>
+      )}
+
+      {status === "error" && !blocked && (
+        <StatusCard tone="danger" icon={<AlertTriangle className="h-6 w-6" />} title="We couldn't start checkout">
+          <p>{error}</p>
+          {manageUrl ? (
+            <a href={manageUrl} className="mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
+              Manage your plan<ArrowRight className="h-4 w-4" />
+            </a>
+          ) : (
+            <a href="/pricing" className="mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-input bg-card px-4 text-sm font-semibold transition-colors hover:bg-muted">
+              <ArrowLeft className="h-4 w-4" />Back to pricing
+            </a>
+          )}
+        </StatusCard>
+      )}
+    </CheckoutFrame>
+  );
+}
+
+const ORDER: Record<Tier, { name: string; price: number; cadence: string; summary: string; includes: string[] }> = {
+  monthly: {
+    name: "Monthly", price: 5, cadence: "per month", summary: "Billed monthly. Cancel any time.",
+    includes: ["Every feature on Mac, Windows and Linux", "Use on 2 machines", "Cancel any time from your account"],
+  },
+  yearly: {
+    name: "Yearly", price: 49, cadence: "per year", summary: "Billed yearly. Save 18% vs monthly.",
+    includes: ["Every feature on Mac, Windows and Linux", "Use on 2 machines", "Switch or cancel any time from your account"],
+  },
+  lifetime: {
+    name: "Lifetime", price: 99, cadence: "one-time", summary: "Pay once. Keep it, with every future update.",
+    includes: ["Every feature on Mac, Windows and Linux", "Use on 2 machines", "No renewals, ever"],
+  },
+  team: {
+    name: "Team", price: TEAM_SEAT_PRICE_USD, cadence: "per seat / year", summary: "Company-owned seats on one invoice.",
+    includes: ["A full license for every member, on 2 machines each", "Reassign seats as your team changes", "Add seats any time, prorated"],
+  },
+};
+
+function CheckoutFrame({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="theme-scope relative isolate flex min-h-screen flex-col items-center bg-background px-4 py-10 text-foreground sm:py-16">
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[30rem] bg-[radial-gradient(60%_60%_at_50%_0%,hsl(var(--acct-accent)/0.12),transparent_70%)]" />
+      <Link href="/" className="mb-8 inline-flex items-center gap-2 text-sm font-semibold tracking-tight">
+        Buckets <span className="font-normal text-muted-foreground">by ServerlessCreed</span>
+      </Link>
+      <div className="w-full max-w-[30rem]">{children}</div>
+      <nav className="mt-8 flex items-center gap-5 text-xs text-muted-foreground">
+        <Link href="/" className="hover:text-foreground">Home</Link>
+        <a href="/pricing" className="hover:text-foreground">Pricing</a>
+        <a href="mailto:buckets@serverlesscreed.com" className="hover:text-foreground">Help</a>
+      </nav>
+    </div>
+  );
+}
+
+function StatusCard({ icon, title, tone = "brand", children }: {
+  icon: React.ReactNode;
+  title: string;
+  tone?: "brand" | "danger";
+  children?: React.ReactNode;
+}) {
+  return (
+    <div role={tone === "danger" ? "alert" : "status"} className="rounded-3xl border border-border bg-card p-8 text-center shadow-[0_30px_60px_-30px_hsl(var(--foreground)/0.25)]">
+      <span className={cn(
+        "mx-auto inline-flex h-14 w-14 items-center justify-center rounded-2xl",
+        tone === "danger" ? "bg-red-500/10 text-red-700 dark:text-red-300" : "bg-[hsl(var(--acct-accent)/0.10)] text-[hsl(var(--acct-accent-ink))]"
+      )}>
+        {icon}
+      </span>
+      <h1 className="mt-5 text-xl font-semibold tracking-tight">{title}</h1>
+      {children && <div className="mt-2 text-sm leading-6 text-muted-foreground">{children}</div>}
     </div>
   );
 }
@@ -352,9 +414,9 @@ export default function BuyPage() {
   return (
     <Suspense
       fallback={
-        <div className="theme-scope min-h-screen flex items-center justify-center">
-          <div className="h-8 w-8 rounded-full border-4 border-border border-t-primary animate-spin" />
-        </div>
+        <CheckoutFrame>
+          <StatusCard icon={<Loader2 className="h-6 w-6 animate-spin" />} title="Preparing your checkout…" />
+        </CheckoutFrame>
       }
     >
       <BuyPageContent />

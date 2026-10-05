@@ -171,13 +171,8 @@ export default function DownloadsPage() {
     }
   }, [userId, userData]);
 
-  if (loading) {
-    return (
-      <div className="theme-scope flex min-h-screen items-center justify-center">
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary/20 border-t-primary"></div>
-      </div>
-    );
-  }
+  // The page itself renders immediately (and server-side) for everyone;
+  // only the signed-in license panel waits for the account lookup.
 
   const handleMacDownload = () => {
     const downloadLink =
@@ -542,6 +537,9 @@ export default function DownloadsPage() {
           </div>
 
           {/* User Dashboard */}
+          {loading && !!userId && (
+            <div aria-busy="true" aria-label="Loading your license" className="mx-auto mb-12 h-48 max-w-4xl animate-pulse rounded-2xl bg-muted" />
+          )}
           {userData && (
             <div className="surface mb-12 overflow-hidden rounded-2xl">
               <div className="border-b border-border bg-gradient-to-r from-primary/[0.10] to-primary/[0.03] px-6 py-6 sm:px-8">
@@ -810,7 +808,7 @@ export default function DownloadsPage() {
           )}
 
           {/* Purchase Section - Only shown if NOT paid */}
-          {!userData?.paid && (
+          {!loading && !userData?.paid && (
             <div className="mx-auto max-w-xl">
               <div className="relative overflow-hidden rounded-2xl border border-primary/40 bg-gradient-to-b from-primary/[0.10] to-transparent p-8 text-center shadow-[0_30px_80px_-30px_hsl(var(--primary)/0.35)]">
                 <span className="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary/15 text-primary">
