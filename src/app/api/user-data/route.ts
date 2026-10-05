@@ -43,7 +43,7 @@ export async function GET() {
     };
 
     // Team owners: show the per-seat price their Team product actually
-    // charges (teams on the retired $99 product keep that rate). Purely
+    // charges (teams on a retired product keep its rate). Purely
     // informational — on a lookup failure the billing page shows no price.
     const isTeamOwner = data.tier === "team" && typeof data.teamOwner === "string" &&
       data.teamOwner.toLowerCase() === email.toLowerCase();

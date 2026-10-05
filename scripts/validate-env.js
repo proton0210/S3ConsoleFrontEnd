@@ -73,12 +73,11 @@ productVars.forEach(({ label, options }) => {
   }
 });
 
-// The original $99/seat/year Team product is retired (keep in sync with
-// RETIRED_PRODUCT_IDS in src/lib/dodo.ts). The site now shows $49/seat, so a
-// build whose Team product is still the retired one would advertise a price
-// checkout cannot charge — fail the build and keep the current site live.
+// A retired Team product (listed in *_DODO_LEGACY_PRODUCT_IDS_TEAM; keep in sync
+// with RETIRED_PRODUCT_IDS in src/lib/dodo.ts) can never be sold: a build whose
+// Team product is retired would advertise a price checkout cannot charge, so
+// fail the build and keep the current site live.
 const retiredTeamProductIds = [
-  'pdt_0Ngjrw1D8wTdKaMz9Xd6X',
   ...['BUCKETS_DODO_LEGACY_PRODUCT_IDS_TEAM', 'S3CONSOLE_DODO_LEGACY_PRODUCT_IDS_TEAM']
     .flatMap((name) => (process.env[name] || '').split(',').map((id) => id.trim()).filter(Boolean)),
 ];
@@ -87,7 +86,7 @@ const teamProductIds = ['BUCKETS_DODO_PRODUCT_ID_TEAM', 'S3CONSOLE_DODO_PRODUCT_
   .filter(Boolean);
 if (teamProductIds.length > 0 && !teamProductIds.some((id) => !retiredTeamProductIds.includes(id))) {
   missing.push(
-    'BUCKETS_DODO_PRODUCT_ID_TEAM - still the retired $99 Team product; set it to the $49/seat/year Team product created in Dodo'
+    'BUCKETS_DODO_PRODUCT_ID_TEAM - is a retired Team product; set it to the current Team product in Dodo'
   );
 }
 

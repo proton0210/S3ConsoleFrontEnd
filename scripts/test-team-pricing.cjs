@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
-// Team repricing ($99 → $49 per seat): the retired product keeps being
-// recognized for existing subscribers but can never be sold again.
+// Team repricing ($99 → $49 per seat, in place on the existing Dodo product).
+// Retired products (declared via env) stay recognized but can never be sold.
 const assert = require('node:assert/strict');
-const { test, afterEach } = require('node:test');
+const { test, beforeEach, afterEach } = require('node:test');
 const { readFileSync } = require('node:fs');
 const ts = require('typescript');
 function compile(path, dependencies) {
@@ -13,10 +13,13 @@ function compile(path, dependencies) {
 }
 const reddit = compile('src/lib/reddit.ts', {});
 const dodo = compile('src/lib/dodo.ts', { 'server-only': {}, '@/lib/reddit': reddit });
-const RETIRED = 'pdt_0Ngjrw1D8wTdKaMz9Xd6X';
+// A retired product is now only ever declared through env (none is built in).
+const RETIRED = 'pdt_old_team_99';
+const LIVE_TEAM = 'pdt_0Ngjrw1D8wTdKaMz9Xd6X';
 const KEYS = ['BUCKETS_DODO_PRODUCT_ID_TEAM', 'S3CONSOLE_DODO_PRODUCT_ID_TEAM', 'BUCKETS_DODO_LEGACY_PRODUCT_IDS_TEAM', 'S3CONSOLE_DODO_LEGACY_PRODUCT_IDS_TEAM', 'BUCKETS_DODO_PRODUCT_ID_YEARLY'];
 const saved = Object.fromEntries(KEYS.map(k => [k, process.env[k]]));
 for (const k of KEYS) delete process.env[k];
+beforeEach(() => { process.env.BUCKETS_DODO_LEGACY_PRODUCT_IDS_TEAM = RETIRED; });
 afterEach(() => { for (const k of KEYS) { if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k]; } });
 
 test('displayed seat price matches Yearly and is per seat in cart value', () => {
@@ -60,10 +63,20 @@ test('unset team product still fails closed and other tiers are unaffected', () 
 test('extra retired ids can be added through env', () => {
   process.env.BUCKETS_DODO_LEGACY_PRODUCT_IDS_TEAM = ' pdt_a , pdt_b,,';
   process.env.S3CONSOLE_DODO_LEGACY_PRODUCT_IDS_TEAM = 'pdt_b,pdt_c';
-  for (const id of ['pdt_a', 'pdt_b', 'pdt_c', RETIRED]) assert.equal(dodo.isRetiredProductId(id), true);
-  assert.deepEqual(dodo.getConfiguredProductIds('team'), [RETIRED, 'pdt_a', 'pdt_b', 'pdt_c']);
+  for (const id of ['pdt_a', 'pdt_b', 'pdt_c']) assert.equal(dodo.isRetiredProductId(id), true);
+  assert.equal(dodo.isRetiredProductId(RETIRED), false);
+  assert.deepEqual(dodo.getConfiguredProductIds('team'), ['pdt_a', 'pdt_b', 'pdt_c']);
   assert.equal(dodo.isRetiredProductId(''), false);
   assert.equal(dodo.isRetiredProductId(42), false);
+});
+
+test('the existing Team product was repriced in place: it is current and sold at $49', () => {
+  delete process.env.BUCKETS_DODO_LEGACY_PRODUCT_IDS_TEAM;
+  assert.equal(dodo.isRetiredProductId(LIVE_TEAM), false);
+  process.env.BUCKETS_DODO_PRODUCT_ID_TEAM = LIVE_TEAM;
+  assert.equal(dodo.getProductId('team'), LIVE_TEAM);
+  assert.deepEqual(dodo.getPurchasableProductIds('team'), [LIVE_TEAM]);
+  assert.equal(dodo.teamSeatPriceForProduct(LIVE_TEAM), 49);
 });
 
 test('pricing card advertises the new seat price', () => {

@@ -69,7 +69,7 @@ export async function GET() {
     }
 
     // Owners see the per-seat price their Team product actually charges (teams
-    // on the retired $99 product keep that rate); null when unknown.
+    // on a retired product keep its rate); null when unknown.
     return NextResponse.json(
       resp.ok && data && typeof data === "object" && !Array.isArray(data)
         ? { ...data, seatPriceUsd: teamSeatPriceForProduct(data.productId) }

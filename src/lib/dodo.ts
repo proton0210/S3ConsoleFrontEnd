@@ -28,15 +28,16 @@ export const CANONICAL_APP_ORIGIN = "https://buckets.serverlesscreed.com";
  * plan changes only target current products. Mirrors RETIRED_PRODUCT_IDS in
  * backend-s3Console/src/lib/dodoTier.ts.
  *
- * Team: the original $99/seat/year product, replaced by the $49/seat/year
- * product in October 2026. Extra IDs can be appended via the comma-separated
- * BUCKETS_DODO_LEGACY_PRODUCT_IDS_<TIER> env var.
+ * None today: in October 2026 the existing Team product was repriced in place
+ * from $99 to $49 per seat (Dodo keeps each existing subscription on the price
+ * it was created with until its plan changes). Retire a product by appending
+ * its ID to the comma-separated BUCKETS_DODO_LEGACY_PRODUCT_IDS_<TIER> env var.
  */
 const RETIRED_PRODUCT_IDS: Readonly<Record<LicenseTier, readonly string[]>> = {
   monthly: [],
   yearly: [],
   lifetime: [],
-  team: ["pdt_0Ngjrw1D8wTdKaMz9Xd6X"],
+  team: [],
 };
 
 const unique = <T>(value: T, index: number, values: readonly T[]) =>

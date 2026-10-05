@@ -67,13 +67,13 @@ const post = body => checkout.POST({ json: async () => body, nextUrl: { origin: 
   for (const quantity of [undefined, 1, 2, 2.5, 51, '3']) {
     reset(); assert.equal((await post({ productId:'product-team', quantity })).status,400); assert.equal(providerCalls,0);
   }
-  // The retired $99 Team product is not in the purchasable list, so it can never be sold again.
-  reset(); assert.equal((await post({ productId:'pdt_0Ngjrw1D8wTdKaMz9Xd6X', quantity:3 })).status,400); assert.equal(providerCalls,0);
-  // Same route with the REAL product mapping: an env still naming the retired
-  // $99 product fails closed and never reaches the provider; the configured
-  // $49 product is what gets sold.
-  for (const [teamProduct, expected] of [['pdt_0Ngjrw1D8wTdKaMz9Xd6X', 500], ['pdt_team_49', 200]]) {
-    const env = { DODO_API_KEY: 'mock-only', BUCKETS_DODO_PRODUCT_ID_TEAM: teamProduct };
+  // An unknown or retired Team product is not in the purchasable list, so it can never be sold.
+  reset(); assert.equal((await post({ productId:'pdt_old_team_99', quantity:3 })).status,400); assert.equal(providerCalls,0);
+  // Same route with the REAL product mapping: an env still naming a retired
+  // product (declared via env) fails closed and never reaches the provider;
+  // the configured Team product is what gets sold.
+  for (const [teamProduct, expected] of [['pdt_old_team_99', 500], ['pdt_team_49', 200]]) {
+    const env = { DODO_API_KEY: 'mock-only', BUCKETS_DODO_PRODUCT_ID_TEAM: teamProduct, BUCKETS_DODO_LEGACY_PRODUCT_IDS_TEAM: 'pdt_old_team_99' };
     const realDodo = load('src/lib/dodo.ts', { 'server-only': {}, '@/lib/reddit': load('src/lib/reddit.ts') }, { process: { env } });
     const real = load('src/app/api/dodo/create-checkout/route.ts', { ...checkoutImports, '@/lib/dodo': realDodo }, { fetch: providerFetch, process: { env } });
     reset(); payload = undefined;
@@ -81,7 +81,7 @@ const post = body => checkout.POST({ json: async () => body, nextUrl: { origin: 
     if (expected === 500) assert.equal(providerCalls, 0);
     else assert.deepEqual(payload.product_cart, [{ product_id: 'pdt_team_49', quantity: 3 }]);
     reset();
-    assert.equal((await real.POST({ json: async () => ({ productId: 'pdt_0Ngjrw1D8wTdKaMz9Xd6X', quantity: 3 }), nextUrl: { origin: 'https://buckets.example' } })).status, 400);
+    assert.equal((await real.POST({ json: async () => ({ productId: 'pdt_old_team_99', quantity: 3 }), nextUrl: { origin: 'https://buckets.example' } })).status, 400);
     assert.equal(providerCalls, 0);
   }
   reset(); assert.equal((await post({ productId:'product-team', quantity:3 })).status,200); assert.equal(payload.metadata.tier,'team');

@@ -65,8 +65,9 @@ export type LicenseTier = "monthly" | "yearly" | "lifetime" | "team";
 export const TEAM_SEAT_PRICE_USD = 49;
 
 /**
- * Per-seat price of the retired Team product (before October 2026). Teams
- * still renewing on that product are shown this rate, not today's list price.
+ * Per-seat price shown for a retired Team product (one listed in the
+ * *_DODO_LEGACY_PRODUCT_IDS_TEAM env var). None is retired today: the existing
+ * Team product was repriced from $99 to $49 in place in October 2026.
  */
 export const RETIRED_TEAM_SEAT_PRICE_USD = 99;
 
