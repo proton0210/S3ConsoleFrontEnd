@@ -49,6 +49,11 @@ mustContain(checkout, '"originApp"', "checkout protected metadata");
 mustContain(checkout, '"clerkId"', "checkout protected metadata");
 mustContain(checkout, "app: SUITE_APP_ID, bundle: SUITE_BUNDLE_ID, originApp: SUITE_ORIGIN_APP", "checkout suite markers");
 mustContain(read("src/lib/suite-offer.ts"), 'SUITE_ORIGIN_APP = "serverless-buckets"', "suite origin marker");
+// The Suite upgrade is claimed ONLY by the Tables webhook: its app marker is
+// the partner's, and originApp (this site) is what lets the Buckets webhook
+// refuse the event even if it were misrouted.
+mustContain(checkout, "app: SUITE_UPGRADE_TARGET_APP, bundle: SUITE_UPGRADE_BUNDLE_ID, originApp: SUITE_ORIGIN_APP", "checkout suite upgrade markers");
+mustContain(read("src/lib/suite-offer.ts"), 'SUITE_UPGRADE_TARGET_APP = "serverless-tables"', "suite upgrade target marker");
 
 for (const [label, source] of [
   ["change-plan", changePlan],

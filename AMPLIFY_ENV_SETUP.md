@@ -48,6 +48,10 @@ BUCKETS_DODO_PRODUCT_ID_TEAM=pdt_...
 # tables.serverlesscreed.com, buckets.serverlesscreed.com and both backends.
 # Required in production builds since the pricing page sells it.
 SUITE_DODO_PRODUCT_ID_LIFETIME=pdt_...
+# The Suite upgrade ($49, one-time): Tables Lifetime for an existing Buckets
+# Lifetime owner. Also ONE Dodo product with the SAME id on both sites and both
+# backends; must differ from the Suite. Required like the Suite.
+SUITE_UPGRADE_DODO_PRODUCT_ID_LIFETIME=pdt_...
 ```
 
 ## Best Practices for AWS Amplify

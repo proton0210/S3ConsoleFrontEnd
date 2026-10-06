@@ -17,7 +17,7 @@ const dodo = compile('src/lib/dodo.ts', { 'server-only': {}, '@/lib/reddit': red
 // A retired product is now only ever declared through env (none is built in).
 const RETIRED = 'pdt_old_team_99';
 const LIVE_TEAM = 'pdt_0Ngjrw1D8wTdKaMz9Xd6X';
-const KEYS = ['BUCKETS_DODO_PRODUCT_ID_TEAM', 'S3CONSOLE_DODO_PRODUCT_ID_TEAM', 'BUCKETS_DODO_LEGACY_PRODUCT_IDS_TEAM', 'S3CONSOLE_DODO_LEGACY_PRODUCT_IDS_TEAM', 'BUCKETS_DODO_PRODUCT_ID_YEARLY', 'BUCKETS_DODO_PRODUCT_ID_LIFETIME', 'S3CONSOLE_DODO_PRODUCT_ID_LIFETIME', 'SUITE_DODO_PRODUCT_ID_LIFETIME', 'SUITE_DODO_LEGACY_PRODUCT_IDS_LIFETIME'];
+const KEYS = ['BUCKETS_DODO_PRODUCT_ID_TEAM', 'S3CONSOLE_DODO_PRODUCT_ID_TEAM', 'BUCKETS_DODO_LEGACY_PRODUCT_IDS_TEAM', 'S3CONSOLE_DODO_LEGACY_PRODUCT_IDS_TEAM', 'BUCKETS_DODO_PRODUCT_ID_YEARLY', 'BUCKETS_DODO_PRODUCT_ID_LIFETIME', 'S3CONSOLE_DODO_PRODUCT_ID_LIFETIME', 'SUITE_DODO_PRODUCT_ID_LIFETIME', 'SUITE_DODO_LEGACY_PRODUCT_IDS_LIFETIME', 'SUITE_UPGRADE_DODO_PRODUCT_ID_LIFETIME', 'SUITE_UPGRADE_DODO_LEGACY_PRODUCT_IDS_LIFETIME'];
 const saved = Object.fromEntries(KEYS.map(k => [k, process.env[k]]));
 for (const k of KEYS) delete process.env[k];
 beforeEach(() => { process.env.BUCKETS_DODO_LEGACY_PRODUCT_IDS_TEAM = RETIRED; });
@@ -153,4 +153,28 @@ test('the Suite product is recognized as lifetime but never sold as Buckets Life
   assert.ok(dodo.isSuiteProductId('pdt_suite') && dodo.isSuiteProductId('pdt_suite_old') && !dodo.isSuiteProductId('pdt_lifetime'));
   assert.ok(!dodo.isRetiredProductId('pdt_suite'));
   assert.ok(dodo.isCheckoutTier('suite') && dodo.isCheckoutTier('lifetime') && !dodo.isCheckoutTier('bundle') && !dodo.isLicenseTier('suite'));
+});
+
+test('the Suite upgrade product is recognized as lifetime but never sold as Buckets Lifetime or the Suite', () => {
+  process.env.BUCKETS_DODO_PRODUCT_ID_LIFETIME = 'pdt_lifetime';
+  process.env.SUITE_DODO_PRODUCT_ID_LIFETIME = 'pdt_suite';
+  assert.throws(() => dodo.getSuiteUpgradeProductId(), /SUITE_UPGRADE_DODO_PRODUCT_ID_LIFETIME/);
+  process.env.SUITE_UPGRADE_DODO_PRODUCT_ID_LIFETIME = ' pdt_upgrade ';
+  process.env.SUITE_UPGRADE_DODO_LEGACY_PRODUCT_IDS_LIFETIME = 'pdt_upgrade_old';
+  assert.equal(dodo.getSuiteUpgradeProductId(), 'pdt_upgrade');
+  assert.deepEqual(dodo.getSuiteUpgradeProductIds(), ['pdt_upgrade', 'pdt_upgrade_old']);
+  assert.equal(dodo.getSuiteProductId(), 'pdt_suite');
+  assert.equal(dodo.getProductId('lifetime'), 'pdt_lifetime');
+  assert.deepEqual(dodo.getPurchasableProductIds('lifetime'), ['pdt_lifetime']);
+  assert.deepEqual(dodo.getConfiguredProductIds('lifetime'), ['pdt_lifetime', 'pdt_suite', 'pdt_upgrade', 'pdt_upgrade_old']);
+  assert.equal(dodo.getTierForProductId('pdt_upgrade'), 'lifetime');
+  assert.ok(!dodo.getConfiguredProductIds('monthly').includes('pdt_upgrade'));
+  assert.ok(dodo.isSuiteUpgradeProductId('pdt_upgrade') && dodo.isSuiteUpgradeProductId('pdt_upgrade_old') && !dodo.isSuiteUpgradeProductId('pdt_suite'));
+  assert.ok(!dodo.isSuiteProductId('pdt_upgrade') && !dodo.isRetiredProductId('pdt_upgrade'));
+  assert.ok(dodo.isCheckoutTier('suite-upgrade') && !dodo.isLicenseTier('suite-upgrade'));
+  assert.equal(reddit.tierValue('suite-upgrade'), 49);
+  assert.equal(suiteOffer.SUITE_UPGRADE_PRICE_USD, 49);
+  assert.equal(suiteOffer.SUITE_UPGRADE_TARGET_APP, 'serverless-tables');
+  assert.equal(suiteOffer.SUITE_UPGRADE_BUNDLE_ID, 'suite-upgrade');
+  assert.equal(suiteOffer.SUITE_UPGRADE_PATH, '/buy?tier=suite-upgrade');
 });

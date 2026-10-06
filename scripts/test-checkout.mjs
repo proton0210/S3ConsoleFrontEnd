@@ -22,9 +22,9 @@ assert.equal(options.currentPlanFromLicense({paid:true}),'early');
 assert.equal(options.currentPlanFromLicense({paid:true,tier:'lifetime',productId:'paid-lifetime'}),'lifetime');
 assert.equal(options.currentPlanFromLicense({paid:true,tier:'lifetime',productId:'legacy',revoked:true}),'none');
 const fixture = (status, data = {}) => ({ response: { ok: status === 200, status }, data });
-let license, team, verified, subject, providerCalls, payload, checkoutResult, suiteUnset;
+let license, team, verified, subject, providerCalls, payload, checkoutResult, suiteUnset, upgradeUnset;
 function reset() {
-  license = fixture(404); team = fixture(404); verified = 'verified'; subject = 'owner'; providerCalls = 0; suiteUnset = false;
+  license = fixture(404); team = fixture(404); verified = 'verified'; subject = 'owner'; providerCalls = 0; suiteUnset = false; upgradeUnset = false;
   checkoutResult = { ok: true, status: 200, json: async () => ({ checkout_url: 'https://checkout.example/session' }) };
 }
 const checkoutImports = {
@@ -37,8 +37,9 @@ const checkoutImports = {
   '@/lib/dodo': {
     getProductId: tier => `product-${tier}`, getPurchasableProductIds: () => ['product-team', 'product-lifetime'],
     getDodoApiBaseUrl: () => 'https://mock.invalid', getCheckoutReturnUrl: () => 'https://buckets.example/payment-status',
-    getTierForProductId: product => product.replace('product-', ''), isCheckoutTier: tier => ['monthly','yearly','lifetime','team','suite'].includes(tier),
+    getTierForProductId: product => product.replace('product-', ''), isCheckoutTier: tier => ['monthly','yearly','lifetime','team','suite','suite-upgrade'].includes(tier),
     getSuiteProductId: () => { if (suiteUnset) throw new Error('SUITE_DODO_PRODUCT_ID_LIFETIME is not set'); return 'product-suite'; },
+    getSuiteUpgradeProductId: () => { if (upgradeUnset) throw new Error('SUITE_UPGRADE_DODO_PRODUCT_ID_LIFETIME is not set'); return 'product-upgrade'; },
     MIN_TEAM_SEATS: 3, MAX_TEAM_SEATS: 50,
   },
   '@/lib/suite-offer': suiteOffer,
@@ -98,18 +99,33 @@ const post = body => checkout.POST({ json: async () => body, nextUrl: { origin: 
   assert.equal(options.checkoutAllowed('lifetime', 'suite'), false, 'a Lifetime owner would pay for Buckets twice');
   assert.equal(options.checkoutAllowed('early', 'suite'), false);
   assert.equal(options.checkoutAllowed('team', 'suite'), false, 'same rule as Lifetime for team-covered accounts');
-  assert.match(options.checkoutBlockedMessage('lifetime', 'suite'), /Tables Lifetime on its own/);
-  assert.match(options.checkoutBlockedMessage('early', 'suite'), /Tables Lifetime on its own/);
+  assert.match(options.checkoutBlockedMessage('lifetime', 'suite'), /Add Tables Lifetime for \$49/);
+  assert.match(options.checkoutBlockedMessage('early', 'suite'), /Add Tables Lifetime for \$49/);
   assert.match(options.checkoutBlockedMessage('team', 'suite'), /Team plan.*Tables Lifetime on its own/);
-  assert.equal(options.checkoutBlockedHref('lifetime', 'suite'), 'https://tables.serverlesscreed.com/pricing');
-  assert.equal(options.checkoutBlockedHref('early', 'suite'), 'https://tables.serverlesscreed.com/pricing');
+  assert.equal(options.checkoutBlockedHref('lifetime', 'suite'), '/buy?tier=suite-upgrade');
+  assert.equal(options.checkoutBlockedHref('early', 'suite'), '/buy?tier=suite-upgrade');
   assert.equal(options.checkoutBlockedHref('team', 'suite'), 'https://tables.serverlesscreed.com/pricing');
+  assert.equal(options.checkoutBlockedCta('lifetime', 'suite'), 'Add Tables Lifetime for $49');
+  assert.equal(options.checkoutBlockedCta('team', 'suite'), 'Get Tables Lifetime');
+  // ─── Suite upgrade ($49): Tables Lifetime for a Buckets Lifetime owner, claimed by the Tables webhook only ───
+  assert.equal(options.SUITE_UPGRADE_PRICE_USD, suiteOffer.SUITE_UPGRADE_PRICE_USD);
+  assert.equal(options.SUITE_UPGRADE_HREF, suiteOffer.SUITE_UPGRADE_PATH);
+  assert.equal(suiteOffer.SUITE_UPGRADE_TARGET_APP, 'serverless-tables');
+  assert.equal(options.checkoutAllowed('lifetime', 'suite-upgrade'), true);
+  assert.equal(options.checkoutAllowed('early', 'suite-upgrade'), true);
+  for (const current of ['none', 'monthly', 'yearly', 'team']) {
+    assert.equal(options.checkoutAllowed(current, 'suite-upgrade'), false, `${current} is not priced for the upgrade`);
+    assert.match(options.checkoutBlockedMessage(current, 'suite-upgrade'), /Buckets Lifetime owners/);
+    assert.equal(options.checkoutBlockedHref(current, 'suite-upgrade'), '/buy?tier=suite');
+    assert.equal(options.checkoutBlockedCta(current, 'suite-upgrade'), 'Get the Suite');
+  }
   assert.equal(options.checkoutBlockedHref('team', 'lifetime'), options.TEAM_URL);
   assert.equal(options.checkoutBlockedHref('lifetime', 'lifetime'), options.BILLING_URL);
   const same = (actual, expected) => assert.deepEqual(JSON.parse(JSON.stringify(actual)), expected);
   same(options.suiteActionFor('none'), { kind: 'checkout' });
   same(options.suiteActionFor('yearly'), { kind: 'switch', label: 'Upgrade to the Suite', href: '/buy?tier=suite' });
-  same(options.suiteActionFor('lifetime'), { kind: 'switch', label: 'Get Tables Lifetime', href: 'https://tables.serverlesscreed.com/pricing' });
+  same(options.suiteActionFor('lifetime'), { kind: 'switch', label: 'Add Tables Lifetime — $49', href: '/buy?tier=suite-upgrade' });
+  same(options.suiteActionFor('early'), { kind: 'switch', label: 'Add Tables Lifetime — $49', href: '/buy?tier=suite-upgrade' });
   same(options.suiteActionFor('team'), { kind: 'switch', label: 'Get Tables Lifetime', href: 'https://tables.serverlesscreed.com/pricing' });
   reset();
   const suiteResponse = await post({ tier: 'suite', metadata: { app: 'forged', bundle: 'forged', originApp: 'forged', acceptedTermsVersion: 'v1' } });
@@ -127,7 +143,7 @@ const post = body => checkout.POST({ json: async () => body, nextUrl: { origin: 
   reset(); suiteUnset = true; assert.equal((await post({ tier: 'suite' })).status, 500); assert.equal(providerCalls, 0);
   for (const owned of [{ paid: true, tier: 'lifetime' }, { paid: true }]) {
     reset(); license = fixture(200, owned); const blocked = await post({ tier: 'suite' });
-    assert.equal(blocked.status, 409); assert.equal(blocked.data.manageUrl, 'https://tables.serverlesscreed.com/pricing'); assert.equal(providerCalls, 0);
+    assert.equal(blocked.status, 409); assert.equal(blocked.data.code, 'plan_already_owned'); assert.equal(blocked.data.manageUrl, '/buy?tier=suite-upgrade'); assert.equal(providerCalls, 0);
   }
   reset(); license = fixture(200, { paid: true, tier: 'team' }); const teamBlocked = await post({ tier: 'suite' });
   assert.equal(teamBlocked.status, 409); assert.equal(teamBlocked.data.manageUrl, 'https://tables.serverlesscreed.com/pricing'); assert.equal(providerCalls, 0);
@@ -138,6 +154,31 @@ const post = body => checkout.POST({ json: async () => body, nextUrl: { origin: 
   reset(); license = fixture(503); assert.equal((await post({ tier: 'suite' })).status, 503); assert.equal(providerCalls, 0);
   reset(); assert.equal((await post({ tier: 'suite', quantity: 2 })).status, 400);
   reset(); assert.equal((await post({ productId: 'product-suite' })).status, 400); assert.equal(providerCalls, 0);
+  // Suite upgrade: sold only to Buckets Lifetime owners, routed to the Tables webhook with this site as origin.
+  for (const owner of [{ paid: true, tier: 'lifetime', clerkId: 'owner' }, { paid: true }, { tier: 'lifetime', paid: 'true', productId: 'legacy', effectiveActive: true }, { paid: 'yes' }, { tier: 'lifetime', paid: true, effectiveActive: true, validUntil: 1 }]) {
+    reset(); license = fixture(200, owner);
+    const upgrade = await post({ tier: 'suite-upgrade', metadata: { app: 'forged', bundle: 'forged', originApp: 'forged', acceptedTermsVersion: 'v1' } });
+    assert.equal(upgrade.status, 200); assert.equal(upgrade.data.tier, 'lifetime'); assert.equal(upgrade.data.bundle, 'suite-upgrade'); assert.equal(providerCalls, 1);
+    assert.deepEqual(payload.product_cart, [{ product_id: 'product-upgrade', quantity: 1 }]);
+    assert.equal(payload.metadata.app, 'serverless-tables', 'claimed by the Tables webhook, foreign to the Buckets webhook');
+    assert.equal(payload.metadata.bundle, 'suite-upgrade'); assert.equal(payload.metadata.originApp, 'serverless-buckets');
+    assert.equal(payload.metadata.tier, 'lifetime'); assert.equal(payload.metadata.accountSubject, 'owner'); assert.equal(payload.metadata.accountEmail, 'Owner@example.com');
+    assert.equal(payload.metadata.acceptedTermsVersion, 'v1');
+    const upgradeReturn = new URL(payload.return_url);
+    assert.equal(upgradeReturn.searchParams.get('expected_tier'), 'lifetime'); assert.equal(upgradeReturn.searchParams.get('bundle'), 'suite-upgrade');
+    assert.equal(upgradeReturn.searchParams.get('checkout_attempt_id'), payload.metadata.checkoutAttemptId);
+  }
+  for (const notOwner of [{ tier: 'lifetime', paid: false }, { tier: 'lifetime', paid: 'false' }, { tier: 'lifetime', paid: true, effectiveActive: false }, { tier: 'lifetime', paid: true, disputed: true }, { tier: 'lifetime', paid: true, disputed: 'true', effectiveActive: true }, { tier: 'lifetime', paid: 'true', revoked: 'yes' }, { paid: 'true', effectiveActive: false }, { paid: true, disputed: true }, undefined, { paid: true, tier: 'monthly', subscriptionStatus: 'active' }, { paid: true, tier: 'yearly', subscriptionStatus: 'past_due' }, { paid: true, tier: 'team' }, { paid: true, tier: 'lifetime', revoked: true }, { paid: false, onTrial: true }, { paid: true, tier: 'monthly', subscriptionStatus: 'canceled' }]) {
+    reset(); if (notOwner) license = fixture(200, notOwner);
+    const refused = await post({ tier: 'suite-upgrade' });
+    assert.equal(refused.status, 409, JSON.stringify(notOwner)); assert.equal(refused.data.code, 'lifetime_required'); assert.equal(refused.data.manageUrl, '/buy?tier=suite'); assert.equal(providerCalls, 0);
+  }
+  reset(); license = fixture(200, { clerkId: 'someone-else' }); assert.equal((await post({ tier: 'suite-upgrade' })).status, 403); assert.equal(providerCalls, 0);
+  reset(); license = fixture(503); assert.equal((await post({ tier: 'suite-upgrade' })).status, 503); assert.equal(providerCalls, 0);
+  reset(); license = new Error('outage'); assert.equal((await post({ tier: 'suite-upgrade' })).status, 503); assert.equal(providerCalls, 0);
+  reset(); license = fixture(200, { paid: true, tier: 'lifetime' }); upgradeUnset = true; assert.equal((await post({ tier: 'suite-upgrade' })).status, 500); assert.equal(providerCalls, 0);
+  reset(); license = fixture(200, { paid: true, tier: 'lifetime' }); assert.equal((await post({ tier: 'suite-upgrade', quantity: 2 })).status, 400);
+  reset(); license = fixture(200, { paid: true, tier: 'lifetime' }); assert.equal((await post({ productId: 'product-upgrade' })).status, 400); assert.equal(providerCalls, 0);
   // Team portal must select the team customer even when its owner keeps a
   // separate personal Lifetime customer; members cannot open owner billing.
   let portalUrl;

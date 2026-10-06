@@ -11,8 +11,8 @@ import { useEffect } from "react";
 import { trackReddit } from "@/lib/reddit";
 import { CurrentPlanBanner, PlanActionButton } from "@/components/plan-action";
 import { useCurrentPlan } from "@/lib/hooks/use-current-plan";
-import { planActionFor, suiteActionFor, type CurrentPlan, type PlanTier } from "@/lib/plan-options";
-import { LIFETIME_PRICE_USD, SUITE_FEATURES, SUITE_PRICE_USD, SUITE_SAVINGS_USD, SUITE_SEPARATE_PRICE_USD } from "@/lib/suite-offer";
+import { ownsLifetime, planActionFor, suiteActionFor, type CurrentPlan, type PlanTier } from "@/lib/plan-options";
+import { LIFETIME_PRICE_USD, SUITE_FEATURES, SUITE_PRICE_USD, SUITE_SAVINGS_USD, SUITE_SEPARATE_PRICE_USD, SUITE_UPGRADE_PRICE_USD, SUITE_UPGRADE_SAVINGS_USD } from "@/lib/suite-offer";
 
 /** Plan cards link to /buy?tier=…; read the tier back for plan-aware CTAs. */
 function tierFromHref(href: string): PlanTier | null {
@@ -22,13 +22,14 @@ function tierFromHref(href: string): PlanTier | null {
 
 /**
  * The Tables + Buckets Suite: both Lifetime licenses for one payment. Shown
- * under the plan cards. A Buckets Lifetime owner is pointed at Tables Lifetime
- * instead (the Suite would charge them for Buckets again); subscribers get an
- * upgrade CTA (their subscription is cancelled on purchase by the webhook).
+ * under the plan cards. A Buckets Lifetime owner is offered the Suite upgrade
+ * instead — Tables Lifetime at the owner price (the Suite would charge them
+ * for Buckets again); subscribers get an upgrade CTA (their subscription is
+ * cancelled on purchase by the webhook).
  */
 export function SuiteOffer({ currentPlan }: { currentPlan: CurrentPlan }) {
   const action = suiteActionFor(currentPlan);
-  const owner = currentPlan === "lifetime" || currentPlan === "early";
+  const owner = ownsLifetime(currentPlan);
   const href = action.kind === "checkout" ? "/buy?tier=suite" : action.kind === "switch" ? action.href : null;
   const label = action.kind === "checkout" ? "Get the Suite" : action.label;
   const external = !!href && href.startsWith("http");
@@ -48,7 +49,7 @@ export function SuiteOffer({ currentPlan }: { currentPlan: CurrentPlan }) {
             <Layers className="h-4 w-4 text-primary" />Suite
           </p>
           <span className="rounded-full bg-primary px-2.5 py-0.5 text-[11px] font-semibold text-primary-foreground">
-            Save ${SUITE_SAVINGS_USD}
+            Save ${owner ? SUITE_UPGRADE_SAVINGS_USD : SUITE_SAVINGS_USD}
           </span>
         </div>
         <h3 className="mt-3 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
@@ -56,7 +57,7 @@ export function SuiteOffer({ currentPlan }: { currentPlan: CurrentPlan }) {
         </h3>
         <p className="mt-2 text-sm text-muted-foreground">
           {owner
-            ? "You already own Buckets Lifetime. Add Tables — the same idea for DynamoDB — as its own Lifetime license on the Tables site."
+            ? `You already own Buckets Lifetime, so you get the Suite deal on the other half: add Tables Lifetime — the same idea for DynamoDB — for $${SUITE_UPGRADE_PRICE_USD} instead of $${LIFETIME_PRICE_USD}.`
             : `Own S3 and DynamoDB for good. Both Lifetime licenses in one payment, instead of $${SUITE_SEPARATE_PRICE_USD} separately.`}
         </p>
         {!owner && (
@@ -71,13 +72,11 @@ export function SuiteOffer({ currentPlan }: { currentPlan: CurrentPlan }) {
         )}
       </div>
       <div className="relative flex shrink-0 flex-col items-start gap-3 md:items-end">
-        {!owner && (
-          <p className="flex items-baseline gap-2">
-            <span className="text-sm text-muted-foreground line-through">${SUITE_SEPARATE_PRICE_USD}</span>
-            <span className="text-4xl font-semibold tracking-[-0.04em] text-foreground">${SUITE_PRICE_USD}</span>
-            <span className="text-sm text-muted-foreground">one-time</span>
-          </p>
-        )}
+        <p className="flex items-baseline gap-2">
+          <span className="text-sm text-muted-foreground line-through">${owner ? LIFETIME_PRICE_USD : SUITE_SEPARATE_PRICE_USD}</span>
+          <span className="text-4xl font-semibold tracking-[-0.04em] text-foreground">${owner ? SUITE_UPGRADE_PRICE_USD : SUITE_PRICE_USD}</span>
+          <span className="text-sm text-muted-foreground">one-time</span>
+        </p>
         {href ? (
           <Link
             href={href}
@@ -92,7 +91,7 @@ export function SuiteOffer({ currentPlan }: { currentPlan: CurrentPlan }) {
           </div>
         )}
         <p className="text-xs text-muted-foreground">
-          {owner ? `Tables Lifetime is $${LIFETIME_PRICE_USD} on its own.` : "Both keys land in your inbox. Use each on 2 machines."}
+          {owner ? "Owner price. The key lands in your inbox; use it on 2 machines." : "Both keys land in your inbox. Use each on 2 machines."}
         </p>
       </div>
     </motion.div>

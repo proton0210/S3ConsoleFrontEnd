@@ -8,6 +8,7 @@ import {
   getCheckoutReturnUrl,
   getTierForProductId,
   getSuiteProductId,
+  getSuiteUpgradeProductId,
   isCheckoutTier,
   MAX_TEAM_SEATS,
   MIN_TEAM_SEATS,
@@ -29,6 +30,10 @@ import {
   SUITE_CHECKOUT_TIER,
   SUITE_ORIGIN_APP,
   SUITE_RETURN_PARAM,
+  SUITE_UPGRADE_BUNDLE_ID,
+  SUITE_UPGRADE_CHECKOUT_TIER,
+  SUITE_UPGRADE_RETURN_PARAM,
+  SUITE_UPGRADE_TARGET_APP,
 } from "@/lib/suite-offer";
 
 type CreateCheckoutBody = {
@@ -145,11 +150,16 @@ export async function POST(req: NextRequest) {
     // AND on Tables. Everything below treats it as a Lifetime purchase; only
     // the product and the metadata markers differ.
     const isSuite = tier === SUITE_CHECKOUT_TIER;
+    // The Suite upgrade: a Buckets Lifetime owner adds Tables Lifetime for the
+    // upgrade price. It grants nothing HERE — the payment is routed to the
+    // Tables webhook by metadata.app — so it is a Lifetime-shaped one-time
+    // checkout whose only eligibility rule is "owns Buckets Lifetime".
+    const isSuiteUpgrade = tier === SUITE_UPGRADE_CHECKOUT_TIER;
 
     if (tier !== undefined) {
       if (!isCheckoutTier(tier)) {
         return NextResponse.json(
-          { error: `Invalid tier: ${tier}. Expected one of: monthly, yearly, lifetime, team, suite.` },
+          { error: `Invalid tier: ${tier}. Expected one of: monthly, yearly, lifetime, team, suite, suite-upgrade.` },
           { status: 400 }
         );
       }
@@ -176,9 +186,9 @@ export async function POST(req: NextRequest) {
           { status: 401 }
         );
       }
-      resolvedTier = isSuite ? "lifetime" : tier;
+      resolvedTier = isSuite || isSuiteUpgrade ? "lifetime" : tier;
       try {
-        productId = isSuite ? getSuiteProductId() : getProductId(tier);
+        productId = isSuite ? getSuiteProductId() : isSuiteUpgrade ? getSuiteUpgradeProductId() : getProductId(tier);
       } catch (error: unknown) {
         return NextResponse.json(
           { error: errorMessage(error, "Product is not configured") },
@@ -210,7 +220,7 @@ export async function POST(req: NextRequest) {
     // Legacy product IDs must obey exactly the same quantity/plan rules.
     const purchaseTier = resolvedTier;
     // What the plan policy judges: the Suite has its own copy for Lifetime owners.
-    const policyTarget: CheckoutTarget | null = isSuite ? SUITE_CHECKOUT_TIER : purchaseTier;
+    const policyTarget: CheckoutTarget | null = isSuite ? SUITE_CHECKOUT_TIER : isSuiteUpgrade ? SUITE_UPGRADE_CHECKOUT_TIER : purchaseTier;
     const resolvedQuantity = purchaseTier === "team" ? (seats ?? quantity) : 1;
     if (!purchaseTier || (purchaseTier === "team" &&
       (!Number.isInteger(resolvedQuantity) || Number(resolvedQuantity) < MIN_TEAM_SEATS || Number(resolvedQuantity) > MAX_TEAM_SEATS))) {
@@ -230,17 +240,19 @@ export async function POST(req: NextRequest) {
         if (license.clerkId && license.clerkId !== userId) {
           return NextResponse.json({ error: "License does not belong to authenticated user." }, { status: 403 });
         }
-        const current = currentPlanFromLicense(license);
-        if (!checkoutAllowed(current, policyTarget!)) {
-          return NextResponse.json({
-            error: checkoutBlockedMessage(current, policyTarget!),
-            code: "plan_already_owned",
-            currentPlan: current,
-            manageUrl: checkoutBlockedHref(current, policyTarget!),
-          }, { status: 409 });
-        }
       } else if (licenseResponse.status !== 404) {
         return NextResponse.json({ error: "Unable to verify your current plan. Please retry shortly." }, { status: 503 });
+      }
+      // No row at all is "none": every plan may be bought, except the Suite
+      // upgrade, which is priced for existing Buckets Lifetime owners.
+      const current = licenseResponse.ok ? currentPlanFromLicense(license) : "none";
+      if (!checkoutAllowed(current, policyTarget!)) {
+        return NextResponse.json({
+          error: checkoutBlockedMessage(current, policyTarget!),
+          code: isSuiteUpgrade ? "lifetime_required" : "plan_already_owned",
+          currentPlan: current,
+          manageUrl: checkoutBlockedHref(current, policyTarget!),
+        }, { status: 409 });
       }
       // Team ownership is separate from the personal license. An owner may
       // retain Lifetime, so checking only that row would allow duplicate teams.
@@ -301,7 +313,7 @@ export async function POST(req: NextRequest) {
     );
     return runBillingOperation({
       subject: userId, email: clerkEmail, resource: "checkout",
-      intent: { productId, quantity: resolvedQuantity, ...(isSuite ? { bundle: SUITE_BUNDLE_ID } : {}) }, generation,
+      intent: { productId, quantity: resolvedQuantity, ...(isSuite ? { bundle: SUITE_BUNDLE_ID } : isSuiteUpgrade ? { bundle: SUITE_UPGRADE_BUNDLE_ID } : {}) }, generation,
       expected: { productId, quantity: Number(resolvedQuantity) },
     }, async ({ operationId: checkoutAttemptId, mutate }) => {
     // A request may have waited while another checkout purchased a plan.
@@ -320,9 +332,14 @@ export async function POST(req: NextRequest) {
       // A Suite purchase is claimed by BOTH webhooks (app=serverless-suite);
       // originApp tells the Tables webhook that accountSubject is a Buckets
       // Clerk id it must not bind to its row (separate Clerk instances).
+      // A Suite upgrade is claimed ONLY by the Tables webhook (app is the
+      // Tables marker); originApp tells it the subject is a Buckets Clerk id
+      // and lets the Buckets webhook refuse the event even if misrouted.
       ...(isSuite
         ? { app: SUITE_APP_ID, bundle: SUITE_BUNDLE_ID, originApp: SUITE_ORIGIN_APP }
-        : { app: "serverless-buckets" }),
+        : isSuiteUpgrade
+          ? { app: SUITE_UPGRADE_TARGET_APP, bundle: SUITE_UPGRADE_BUNDLE_ID, originApp: SUITE_ORIGIN_APP }
+          : { app: "serverless-buckets" }),
     };
 
     // Both subscription (monthly/yearly) and one-time (lifetime) flows go through
@@ -338,6 +355,9 @@ export async function POST(req: NextRequest) {
     // The status page confirms the Buckets row (expected_tier=lifetime) and
     // explains where the Tables license is.
     if (isSuite) returnUrl.searchParams.set("bundle", SUITE_RETURN_PARAM);
+    // A Suite upgrade never writes the Buckets row, so the status page cannot
+    // confirm it by polling: it reports Dodo's own status and points to Tables.
+    if (isSuiteUpgrade) returnUrl.searchParams.set("bundle", SUITE_UPGRADE_RETURN_PARAM);
 
     const endpoint = `${baseUrl}/checkouts`;
     const payload: Record<string, unknown> = {
@@ -385,7 +405,7 @@ export async function POST(req: NextRequest) {
       session_id: data?.session_id,
       subscription_id: data?.subscription_id,
       tier: resolvedTier,
-      ...(isSuite ? { bundle: SUITE_BUNDLE_ID } : {}),
+      ...(isSuite ? { bundle: SUITE_BUNDLE_ID } : isSuiteUpgrade ? { bundle: SUITE_UPGRADE_BUNDLE_ID } : {}),
     });
     });
   } catch (error: unknown) {

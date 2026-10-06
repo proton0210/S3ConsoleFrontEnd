@@ -35,6 +35,33 @@ export const SUITE_ORIGIN_APP = "serverless-buckets";
 /** `?bundle=` on the /payment-status return URL. */
 export const SUITE_RETURN_PARAM = "suite";
 
+/**
+ * The Suite upgrade — "complete the pair": someone who already owns Buckets
+ * Lifetime adds Tables Lifetime for $49 instead of the full $99, so owning
+ * both never costs more than the Suite would have. Sold HERE (this site
+ * verifies the Buckets Lifetime before creating the checkout) as one shared
+ * one-time Dodo product (SUITE_UPGRADE_DODO_PRODUCT_ID_LIFETIME, the same ID
+ * on both websites and both backends). The checkout stamps `app` with the
+ * PARTNER's marker so only the Tables webhook claims the payment and grants
+ * Tables Lifetime to the buyer's email; the Buckets row is untouched.
+ *
+ * SUITE_UPGRADE_PRICE_USD MUST match the upgrade product's price in Dodo.
+ */
+export const SUITE_UPGRADE_PRICE_USD = 49;
+/** What a Buckets Lifetime owner saves vs buying Tables Lifetime outright. */
+export const SUITE_UPGRADE_SAVINGS_USD = LIFETIME_PRICE_USD - SUITE_UPGRADE_PRICE_USD;
+/** `?tier=suite-upgrade` on /buy and in the checkout request body. */
+export const SUITE_UPGRADE_CHECKOUT_TIER = "suite-upgrade";
+/** metadata.bundle on a Suite upgrade checkout (both backends recognize it). */
+export const SUITE_UPGRADE_BUNDLE_ID = "suite-upgrade";
+/** metadata.app on a Suite upgrade checkout: the PARTNER product's marker,
+ * so its webhook (and only its webhook) claims the payment. */
+export const SUITE_UPGRADE_TARGET_APP = "serverless-tables";
+/** `?bundle=` on the /payment-status return URL after a Suite upgrade. */
+export const SUITE_UPGRADE_RETURN_PARAM = "suite-upgrade";
+/** Where a Buckets Lifetime owner adds Tables Lifetime. */
+export const SUITE_UPGRADE_PATH = `/buy?tier=${SUITE_UPGRADE_CHECKOUT_TIER}`;
+
 export const SUITE_NAME = "Tables + Buckets Suite";
 
 /** The other product in the Suite, where the second license is used. */
@@ -87,7 +114,7 @@ export const SUITE_FAQS = [
   },
   {
     question: "I already own one of them. Can I still get the deal?",
-    answer: "The Suite is for people who own neither. If you already have Buckets Lifetime, buy Tables Lifetime on its own (and vice versa) — you'll be pointed there automatically if you try to buy the Suite while signed in.",
+    answer: `Yes — you pay the difference. If you own Buckets Lifetime, add Tables Lifetime for $${SUITE_UPGRADE_PRICE_USD} instead of $${LIFETIME_PRICE_USD}: sign in here and use "Add Tables Lifetime" on your billing or pricing page (you're sent there automatically if you try to buy the Suite). Tables Lifetime owners do the same on the Tables website to add Buckets. Either way, owning both costs no more than the Suite.`,
   },
   {
     question: "I'm on a monthly or yearly plan. What happens to it?",

@@ -20,13 +20,16 @@ import { cn } from "@/lib/utils";
 import { useCurrentPlan } from "@/lib/hooks/use-current-plan";
 import {
   checkoutAllowed,
+  checkoutBlockedCta,
   checkoutBlockedHref,
   checkoutBlockedMessage,
+  ownsLifetime,
 } from "@/lib/plan-options";
-import { SUITE_FEATURES, SUITE_PARTNER, SUITE_PRICE_USD, SUITE_SAVINGS_USD, SUITE_SEPARATE_PRICE_USD } from "@/lib/suite-offer";
+import { LIFETIME_PRICE_USD, SUITE_FEATURES, SUITE_PARTNER, SUITE_PRICE_USD, SUITE_SAVINGS_USD, SUITE_SEPARATE_PRICE_USD, SUITE_UPGRADE_PRICE_USD, SUITE_UPGRADE_SAVINGS_USD } from "@/lib/suite-offer";
 
-/** `suite` = the Tables + Buckets Suite (both Lifetime licenses, one payment). */
-type Tier = "monthly" | "yearly" | "lifetime" | "team" | "suite";
+/** `suite` = the Tables + Buckets Suite (both Lifetime licenses, one payment);
+ * `suite-upgrade` = Tables Lifetime for an existing Buckets Lifetime owner. */
+type Tier = "monthly" | "yearly" | "lifetime" | "team" | "suite" | "suite-upgrade";
 
 const MIN_TEAM_SEATS = 3;
 const MAX_TEAM_SEATS = 50;
@@ -37,7 +40,8 @@ function isValidTier(value: string | null): value is Tier {
     value === "yearly" ||
     value === "lifetime" ||
     value === "team" ||
-    value === "suite"
+    value === "suite" ||
+    value === "suite-upgrade"
   );
 }
 
@@ -107,8 +111,11 @@ function BuyPageContent() {
   // Existing customers never get a second checkout from a stale link: they
   // see what they own and where to change it instead.
   const { loading: planLoading, plan: currentPlan } = useCurrentPlan();
+  // The Suite upgrade is judged once the person is signed in: an anonymous
+  // visitor resolves to "none", but may well own Buckets Lifetime once they
+  // sign in below (the checkout route re-checks either way).
   const blocked =
-    !planLoading && isValidTier(tier) && !checkoutAllowed(currentPlan, tier);
+    !planLoading && isValidTier(tier) && (tier !== "suite-upgrade" || !!userId) && !checkoutAllowed(currentPlan, tier);
   const [manageUrl, setManageUrl] = useState<string | null>(null);
 
   const [error, setError] = useState<string | null>(null);
@@ -173,7 +180,7 @@ function BuyPageContent() {
               ? (tierValue(tier) ?? 0) * seats
               : tierValue(tier),
           itemCount: tier === "team" ? seats : 1,
-          products: [{ id: tier!, name: tier === "suite" ? "Tables + Buckets Suite" : `Buckets by ServerlessCreed ${tier} plan` }],
+          products: [{ id: tier!, name: tier === "suite" ? "Tables + Buckets Suite" : tier === "suite-upgrade" ? "Tables Lifetime (Suite upgrade)" : `Buckets by ServerlessCreed ${tier} plan` }],
         });
         setStatus("redirecting");
         window.location.href = data.checkout_url;
@@ -224,7 +231,7 @@ function BuyPageContent() {
             <div className="mt-3 flex items-start justify-between gap-4">
               <div>
                 <h1 className="text-2xl font-semibold tracking-tight">
-                  {tier === "suite" ? <>Tables + Buckets <span className="acct-title-accent">Suite</span></> : <>Buckets <span className="acct-title-accent">{order.name}</span></>}
+                  {tier === "suite" ? <>Tables + Buckets <span className="acct-title-accent">Suite</span></> : tier === "suite-upgrade" ? <>Tables <span className="acct-title-accent">Lifetime</span></> : <>Buckets <span className="acct-title-accent">{order.name}</span></>}
                 </h1>
                 <p className="mt-1 text-sm text-muted-foreground">{order.summary}</p>
               </div>
@@ -305,11 +312,24 @@ function BuyPageContent() {
               </p>
             )}
 
+            {tier === "suite-upgrade" && (
+              <p className="mt-5 rounded-xl border border-dashed border-border px-4 py-3 text-xs leading-5 text-muted-foreground">
+                Owner price for Buckets Lifetime customers. Your Tables license is activated on this same email and the key is emailed to you. Sign in at{" "}
+                <a href={SUITE_PARTNER.origin} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 font-medium text-foreground underline underline-offset-2">
+                  tables.serverlesscreed.com<ExternalLink className="h-3 w-3" />
+                </a>{" "}
+                with this email to see it. Any active Tables subscription on that email is cancelled for you. Your Buckets license is unchanged.
+              </p>
+            )}
+
             <div className="mt-6 flex items-baseline justify-between border-t border-border pt-5">
-              <span className="text-sm font-medium">{tier === "lifetime" || tier === "suite" ? "Total" : "Total today"}</span>
+              <span className="text-sm font-medium">{tier === "lifetime" || tier === "suite" || tier === "suite-upgrade" ? "Total" : "Total today"}</span>
               <span className="text-right">
                 {tier === "suite" && (
                   <span className="mr-2 text-sm text-muted-foreground line-through tabular-nums">${SUITE_SEPARATE_PRICE_USD}</span>
+                )}
+                {tier === "suite-upgrade" && (
+                  <span className="mr-2 text-sm text-muted-foreground line-through tabular-nums">${LIFETIME_PRICE_USD}</span>
                 )}
                 <span className="text-xl font-semibold tabular-nums">${total ?? order.price}</span>
                 <span className="ml-1 text-sm text-muted-foreground">{tier === "team" ? `for ${seats} seats / year` : order.cadence}</span>
@@ -392,14 +412,14 @@ function BuyPageContent() {
       )}
 
       {blocked && !accountMismatch && (
-        <StatusCard icon={<Check className="h-6 w-6" />} title="You already have Buckets Pro">
+        <StatusCard icon={<Check className="h-6 w-6" />} title={tier === "suite-upgrade" ? "This price is for Buckets Lifetime owners" : tier === "suite" && ownsLifetime(currentPlan) ? "You already own Buckets Lifetime" : "You already have Buckets Pro"}>
           <p>{checkoutBlockedMessage(currentPlan, tier)}</p>
           <a
             href={checkoutBlockedHref(currentPlan, tier)}
             {...(checkoutBlockedHref(currentPlan, tier).startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})}
             className="mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            {tier === "suite" && currentPlan !== "none" ? "Get Tables Lifetime" : currentPlan === "team" ? "Go to your team" : "Go to billing"}<ArrowRight className="h-4 w-4" />
+            {checkoutBlockedCta(currentPlan, tier)}<ArrowRight className="h-4 w-4" />
           </a>
           <a href="/downloads" className="mt-3 inline-block text-xs font-medium text-muted-foreground underline underline-offset-2 hover:text-foreground">Download Buckets</a>
         </StatusCard>
@@ -444,6 +464,11 @@ const ORDER: Record<Tier, { name: string; price: number; cadence: string; summar
     name: "Suite", price: SUITE_PRICE_USD, cadence: "one-time",
     summary: `Both Lifetime licenses in one payment. Save $${SUITE_SAVINGS_USD} vs buying them separately.`,
     includes: [...SUITE_FEATURES],
+  },
+  "suite-upgrade": {
+    name: "Tables Lifetime", price: SUITE_UPGRADE_PRICE_USD, cadence: "one-time",
+    summary: `Complete the pair. Save $${SUITE_UPGRADE_SAVINGS_USD} vs Tables Lifetime on its own, because you already own Buckets Lifetime.`,
+    includes: ["Tables Lifetime — DynamoDB, every feature, all future updates", "Use on 2 machines", "Pay once. No renewals, ever"],
   },
 };
 

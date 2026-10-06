@@ -85,7 +85,7 @@ test('abort releases retry delay without waiting for the next poll', async () =>
 
 function clientFixture(options = {}) {
   const effects = [], states = [], redirects = [];
-  const query = new URLSearchParams({ checkout_attempt_id: attempt, expected_tier: 'team', payment_id: 'pay_a' });
+  const query = new URLSearchParams({ checkout_attempt_id: attempt, expected_tier: 'team', payment_id: 'pay_a', ...(options.query ?? {}) });
   const jsx = (type, props) => ({ type, props });
   const compiled = compile(existsSync('src/app/payment-status/payment-status-client.tsx') ? 'src/app/payment-status/payment-status-client.tsx' : 'src/app/payment-status/page.tsx', {
     'react': { useEffect: (effect, deps) => effects.push({ effect, deps }), useRef: value => ({ current: value }), useState: value => [value, next => states.push(next)], Suspense: 'suspense' },
@@ -153,4 +153,26 @@ test('team below the minimum seat count stays pending', () => {
 test('team belonging to a different subject is forbidden', async () => {
   const f = routeFixture({ row: { ...license, tier: 'lifetime' }, team: { ...team, ownerClerkId: 'other-user' }, body: { ...purchase, expectedTier: 'team' } });
   assert.equal((await f.post()).status, 403);
+});
+
+// A Suite upgrade (bundle=suite-upgrade) grants Tables Lifetime, not a Buckets
+// license: the page must not poll this product's confirmation endpoint (it
+// would end on "couldn't confirm" after ten minutes) and must not send a
+// signed-out visitor through sign-in just to show Dodo's status.
+test('suite upgrade return never polls this product and reports the partner handoff', () => {
+  for (const signedOut of [false, true]) {
+    const original = global.fetch; let polled = false;
+    global.fetch = () => { polled = true; return new Promise(() => {}); };
+    try {
+      const f = clientFixture({ signedOut, query: { expected_tier: 'lifetime', bundle: 'suite-upgrade', status: 'succeeded' } });
+      f.effects.at(-1).effect();
+      assert.ok(f.states.includes('partner'), 'partner phase');
+      assert.ok(!f.states.includes('processing') && !f.states.includes('timeout'));
+      assert.equal(polled, false); assert.deepEqual(f.redirects, []);
+    } finally { global.fetch = original; }
+  }
+  // Dodo's own terminal hints still win.
+  const f = clientFixture({ query: { expected_tier: 'lifetime', bundle: 'suite-upgrade', status: 'cancelled' } });
+  f.effects.at(-1).effect();
+  assert.ok(f.states.includes('cancelled') && !f.states.includes('partner'));
 });

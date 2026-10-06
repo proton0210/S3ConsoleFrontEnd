@@ -32,7 +32,7 @@ import { Button } from "@/components/ui/button";
 import Header from "@/components/sections/header";
 import { CopyField } from "@/components/account/kit";
 import { trackReddit, tierValue } from "@/lib/reddit";
-import { LIFETIME_PRICE_USD, SUITE_PARTNER, SUITE_RETURN_PARAM } from "@/lib/suite-offer";
+import { SUITE_PARTNER, SUITE_RETURN_PARAM, SUITE_UPGRADE_PATH, SUITE_UPGRADE_PRICE_USD, SUITE_UPGRADE_RETURN_PARAM } from "@/lib/suite-offer";
 import { clearCheckout } from "@/lib/checkout-client";
 import { paymentSignInUrl, waitForNextPoll, fetchPaymentConfirmation } from "@/lib/payment-confirmation";
 
@@ -42,6 +42,7 @@ type UiPhase =
   | "succeeded" // verified paid by webhook
   | "failed" // Dodo reported failure
   | "cancelled" // buyer backed out of the hosted checkout
+  | "partner" // Suite upgrade: the license is issued by Tables, nothing to poll here
   | "timeout"; // polled the full window, still no webhook write
 
 interface VerifiedLicense {
@@ -107,6 +108,11 @@ function PaymentStatusContent() {
   // Set by a Tables + Buckets Suite checkout: the Buckets row is confirmed as
   // Lifetime like any other; the Tables license lives on the Tables site.
   const isSuite = searchParams.get("bundle") === SUITE_RETURN_PARAM;
+  // Set by a Suite upgrade checkout (a Buckets Lifetime owner adding Tables
+  // Lifetime): the payment is claimed by the Tables webhook and never touches
+  // the Buckets row, so there is nothing to poll for here. We relay Dodo's
+  // own status and point to Tables, where the key appears.
+  const isSuiteUpgrade = searchParams.get("bundle") === SUITE_UPGRADE_RETURN_PARAM;
   const returnQuery = searchParams.toString();
   // Dodo's return URL only contains payment_id / subscription_id / status /
   // license_key / email — no payment_method hint. We fetch the method
@@ -176,9 +182,10 @@ function PaymentStatusContent() {
     return () => clearTimeout(t);
   }, [phase]);
 
-  // Fire confetti exactly once when we cross into the verified-succeeded state.
+  // Fire confetti exactly once when we cross into the verified-succeeded state
+  // (or, for a Suite upgrade, when Dodo itself reports the payment succeeded).
   useEffect(() => {
-    if (phase !== "succeeded" || confettiFired.current) return;
+    if ((phase !== "succeeded" && !(phase === "partner" && statusParam === "succeeded")) || confettiFired.current) return;
     confettiFired.current = true;
     try {
       confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
@@ -189,14 +196,30 @@ function PaymentStatusContent() {
     } catch {
       // canvas-confetti is best-effort; never break the page over it.
     }
-  }, [phase]);
+  }, [phase, statusParam]);
 
   // Fire the Reddit Purchase conversion exactly once when the webhook has
   // VERIFIED the payment (phase === "succeeded") — not on Dodo's optimistic
   // redirect hint. This is the revenue event that drives ROAS; value is the
   // tier price and transactionId dedupes against polling / refresh reloads.
   useEffect(() => {
-    if (phase !== "succeeded" || purchaseTracked.current) return;
+    if (purchaseTracked.current) return;
+    // A Suite upgrade is confirmed by the Tables webhook, which this site
+    // cannot observe; Dodo's succeeded hint on the return URL is the best
+    // signal available, and the payment id still dedupes reloads.
+    if (phase === "partner") {
+      if (statusParam !== "succeeded" || !paymentIdParam) return;
+      purchaseTracked.current = true;
+      trackReddit("Purchase", {
+        currency: "USD",
+        value: tierValue("suite-upgrade"),
+        itemCount: 1,
+        transactionId: paymentIdParam,
+        products: [{ id: "suite-upgrade", name: "Tables Lifetime (Suite upgrade)" }],
+      });
+      return;
+    }
+    if (phase !== "succeeded") return;
     purchaseTracked.current = true;
     const tier = license?.tier;
     trackReddit("Purchase", {
@@ -210,7 +233,7 @@ function PaymentStatusContent() {
           ? [{ id: tier, name: `Buckets by ServerlessCreed ${tier} plan` }]
           : undefined,
     });
-  }, [phase, license, paymentIdParam, subscriptionIdParam, checkoutAttemptId, isSuite]);
+  }, [phase, license, paymentIdParam, subscriptionIdParam, checkoutAttemptId, isSuite, statusParam]);
 
   // This effect owns the external request lifecycle and its visible states.
   /* eslint-disable react-hooks/set-state-in-effect */
@@ -233,6 +256,13 @@ function PaymentStatusContent() {
     if (statusParam === "cancelled" || statusParam === "canceled") {
       if (userId) clearCheckout(userId);
       setPhase("cancelled");
+      return;
+    }
+    // A Suite upgrade grants Tables Lifetime, not a Buckets license: polling
+    // our own row would run the full window and end on "couldn't confirm".
+    if (isSuiteUpgrade) {
+      if (userId) clearCheckout(userId);
+      setPhase("partner");
       return;
     }
 
@@ -309,7 +339,7 @@ function PaymentStatusContent() {
     return () => {
       controller.abort();
     };
-  }, [authLoaded, userLoaded, userId, email, statusParam, paymentIdParam, subscriptionIdParam, checkoutAttemptId, expectedTier, returnQuery, router]);
+  }, [authLoaded, userLoaded, userId, email, statusParam, paymentIdParam, subscriptionIdParam, checkoutAttemptId, expectedTier, returnQuery, router, isSuiteUpgrade]);
 
   /* eslint-enable react-hooks/set-state-in-effect */
 
@@ -373,6 +403,63 @@ function PaymentStatusContent() {
             View billing dashboard
           </Link>
         </div>
+      </Wrapper>
+    );
+  }
+
+  if (phase === "partner") {
+    const settled = statusParam === "succeeded";
+    return (
+      <Wrapper>
+        <StatusIcon tone={settled ? "success" : "warning"}>{settled ? <Check className="h-8 w-8" /> : <Clock className="h-7 w-7" />}</StatusIcon>
+        <h1 className="mt-6 text-3xl font-semibold tracking-tight sm:text-4xl">
+          {settled ? "Tables Lifetime is on its way" : "Payment is being processed"}
+        </h1>
+        <p className="mx-auto mt-3 max-w-md text-muted-foreground">
+          {settled
+            ? "Payment confirmed — thank you for completing the pair."
+            : "Some payment methods take a few minutes to settle. Nothing else is needed from you."}
+        </p>
+
+        <div className="mt-8 flex items-start gap-3 rounded-2xl border border-[hsl(var(--acct-accent)/0.3)] bg-[hsl(var(--acct-accent)/0.06)] p-5 text-left">
+          <Layers className="mt-0.5 h-5 w-5 shrink-0 text-[hsl(var(--acct-accent-ink))]" />
+          <div>
+            <p className="text-sm font-semibold">Your Tables license is issued by Tables, not here</p>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              {settled ? "Within a few minutes it is activated on " : "Once the payment settles it is activated on "}
+              {email ? <span className="font-medium text-foreground">{email}</span> : "the email you checked out with"}
+              {" "}and the key is emailed to you. Sign in at{" "}
+              <a href={SUITE_PARTNER.billingUrl} target="_blank" rel="noopener noreferrer" className="font-medium text-foreground underline underline-offset-2">
+                tables.serverlesscreed.com
+              </a>{" "}
+              with that same email to see it, download the app and activate on up to 2 machines. Your Buckets license is unchanged.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+          <a
+            href={SUITE_PARTNER.downloadsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex h-12 items-center gap-2 rounded-xl bg-primary px-6 text-[15px] font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            Download Tables<ArrowRight className="h-4 w-4" />
+          </a>
+          <Link
+            href="/account/billing"
+            className="inline-flex h-12 items-center rounded-xl border border-input bg-card px-6 text-[15px] font-medium transition-colors hover:bg-muted"
+          >
+            Back to Buckets billing
+          </Link>
+        </div>
+        <p className="mx-auto mt-6 max-w-md text-xs text-muted-foreground">
+          Don&apos;t see the key within 15 minutes? Email{" "}
+          <a href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("Suite upgrade: Tables Lifetime not received")}${paymentIdParam ? `&body=${encodeURIComponent(`Payment id: ${paymentIdParam}`)}` : ""}`} className="font-medium text-foreground underline underline-offset-2">
+            {SUPPORT_EMAIL}
+          </a>
+          {paymentIdParam ? <> and quote payment <span className="font-mono">{paymentIdParam}</span>.</> : "."}
+        </p>
       </Wrapper>
     );
   }
@@ -472,10 +559,10 @@ function PaymentStatusContent() {
         {!isSuite && license.tier === "lifetime" && (
           <p className="mt-4 rounded-2xl border border-dashed border-border px-5 py-4 text-left text-sm leading-6 text-muted-foreground">
             Use Amazon DynamoDB too? <span className="font-medium text-foreground">Tables</span> is the same idea for DynamoDB, from the same studio —
-            Lifetime is ${LIFETIME_PRICE_USD}.{" "}
-            <a href={SUITE_PARTNER.pricingUrl} target="_blank" rel="noopener noreferrer" className="font-medium text-foreground underline underline-offset-4">
-              See Tables pricing
-            </a>
+            as a Buckets Lifetime owner you can add Tables Lifetime for ${SUITE_UPGRADE_PRICE_USD}.{" "}
+            <Link href={SUITE_UPGRADE_PATH} className="font-medium text-foreground underline underline-offset-4">
+              Add Tables Lifetime
+            </Link>
           </p>
         )}
 

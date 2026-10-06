@@ -10,26 +10,36 @@
  */
 
 export type PlanTier = "monthly" | "yearly" | "lifetime" | "team";
-/** What a checkout can target: a plan, or the Tables + Buckets Suite (one
- * payment that grants Lifetime here AND on Tables). */
-export type CheckoutTarget = PlanTier | "suite";
+/** What a checkout can target: a plan, the Tables + Buckets Suite (one
+ * payment that grants Lifetime here AND on Tables), or the Suite upgrade
+ * (Tables Lifetime at the owner price, for an existing Buckets Lifetime
+ * owner — it grants nothing here). */
+export type CheckoutTarget = PlanTier | "suite" | "suite-upgrade";
 
 /** What the customer owns right now, for purchase decisions. */
 export type CurrentPlan = "none" | "monthly" | "yearly" | "lifetime" | "early" | "team";
 
 export interface LicenseSnapshot {
-  paid?: boolean;
+  paid?: boolean | string | number;
   tier?: string | null;
   productId?: string | null;
   subscriptionStatus?: string | null;
-  revoked?: boolean;
+  revoked?: boolean | string | number;
+  disputed?: boolean | string | number;
+  effectiveActive?: boolean;
 }
 
 export const BILLING_URL = "/account/billing";
 export const TEAM_URL = "/account/team";
 export const SALES_EMAIL = "mailto:buckets@serverlesscreed.com";
-/** Where a Buckets Lifetime owner buys the other half of the Suite instead. */
+/** The other half of the Suite, bought on its own (team-covered accounts). */
 export const SUITE_PARTNER_PRICING_URL = "https://tables.serverlesscreed.com/pricing";
+/** Where a Buckets Lifetime owner adds Tables Lifetime at the upgrade price
+ * (mirrors SUITE_UPGRADE_PATH in suite-offer.ts; kept literal so this module
+ * stays dependency-free for the tests). */
+export const SUITE_UPGRADE_HREF = "/buy?tier=suite-upgrade";
+export const SUITE_UPGRADE_PRICE_USD = 49;
+export const SUITE_HREF = "/buy?tier=suite";
 
 /**
  * - Paid rows without a tier are early-access (pre-tier) customers: perpetual
@@ -37,9 +47,24 @@ export const SUITE_PARTNER_PRICING_URL = "https://tables.serverlesscreed.com/pri
  * - A canceled subscription can be bought again, so it counts as "none".
  * - Past-due still counts as the plan (they should fix payment, not re-buy).
  */
+/** Match the backend's legacy DynamoDB boolean representations. */
+function isTruthy(value: unknown): boolean {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value !== 0;
+  if (typeof value === "string") return ["true", "1", "yes", "y"].includes(value.trim().toLowerCase());
+  return false;
+}
+
+/** The backend's computed status wins; older responses use its paid semantics. */
+function activeLifetime(row: LicenseSnapshot): boolean {
+  if (isTruthy(row.revoked) || isTruthy(row.disputed)) return false;
+  return typeof row.effectiveActive === "boolean" ? row.effectiveActive : isTruthy(row.paid);
+}
+
 export function currentPlanFromLicense(license?: LicenseSnapshot | null): CurrentPlan {
-  if (!license || !license.paid || license.revoked) return "none";
+  if (!license || !isTruthy(license.paid) || isTruthy(license.revoked)) return "none";
   const tier = license.tier;
+  if ((!tier || tier === "lifetime") && !activeLifetime(license)) return "none";
   if (!tier || (tier === "lifetime" && license.productId === "legacy")) return "early";
   if (tier === "lifetime") return "lifetime";
   if (tier === "monthly" || tier === "yearly" || tier === "team") {
@@ -104,19 +129,39 @@ export function planActionFor(current: CurrentPlan, target: PlanTier): PlanActio
  * subscription so it never renews).
  */
 export function checkoutAllowed(current: CurrentPlan, target: CheckoutTarget): boolean {
+  // The Suite upgrade is priced for Buckets Lifetime owners only: they already
+  // paid for half of the Suite. Everyone else is sent to the Suite.
+  if (target === "suite-upgrade") return ownsLifetime(current);
   // The Suite grants Buckets Lifetime, so it follows the Lifetime rules: a
-  // Lifetime owner would pay for Buckets twice (they buy Tables Lifetime on
-  // its own instead); subscribers upgrade (the webhook cancels their plan).
+  // Lifetime owner would pay for Buckets twice (they add Tables Lifetime via
+  // the Suite upgrade instead); subscribers upgrade (the webhook cancels
+  // their plan).
   const plan: PlanTier = target === "suite" ? "lifetime" : target;
   if (planActionFor(current, plan).kind === "checkout") return true;
   return plan === "lifetime" && (current === "monthly" || current === "yearly");
 }
 
+/** Lifetime in any form: the only accounts priced for the Suite upgrade. */
+export function ownsLifetime(current: CurrentPlan): boolean {
+  return current === "lifetime" || current === "early";
+}
+
 /** Where to send a customer whose checkout for `target` is blocked. */
 export function checkoutBlockedHref(current: CurrentPlan, target: CheckoutTarget): string {
-  // Buckets is already covered, so the only thing left to buy is Tables.
-  if (target === "suite" && (current === "lifetime" || current === "early" || current === "team")) return SUITE_PARTNER_PRICING_URL;
+  if (target === "suite-upgrade") return SUITE_HREF;
+  // Buckets is already covered, so the only thing left to buy is Tables: at
+  // the owner price for Lifetime owners, on its own for team-covered seats.
+  if (target === "suite" && ownsLifetime(current)) return SUITE_UPGRADE_HREF;
+  if (target === "suite" && current === "team") return SUITE_PARTNER_PRICING_URL;
   return current === "team" ? TEAM_URL : BILLING_URL;
+}
+
+/** Button label next to `checkoutBlockedMessage` for a blocked checkout. */
+export function checkoutBlockedCta(current: CurrentPlan, target: CheckoutTarget): string {
+  if (target === "suite-upgrade") return "Get the Suite";
+  if (target === "suite" && ownsLifetime(current)) return `Add Tables Lifetime for $${SUITE_UPGRADE_PRICE_USD}`;
+  if (target === "suite" && current === "team") return "Get Tables Lifetime";
+  return current === "team" ? "Go to your team" : "Go to billing";
 }
 
 /** Pricing-page CTA for the Suite, given what the customer owns. */
@@ -129,7 +174,8 @@ export function suiteActionFor(current: CurrentPlan): PlanAction {
       return { kind: "switch", label: "Upgrade to the Suite", href: "/buy?tier=suite" };
     case "lifetime":
     case "early":
-      return { kind: "switch", label: "Get Tables Lifetime", href: SUITE_PARTNER_PRICING_URL };
+      // Already paid for half of the Suite: add Tables at the owner price.
+      return { kind: "switch", label: `Add Tables Lifetime — $${SUITE_UPGRADE_PRICE_USD}`, href: SUITE_UPGRADE_HREF };
     case "team":
       // The Buckets half is covered by the team; Tables is bought on its own.
       return { kind: "switch", label: "Get Tables Lifetime", href: SUITE_PARTNER_PRICING_URL };
@@ -144,9 +190,12 @@ const TIER_NAME: Record<PlanTier, string> = {
 };
 
 export function checkoutBlockedMessage(current: CurrentPlan, target: CheckoutTarget): string {
+  if (target === "suite-upgrade") {
+    return `The $${SUITE_UPGRADE_PRICE_USD} Suite upgrade is for Buckets Lifetime owners adding Tables. Own both apps for good with the Tables + Buckets Suite instead.`;
+  }
   if (target === "suite") {
-    if (current === "lifetime" || current === "early") {
-      return "You already own Buckets Lifetime, so the Suite would charge you for it again. Get Tables Lifetime on its own instead.";
+    if (ownsLifetime(current)) {
+      return `You already own Buckets Lifetime, so the Suite would charge you for it again. Add Tables Lifetime for $${SUITE_UPGRADE_PRICE_USD} instead — you still get the Suite deal.`;
     }
     if (current === "team") {
       return "Your Buckets seat is already covered by your Team plan, so the Suite would charge you for it again. Get Tables Lifetime on its own instead.";

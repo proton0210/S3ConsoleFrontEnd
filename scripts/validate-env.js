@@ -94,6 +94,25 @@ for (const id of suiteProductIds) {
   }
 }
 
+// The Suite upgrade ($49, one-time): a Buckets Lifetime owner adds Tables
+// Lifetime. Offered on the pricing page, billing page and /suite to every
+// Lifetime owner, so it is required like the Suite. Same single product ID on
+// both sites and both backends (SUITE_UPGRADE_DODO_PRODUCT_ID_LIFETIME), and it
+// must differ from the Suite and from this site's own tier products: the
+// webhooks grant BOTH apps for a Suite payment but only one for an upgrade.
+const suiteUpgradeProductIds = (process.env.SUITE_UPGRADE_DODO_PRODUCT_ID_LIFETIME || '').split(',').map((id) => id.trim()).filter(Boolean);
+if (suiteUpgradeProductIds.length === 0) {
+  missing.push('SUITE_UPGRADE_DODO_PRODUCT_ID_LIFETIME - the Suite upgrade product (Tables Lifetime for Buckets Lifetime owners; create it in Dodo, then set the same ID on both sites and both backends)');
+}
+for (const id of suiteUpgradeProductIds) {
+  if (ownTierProductIds.includes(id)) {
+    missing.push(`SUITE_UPGRADE_DODO_PRODUCT_ID_LIFETIME - ${id} is already one of this site's own tier products; the Suite upgrade must be a separate Dodo product`);
+  }
+  if (suiteProductIds.includes(id)) {
+    missing.push(`SUITE_UPGRADE_DODO_PRODUCT_ID_LIFETIME - ${id} is the Suite product; the Suite upgrade must be a different Dodo product`);
+  }
+}
+
 // A retired Team product (listed in *_DODO_LEGACY_PRODUCT_IDS_TEAM; keep in sync
 // with RETIRED_PRODUCT_IDS in src/lib/dodo.ts) can never be sold: a build whose
 // Team product is retired would advertise a price checkout cannot charge, so

@@ -10,6 +10,8 @@ import {
 import { cn } from "@/lib/utils";
 import {
   LIFETIME_PRICE_USD,
+  SUITE_UPGRADE_PATH,
+  SUITE_UPGRADE_PRICE_USD,
   SUITE_FAQS,
   SUITE_FEATURES,
   SUITE_NAME,
@@ -103,7 +105,7 @@ export function SuiteLanding() {
             <p className="mt-4 text-xs text-muted-foreground">
               Already own one of them?{" "}
               <Link href="#faq" className="underline underline-offset-4 hover:text-foreground">
-                Buy the other on its own for ${LIFETIME_PRICE_USD}.
+                Add the other for ${SUITE_UPGRADE_PRICE_USD}.
               </Link>
             </p>
           </div>
@@ -216,8 +218,12 @@ export function SuiteLanding() {
               <span className="text-gradient">Before you buy.</span>
             </h2>
             <p className="mt-4 text-sm leading-6 text-muted-foreground">
-              Already own Buckets Lifetime? Tables Lifetime is ${LIFETIME_PRICE_USD} on its own at{" "}
-              <a href={SUITE_PARTNER.pricingUrl} target="_blank" rel="noopener noreferrer" className="font-medium text-foreground underline decoration-border underline-offset-4 hover:decoration-primary">
+              Already own Buckets Lifetime?{" "}
+              <Link href={SUITE_UPGRADE_PATH} className="font-medium text-foreground underline decoration-border underline-offset-4 hover:decoration-primary">
+                Add Tables Lifetime for ${SUITE_UPGRADE_PRICE_USD}
+              </Link>{" "}
+              instead of ${LIFETIME_PRICE_USD}. Own Tables Lifetime? Add Buckets the same way at{" "}
+              <a href={`${SUITE_PARTNER.origin}/suite`} target="_blank" rel="noopener noreferrer" className="font-medium text-foreground underline decoration-border underline-offset-4 hover:decoration-primary">
                 tables.serverlesscreed.com
               </a>.
             </p>
