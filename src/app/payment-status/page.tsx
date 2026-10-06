@@ -22,6 +22,7 @@ import {
   Check,
   Clock,
   Download,
+  Layers,
   Loader2,
   Mail,
   RefreshCw,
@@ -31,6 +32,7 @@ import { Button } from "@/components/ui/button";
 import Header from "@/components/sections/header";
 import { CopyField } from "@/components/account/kit";
 import { trackReddit, tierValue } from "@/lib/reddit";
+import { LIFETIME_PRICE_USD, SUITE_PARTNER, SUITE_RETURN_PARAM } from "@/lib/suite-offer";
 import { clearCheckout } from "@/lib/checkout-client";
 import { paymentSignInUrl, waitForNextPoll, fetchPaymentConfirmation } from "@/lib/payment-confirmation";
 
@@ -102,6 +104,9 @@ function PaymentStatusContent() {
   const subscriptionIdParam = searchParams.get("subscription_id");
   const checkoutAttemptId = searchParams.get("checkout_attempt_id");
   const expectedTier = searchParams.get("expected_tier");
+  // Set by a Tables + Buckets Suite checkout: the Buckets row is confirmed as
+  // Lifetime like any other; the Tables license lives on the Tables site.
+  const isSuite = searchParams.get("bundle") === SUITE_RETURN_PARAM;
   const returnQuery = searchParams.toString();
   // Dodo's return URL only contains payment_id / subscription_id / status /
   // license_key / email — no payment_method hint. We fetch the method
@@ -196,14 +201,16 @@ function PaymentStatusContent() {
     const tier = license?.tier;
     trackReddit("Purchase", {
       currency: "USD",
-      value: tierValue(tier),
+      value: isSuite ? tierValue("suite") : tierValue(tier),
       itemCount: 1,
       transactionId: paymentIdParam || subscriptionIdParam || checkoutAttemptId || undefined,
-      products: tier
-        ? [{ id: tier, name: `Buckets by ServerlessCreed ${tier} plan` }]
-        : undefined,
+      products: isSuite
+        ? [{ id: "suite", name: "Tables + Buckets Suite" }]
+        : tier
+          ? [{ id: tier, name: `Buckets by ServerlessCreed ${tier} plan` }]
+          : undefined,
     });
-  }, [phase, license, paymentIdParam, subscriptionIdParam, checkoutAttemptId]);
+  }, [phase, license, paymentIdParam, subscriptionIdParam, checkoutAttemptId, isSuite]);
 
   // This effect owns the external request lifecycle and its visible states.
   /* eslint-disable react-hooks/set-state-in-effect */
@@ -424,7 +431,9 @@ function PaymentStatusContent() {
           You&apos;re all set
         </h1>
         <p className="mx-auto mt-3 max-w-md text-muted-foreground">
-          Payment confirmed — thank you for choosing Buckets by ServerlessCreed.
+          {isSuite
+            ? "Payment confirmed — thank you for choosing the Tables + Buckets Suite."
+            : "Payment confirmed — thank you for choosing Buckets by ServerlessCreed."}
         </p>
 
         <div className="mt-8 rounded-2xl border border-border bg-muted/40 p-5 text-left">
@@ -443,6 +452,32 @@ function PaymentStatusContent() {
             </div>
           )}
         </div>
+
+        {isSuite && (
+          <div className="mt-4 flex items-start gap-3 rounded-2xl border border-[hsl(var(--acct-accent)/0.3)] bg-[hsl(var(--acct-accent)/0.06)] p-5 text-left">
+            <Layers className="mt-0.5 h-5 w-5 shrink-0 text-[hsl(var(--acct-accent-ink))]" />
+            <div>
+              <p className="text-sm font-semibold">Your Tables Lifetime license is on its way too</p>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                It is activated on this same email address. Sign in at{" "}
+                <a href={SUITE_PARTNER.billingUrl} target="_blank" rel="noopener noreferrer" className="font-medium text-foreground underline underline-offset-2">
+                  tables.serverlesscreed.com
+                </a>{" "}
+                with this email to see its key, and we email it to you as well.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {!isSuite && license.tier === "lifetime" && (
+          <p className="mt-4 rounded-2xl border border-dashed border-border px-5 py-4 text-left text-sm leading-6 text-muted-foreground">
+            Use Amazon DynamoDB too? <span className="font-medium text-foreground">Tables</span> is the same idea for DynamoDB, from the same studio —
+            Lifetime is ${LIFETIME_PRICE_USD}.{" "}
+            <a href={SUITE_PARTNER.pricingUrl} target="_blank" rel="noopener noreferrer" className="font-medium text-foreground underline underline-offset-4">
+              See Tables pricing
+            </a>
+          </p>
+        )}
 
         {license.tier === "team" && (
           <div className="mt-4 flex items-start gap-3 rounded-2xl border border-[hsl(var(--acct-accent)/0.3)] bg-[hsl(var(--acct-accent)/0.06)] p-5 text-left">

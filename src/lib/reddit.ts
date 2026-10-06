@@ -19,6 +19,8 @@
  * across webhook polling / page refreshes.
  */
 
+import { SUITE_PRICE_USD } from "@/lib/suite-offer";
+
 export const REDDIT_PIXEL_ID = "a2_j2tprpw6cnq6";
 
 export type RedditEvent =
@@ -71,18 +73,23 @@ export const TEAM_SEAT_PRICE_USD = 49;
  */
 export const RETIRED_TEAM_SEAT_PRICE_USD = 99;
 
-const TIER_VALUE_USD: Record<LicenseTier, number> = {
+/** Everything a checkout can be started for: a license tier or the Suite. */
+export type PricedTier = LicenseTier | "suite";
+
+const TIER_VALUE_USD: Record<PricedTier, number> = {
   monthly: 5,
   yearly: 49,
   lifetime: 99,
   // Per-seat price — callers multiply by seat count for cart value.
   team: TEAM_SEAT_PRICE_USD,
+  // Buckets Lifetime + Tables Lifetime, one payment.
+  suite: SUITE_PRICE_USD,
 };
 
 /** Numeric USD value for a tier; returns undefined for unknown tiers. */
 export function tierValue(tier: string | null | undefined): number | undefined {
   if (!tier) return undefined;
-  return TIER_VALUE_USD[tier as LicenseTier];
+  return TIER_VALUE_USD[tier as PricedTier];
 }
 
 /**

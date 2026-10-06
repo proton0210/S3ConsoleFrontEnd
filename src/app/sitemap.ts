@@ -44,6 +44,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 0.9,
     },
+    {
+      url: `${baseUrl}/suite`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
 
     // SEO landing pages — buyer-intent keywords
     {

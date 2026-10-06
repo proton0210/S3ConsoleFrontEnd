@@ -12,11 +12,16 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { ArrowRight } from "lucide-react";
+import { sendGAEvent } from "@next/third-parties/google";
+import { SUITE_PATH, SUITE_PRICE_USD, SUITE_SAVINGS_USD } from "@/lib/suite-offer";
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
   const isDownloadsPage = pathname === "/downloads";
+  // Home-page promo for the Tables + Buckets Suite; folds away on scroll.
+  const isHomePage = pathname === "/";
+  const showPromoBar = isHomePage && !scrolled;
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 12);
@@ -34,6 +39,33 @@ export default function Header() {
           : "border-b border-transparent bg-transparent"
       )}
     >
+      {isHomePage && (
+        <div
+          className={cn(
+            "overflow-hidden bg-foreground text-background transition-all duration-300 ease-in-out",
+            showPromoBar ? "max-h-12 opacity-100" : "max-h-0 opacity-0"
+          )}
+          aria-hidden={!showPromoBar}
+        >
+          <div className="container flex min-h-10 items-center justify-center gap-3 px-4 py-2 text-xs sm:text-[13px]" aria-live="polite">
+            <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-primary-foreground">
+              New
+            </span>
+            <span className="font-medium">
+              Tables + Buckets Suite<span className="hidden sm:inline"> — both Lifetime licenses for ${SUITE_PRICE_USD}</span>
+            </span>
+            <span className="hidden text-background/60 sm:inline">Save ${SUITE_SAVINGS_USD}</span>
+            <Link
+              href={SUITE_PATH}
+              className="inline-flex items-center gap-1 font-medium text-primary underline-offset-4 hover:underline"
+              tabIndex={showPromoBar ? 0 : -1}
+              onClick={() => sendGAEvent({ event: "promo_click", label: "See the Suite" })}
+            >
+              See the Suite →
+            </Link>
+          </div>
+        </div>
+      )}
       <div className="container flex h-16 items-center justify-between">
         <Link
           href="/"

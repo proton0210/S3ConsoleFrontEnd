@@ -14,6 +14,7 @@ const publicRoutes = [
   "/refund-policy",
   "/downloads(.*)",
   "/pricing",
+  "/suite",
   "/aws-s3-client",
   "/aws-s3-gui",
   "/og",

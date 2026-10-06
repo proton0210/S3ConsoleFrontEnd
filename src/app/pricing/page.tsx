@@ -10,6 +10,7 @@ import { FaCheck, FaSpinner } from "react-icons/fa";
 import Header from "@/components/sections/header";
 import Footer from "@/components/sections/footer";
 import { CurrentPlanBanner, PlanActionButton } from "@/components/plan-action";
+import { SuiteOffer } from "@/components/sections/pricing";
 import { TEAM_SEAT_PRICE_USD } from "@/lib/reddit";
 import { useCurrentPlan } from "@/lib/hooks/use-current-plan";
 import { planActionFor } from "@/lib/plan-options";
@@ -274,6 +275,8 @@ export default function PricingPage() {
               );
             })}
           </div>
+
+          <SuiteOffer currentPlan={currentPlan} />
 
           {/* Footnotes */}
           <div className="mx-auto mt-14 max-w-2xl space-y-2 text-center text-sm text-muted-foreground">

@@ -73,6 +73,27 @@ productVars.forEach(({ label, options }) => {
   }
 });
 
+// The Tables + Buckets Suite ($149, one-time) is sold from the pricing page,
+// so a production build without its Dodo product would advertise a checkout
+// that fails. The same product ID is configured on the Tables site and on
+// both backends (SUITE_DODO_PRODUCT_ID_LIFETIME everywhere).
+// Required like the other product IDs (NODE_ENV is not reliably set when a
+// prebuild script runs, so this is not gated on it).
+const suiteProductIds = (process.env.SUITE_DODO_PRODUCT_ID_LIFETIME || '').split(',').map((id) => id.trim()).filter(Boolean);
+if (suiteProductIds.length === 0) {
+  missing.push('SUITE_DODO_PRODUCT_ID_LIFETIME - the Tables + Buckets Suite product (create it in Dodo, then set the same ID on both sites and both backends)');
+}
+// The Suite must be its own Dodo product: if it equals one of this site's own
+// tier products, every ordinary purchase would be treated as a Suite.
+const ownTierProductIds = ['BUCKETS_DODO_PRODUCT_ID_', 'S3CONSOLE_DODO_PRODUCT_ID_']
+  .flatMap((prefix) => ['MONTHLY', 'YEARLY', 'LIFETIME', 'TEAM'].map((tier) => process.env[`${prefix}${tier}`]))
+  .filter(Boolean);
+for (const id of suiteProductIds) {
+  if (ownTierProductIds.includes(id)) {
+    missing.push(`SUITE_DODO_PRODUCT_ID_LIFETIME - ${id} is already one of this site's own tier products; the Suite must be a separate Dodo product`);
+  }
+}
+
 // A retired Team product (listed in *_DODO_LEGACY_PRODUCT_IDS_TEAM; keep in sync
 // with RETIRED_PRODUCT_IDS in src/lib/dodo.ts) can never be sold: a build whose
 // Team product is retired would advertise a price checkout cannot charge, so

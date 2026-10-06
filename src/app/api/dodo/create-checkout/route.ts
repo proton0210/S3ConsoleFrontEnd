@@ -7,7 +7,8 @@ import {
   getDodoApiBaseUrl,
   getCheckoutReturnUrl,
   getTierForProductId,
-  isLicenseTier,
+  getSuiteProductId,
+  isCheckoutTier,
   MAX_TEAM_SEATS,
   MIN_TEAM_SEATS,
   type LicenseTier,
@@ -15,12 +16,20 @@ import {
 import { isMaintenanceMode } from "@/lib/maintenance";
 import { getLicenseForAccount, getTeamByOwner } from "@/lib/license-api";
 import {
-  BILLING_URL,
   checkoutAllowed,
+  checkoutBlockedHref,
   checkoutBlockedMessage,
   currentPlanFromLicense,
   TEAM_URL,
+  type CheckoutTarget,
 } from "@/lib/plan-options";
+import {
+  SUITE_APP_ID,
+  SUITE_BUNDLE_ID,
+  SUITE_CHECKOUT_TIER,
+  SUITE_ORIGIN_APP,
+  SUITE_RETURN_PARAM,
+} from "@/lib/suite-offer";
 
 type CreateCheckoutBody = {
   /** New tier-based flow (preferred). */
@@ -132,11 +141,15 @@ export async function POST(req: NextRequest) {
     // Resolve product ID from either tier (new) or productId (legacy).
     let productId: string;
     let resolvedTier: LicenseTier | null = null;
+    // The Tables + Buckets Suite: one Dodo product that grants Lifetime here
+    // AND on Tables. Everything below treats it as a Lifetime purchase; only
+    // the product and the metadata markers differ.
+    const isSuite = tier === SUITE_CHECKOUT_TIER;
 
     if (tier !== undefined) {
-      if (!isLicenseTier(tier)) {
+      if (!isCheckoutTier(tier)) {
         return NextResponse.json(
-          { error: `Invalid tier: ${tier}. Expected one of: monthly, yearly, lifetime, team.` },
+          { error: `Invalid tier: ${tier}. Expected one of: monthly, yearly, lifetime, team, suite.` },
           { status: 400 }
         );
       }
@@ -163,9 +176,9 @@ export async function POST(req: NextRequest) {
           { status: 401 }
         );
       }
-      resolvedTier = tier;
+      resolvedTier = isSuite ? "lifetime" : tier;
       try {
-        productId = getProductId(tier);
+        productId = isSuite ? getSuiteProductId() : getProductId(tier);
       } catch (error: unknown) {
         return NextResponse.json(
           { error: errorMessage(error, "Product is not configured") },
@@ -196,6 +209,8 @@ export async function POST(req: NextRequest) {
 
     // Legacy product IDs must obey exactly the same quantity/plan rules.
     const purchaseTier = resolvedTier;
+    // What the plan policy judges: the Suite has its own copy for Lifetime owners.
+    const policyTarget: CheckoutTarget | null = isSuite ? SUITE_CHECKOUT_TIER : purchaseTier;
     const resolvedQuantity = purchaseTier === "team" ? (seats ?? quantity) : 1;
     if (!purchaseTier || (purchaseTier === "team" &&
       (!Number.isInteger(resolvedQuantity) || Number(resolvedQuantity) < MIN_TEAM_SEATS || Number(resolvedQuantity) > MAX_TEAM_SEATS))) {
@@ -216,12 +231,12 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: "License does not belong to authenticated user." }, { status: 403 });
         }
         const current = currentPlanFromLicense(license);
-        if (!checkoutAllowed(current, purchaseTier)) {
+        if (!checkoutAllowed(current, policyTarget!)) {
           return NextResponse.json({
-            error: checkoutBlockedMessage(current, purchaseTier),
+            error: checkoutBlockedMessage(current, policyTarget!),
             code: "plan_already_owned",
             currentPlan: current,
-            manageUrl: current === "team" ? TEAM_URL : BILLING_URL,
+            manageUrl: checkoutBlockedHref(current, policyTarget!),
           }, { status: 409 });
         }
       } else if (licenseResponse.status !== 404) {
@@ -270,8 +285,12 @@ export async function POST(req: NextRequest) {
     const protectedMetadataKeys = new Set([
       "app",
       "tier",
+      "bundle",
+      "originApp",
       "accountEmail",
       "accountSubject",
+      // Legacy alias of accountSubject still read by the webhooks.
+      "clerkId",
       "checkoutAttemptId",
       "billingOperationId",
     ]);
@@ -282,7 +301,7 @@ export async function POST(req: NextRequest) {
     );
     return runBillingOperation({
       subject: userId, email: clerkEmail, resource: "checkout",
-      intent: { productId, quantity: resolvedQuantity }, generation,
+      intent: { productId, quantity: resolvedQuantity, ...(isSuite ? { bundle: SUITE_BUNDLE_ID } : {}) }, generation,
       expected: { productId, quantity: Number(resolvedQuantity) },
     }, async ({ operationId: checkoutAttemptId, mutate }) => {
     // A request may have waited while another checkout purchased a plan.
@@ -298,7 +317,12 @@ export async function POST(req: NextRequest) {
       // Product marker — the Dodo account is shared across products and every
       // webhook endpoint receives every event; webhooks use this to drop the
       // other products' events. Keep last so client metadata can't spoof it.
-      app: "serverless-buckets",
+      // A Suite purchase is claimed by BOTH webhooks (app=serverless-suite);
+      // originApp tells the Tables webhook that accountSubject is a Buckets
+      // Clerk id it must not bind to its row (separate Clerk instances).
+      ...(isSuite
+        ? { app: SUITE_APP_ID, bundle: SUITE_BUNDLE_ID, originApp: SUITE_ORIGIN_APP }
+        : { app: "serverless-buckets" }),
     };
 
     // Both subscription (monthly/yearly) and one-time (lifetime) flows go through
@@ -311,6 +335,9 @@ export async function POST(req: NextRequest) {
     const returnUrl = new URL(getCheckoutReturnUrl(req.nextUrl?.origin));
     returnUrl.searchParams.set("checkout_attempt_id", checkoutAttemptId);
     returnUrl.searchParams.set("expected_tier", purchaseTier);
+    // The status page confirms the Buckets row (expected_tier=lifetime) and
+    // explains where the Tables license is.
+    if (isSuite) returnUrl.searchParams.set("bundle", SUITE_RETURN_PARAM);
 
     const endpoint = `${baseUrl}/checkouts`;
     const payload: Record<string, unknown> = {
@@ -358,6 +385,7 @@ export async function POST(req: NextRequest) {
       session_id: data?.session_id,
       subscription_id: data?.subscription_id,
       tier: resolvedTier,
+      ...(isSuite ? { bundle: SUITE_BUNDLE_ID } : {}),
     });
     });
   } catch (error: unknown) {

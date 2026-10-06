@@ -9,6 +9,7 @@ import { ProductShot } from "@/components/product-shot";
 import { EASE_OUT, SPRING } from "@/lib/motion";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { SUITE_PATH, SUITE_PRICE_USD } from "@/lib/suite-offer";
 
 export default function CtaSection() {
   return (
@@ -50,6 +51,16 @@ export default function CtaSection() {
               View pricing
             </Link>
           </div>
+          <p className="mt-6 text-sm text-muted-foreground">
+            Use DynamoDB too? Own both apps for good with the{" "}
+            <Link
+              href={SUITE_PATH}
+              className="font-medium text-foreground underline decoration-border underline-offset-4 hover:decoration-primary"
+            >
+              Tables + Buckets Suite — ${SUITE_PRICE_USD}
+            </Link>
+            .
+          </p>
           <div className="mt-8 flex items-center justify-center gap-4 text-muted-foreground">
             <FaApple className="h-5 w-5" aria-label="macOS" />
             <FaWindows className="h-4 w-4" aria-label="Windows" />

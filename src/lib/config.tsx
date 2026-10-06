@@ -74,6 +74,10 @@ export const siteConfig = {
       label: "Pricing",
     },
     {
+      href: "/suite",
+      label: "Suite",
+    },
+    {
       href: "/blog",
       label: "Blog",
     },
@@ -157,6 +161,19 @@ export const siteConfig = {
     },
   ],
   faqs: [
+    {
+      question: "What is the Tables + Buckets Suite?",
+      answer: (
+        <span>
+          The Suite is Buckets Lifetime and Tables Lifetime bought together for
+          $149 instead of $198. One payment on either website gives you a
+          perpetual license for both desktop apps — S3 in Buckets, DynamoDB in
+          Tables — on 2 machines each, with every feature and every future
+          update and nothing to renew. If you already own one of them, buy the
+          other on its own for $99.
+        </span>
+      ),
+    },
     {
       question: "What is Buckets by ServerlessCreed?",
       answer: (
@@ -278,6 +295,7 @@ export const siteConfig = {
       links: [
         { href: "/#features", text: "Features", icon: null },
         { href: "/pricing", text: "Pricing", icon: null },
+        { href: "/suite", text: "Tables + Buckets Suite", icon: null },
         { href: "/downloads", text: "Download", icon: null },
         { href: "/#faq", text: "FAQ", icon: null },
       ],

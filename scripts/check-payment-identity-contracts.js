@@ -42,6 +42,13 @@ mustContain(checkout, "const accountEmail = clerkEmail;", "checkout");
 mustContain(checkout, '"accountSubject"', "checkout protected metadata");
 mustContain(checkout, "accountSubject: userId", "checkout metadata");
 mustContain(checkout, 'app: "serverless-buckets"', "checkout product marker");
+// The Suite is claimed by both products' webhooks; the origin marker is what
+// stops the Tables webhook from binding a Buckets Clerk subject to its row.
+mustContain(checkout, '"bundle"', "checkout protected metadata");
+mustContain(checkout, '"originApp"', "checkout protected metadata");
+mustContain(checkout, '"clerkId"', "checkout protected metadata");
+mustContain(checkout, "app: SUITE_APP_ID, bundle: SUITE_BUNDLE_ID, originApp: SUITE_ORIGIN_APP", "checkout suite markers");
+mustContain(read("src/lib/suite-offer.ts"), 'SUITE_ORIGIN_APP = "serverless-buckets"', "suite origin marker");
 
 for (const [label, source] of [
   ["change-plan", changePlan],

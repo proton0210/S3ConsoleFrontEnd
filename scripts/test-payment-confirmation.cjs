@@ -35,6 +35,10 @@ for (const scenario of [
   { name: 'inactive team waits', row: teamLicense, team: { ...team, effectiveActive: false }, ref: { ...purchase, expectedTier: 'team' }, expected: null },
   { name: 'other team member cannot confirm as owner', row: { ...teamLicense, teamOwner: 'other@example.com' }, team, ref: { ...purchase, expectedTier: 'team' }, expected: null },
   { name: 'missing owner membership waits', row: teamLicense, team: { ...team, members: [] }, ref: { ...purchase, expectedTier: 'team' }, expected: null },
+  // The Tables + Buckets Suite returns with expected_tier=lifetime (plus bundle=suite, which this policy ignores):
+  // the webhook writes a lifetime row keyed by the same checkout attempt, so it confirms exactly like Lifetime.
+  { name: 'suite purchase confirms as lifetime on this product', row: { ...license, tier: 'lifetime', productId: 'pdt_suite' }, ref: { ...purchase, expectedTier: 'lifetime' }, expected: 'lifetime' },
+  { name: 'suite attempt does not confirm an older lifetime row', row: { ...license, tier: 'lifetime', checkoutAttemptId: 'old' }, ref: { ...purchase, expectedTier: 'lifetime' }, expected: null },
 ]) test(scenario.name, () => assert.equal(policy.confirmedPurchaseTier(scenario.row || license, scenario.team || null, scenario.ref || purchase, owner), scenario.expected));
 
 function routeFixture(options = {}) {
@@ -91,7 +95,7 @@ function clientFixture(options = {}) {
     '@clerk/nextjs': { useAuth: () => ({ isLoaded: true, userId: options.signedOut ? null : 'user-a' }), useUser: () => ({ isLoaded: true, user: { primaryEmailAddress: { emailAddress: owner } } }) },
     'canvas-confetti': () => {}, 'react-icons/fa': {}, '@/components/ui/button': {}, '@/components/sections/header': () => null,
     'lucide-react': new Proxy({}, { get: (_, name) => `icon:${String(name)}` }), '@/components/account/kit': { CopyField: 'copy-field' },
-    '@/lib/reddit': {}, '@/lib/payment-confirmation': policy, '@/lib/checkout-client': { clearCheckout: () => {} },
+    '@/lib/reddit': {}, '@/lib/suite-offer': compile('src/lib/suite-offer.ts', {}), '@/lib/payment-confirmation': policy, '@/lib/checkout-client': { clearCheckout: () => {} },
   });
   const tree = compiled.default();
   const content = tree.type === 'fragment' ? tree.props.children[1].props.children : tree;

@@ -12,8 +12,12 @@
  */
 import "server-only";
 import { RETIRED_TEAM_SEAT_PRICE_USD, TEAM_SEAT_PRICE_USD } from "@/lib/reddit";
+import { SUITE_CHECKOUT_TIER } from "@/lib/suite-offer";
 
 export type LicenseTier = "monthly" | "yearly" | "lifetime" | "team";
+/** What a checkout can be started for: a license tier, or the Suite (which
+ * grants `lifetime` here and on Tables from one payment). */
+export type CheckoutTier = LicenseTier | typeof SUITE_CHECKOUT_TIER;
 
 const TIERS = ["monthly", "yearly", "lifetime", "team"] as const;
 
@@ -82,8 +86,43 @@ export function getPurchasableProductIds(tier?: LicenseTier): string[] {
 }
 
 /**
- * Every product that belongs to a tier (current first, then retired). Use this
- * to RECOGNIZE a product, e.g. map a live subscription back to its tier.
+ * The Tables + Buckets Suite product(s): one $149 one-time Dodo product shared
+ * by both websites and both backends. Recognized as a `lifetime` product, but
+ * never what a Buckets-only Lifetime checkout targets.
+ * SUITE_DODO_LEGACY_PRODUCT_IDS_LIFETIME keeps retired Suite products (e.g.
+ * after a reprice) recognizable in billing views.
+ */
+export function getSuiteProductIds(): string[] {
+  return [
+    ...splitIds(process.env.SUITE_DODO_PRODUCT_ID_LIFETIME),
+    ...splitIds(process.env.SUITE_DODO_LEGACY_PRODUCT_IDS_LIFETIME),
+  ].filter(unique);
+}
+
+export function isSuiteProductId(productId: unknown): boolean {
+  return typeof productId === "string" && !!productId && getSuiteProductIds().includes(productId);
+}
+
+/** The Suite product a new Suite checkout targets. Throws when unset so a
+ * misconfigured deploy fails at request time instead of selling Lifetime. */
+export function getSuiteProductId(): string {
+  const productId = splitIds(process.env.SUITE_DODO_PRODUCT_ID_LIFETIME)[0];
+  if (!productId) {
+    throw new Error(
+      "SUITE_DODO_PRODUCT_ID_LIFETIME is not set. Create the Tables + Buckets Suite product in the Dodo dashboard and configure it in the Amplify env."
+    );
+  }
+  return productId;
+}
+
+export function isCheckoutTier(value: unknown): value is CheckoutTier {
+  return value === SUITE_CHECKOUT_TIER || isLicenseTier(value);
+}
+
+/**
+ * Every product that belongs to a tier (current first, then the Suite for
+ * lifetime, then retired). Use this to RECOGNIZE a product, e.g. map a live
+ * subscription back to its tier.
  */
 export function getConfiguredProductIds(tier?: LicenseTier): string[] {
   const tiers = tier ? [tier] : TIERS;
@@ -93,6 +132,7 @@ export function getConfiguredProductIds(tier?: LicenseTier): string[] {
       return [
         process.env[`BUCKETS_DODO_PRODUCT_ID_${suffix}`],
         process.env[`S3CONSOLE_DODO_PRODUCT_ID_${suffix}`],
+        ...(value === "lifetime" ? getSuiteProductIds() : []),
         ...retiredProductIds(value),
       ];
     })

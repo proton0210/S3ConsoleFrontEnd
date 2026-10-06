@@ -15,17 +15,18 @@ import { useUser } from "@clerk/nextjs";
 import { compositeLegalVersion } from "@/lib/legalVersions";
 import { sendGAEvent } from "@next/third-parties/google";
 import { trackReddit, tierValue, TEAM_SEAT_PRICE_USD } from "@/lib/reddit";
-import { AlertTriangle, ArrowLeft, ArrowRight, Check, Loader2, Lock, Minus, Plus, RotateCcw, ShieldCheck } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ArrowRight, Check, ExternalLink, Loader2, Lock, Minus, Plus, RotateCcw, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCurrentPlan } from "@/lib/hooks/use-current-plan";
 import {
-  BILLING_URL,
-  TEAM_URL,
   checkoutAllowed,
+  checkoutBlockedHref,
   checkoutBlockedMessage,
 } from "@/lib/plan-options";
+import { SUITE_FEATURES, SUITE_PARTNER, SUITE_PRICE_USD, SUITE_SAVINGS_USD, SUITE_SEPARATE_PRICE_USD } from "@/lib/suite-offer";
 
-type Tier = "monthly" | "yearly" | "lifetime" | "team";
+/** `suite` = the Tables + Buckets Suite (both Lifetime licenses, one payment). */
+type Tier = "monthly" | "yearly" | "lifetime" | "team" | "suite";
 
 const MIN_TEAM_SEATS = 3;
 const MAX_TEAM_SEATS = 50;
@@ -35,7 +36,8 @@ function isValidTier(value: string | null): value is Tier {
     value === "monthly" ||
     value === "yearly" ||
     value === "lifetime" ||
-    value === "team"
+    value === "team" ||
+    value === "suite"
   );
 }
 
@@ -150,7 +152,7 @@ function BuyPageContent() {
               ? (tierValue(tier) ?? 0) * seats
               : tierValue(tier),
           itemCount: tier === "team" ? seats : 1,
-          products: [{ id: tier!, name: `Buckets by ServerlessCreed ${tier} plan` }],
+          products: [{ id: tier!, name: tier === "suite" ? "Tables + Buckets Suite" : `Buckets by ServerlessCreed ${tier} plan` }],
         });
         setStatus("redirecting");
         window.location.href = data.checkout_url;
@@ -200,7 +202,9 @@ function BuyPageContent() {
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Your order</p>
             <div className="mt-3 flex items-start justify-between gap-4">
               <div>
-                <h1 className="text-2xl font-semibold tracking-tight">Buckets <span className="acct-title-accent">{order.name}</span></h1>
+                <h1 className="text-2xl font-semibold tracking-tight">
+                  {tier === "suite" ? <>Tables + Buckets <span className="acct-title-accent">Suite</span></> : <>Buckets <span className="acct-title-accent">{order.name}</span></>}
+                </h1>
                 <p className="mt-1 text-sm text-muted-foreground">{order.summary}</p>
               </div>
               <p className="shrink-0 text-right">
@@ -270,9 +274,22 @@ function BuyPageContent() {
               ))}
             </ul>
 
+            {tier === "suite" && (
+              <p className="mt-5 rounded-xl border border-dashed border-border px-4 py-3 text-xs leading-5 text-muted-foreground">
+                Your Tables license is activated on this same email. Sign in at{" "}
+                <a href={SUITE_PARTNER.origin} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 font-medium text-foreground underline underline-offset-2">
+                  tables.serverlesscreed.com<ExternalLink className="h-3 w-3" />
+                </a>{" "}
+                after purchase to see it. Any active Buckets subscription is cancelled for you.
+              </p>
+            )}
+
             <div className="mt-6 flex items-baseline justify-between border-t border-border pt-5">
-              <span className="text-sm font-medium">{tier === "lifetime" ? "Total" : "Total today"}</span>
+              <span className="text-sm font-medium">{tier === "lifetime" || tier === "suite" ? "Total" : "Total today"}</span>
               <span className="text-right">
+                {tier === "suite" && (
+                  <span className="mr-2 text-sm text-muted-foreground line-through tabular-nums">${SUITE_SEPARATE_PRICE_USD}</span>
+                )}
                 <span className="text-xl font-semibold tabular-nums">${total ?? order.price}</span>
                 <span className="ml-1 text-sm text-muted-foreground">{tier === "team" ? `for ${seats} seats / year` : order.cadence}</span>
               </span>
@@ -325,8 +342,12 @@ function BuyPageContent() {
       {blocked && (
         <StatusCard icon={<Check className="h-6 w-6" />} title="You already have Buckets Pro">
           <p>{checkoutBlockedMessage(currentPlan, tier)}</p>
-          <a href={currentPlan === "team" ? TEAM_URL : BILLING_URL} className="mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
-            {currentPlan === "team" ? "Go to your team" : "Go to billing"}<ArrowRight className="h-4 w-4" />
+          <a
+            href={checkoutBlockedHref(currentPlan, tier)}
+            {...(checkoutBlockedHref(currentPlan, tier).startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+            className="mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            {tier === "suite" && currentPlan !== "none" ? "Get Tables Lifetime" : currentPlan === "team" ? "Go to your team" : "Go to billing"}<ArrowRight className="h-4 w-4" />
           </a>
           <a href="/downloads" className="mt-3 inline-block text-xs font-medium text-muted-foreground underline underline-offset-2 hover:text-foreground">Download Buckets</a>
         </StatusCard>
@@ -366,6 +387,11 @@ const ORDER: Record<Tier, { name: string; price: number; cadence: string; summar
   team: {
     name: "Team", price: TEAM_SEAT_PRICE_USD, cadence: "per seat / year", summary: "Company-owned seats on one invoice.",
     includes: ["A full license for every member, on 2 machines each", "Reassign seats as your team changes", "Add seats any time, prorated"],
+  },
+  suite: {
+    name: "Suite", price: SUITE_PRICE_USD, cadence: "one-time",
+    summary: `Both Lifetime licenses in one payment. Save $${SUITE_SAVINGS_USD} vs buying them separately.`,
+    includes: [...SUITE_FEATURES],
   },
 };
 

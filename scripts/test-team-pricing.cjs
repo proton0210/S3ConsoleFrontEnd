@@ -11,12 +11,13 @@ function compile(path, dependencies) {
   new Function('require', 'exports', code)(name => { if (!(name in dependencies)) throw new Error(`Unmocked dependency ${name}`); return dependencies[name]; }, exports);
   return exports;
 }
-const reddit = compile('src/lib/reddit.ts', {});
-const dodo = compile('src/lib/dodo.ts', { 'server-only': {}, '@/lib/reddit': reddit });
+const suiteOffer = compile('src/lib/suite-offer.ts', {});
+const reddit = compile('src/lib/reddit.ts', { '@/lib/suite-offer': suiteOffer });
+const dodo = compile('src/lib/dodo.ts', { 'server-only': {}, '@/lib/reddit': reddit, '@/lib/suite-offer': suiteOffer });
 // A retired product is now only ever declared through env (none is built in).
 const RETIRED = 'pdt_old_team_99';
 const LIVE_TEAM = 'pdt_0Ngjrw1D8wTdKaMz9Xd6X';
-const KEYS = ['BUCKETS_DODO_PRODUCT_ID_TEAM', 'S3CONSOLE_DODO_PRODUCT_ID_TEAM', 'BUCKETS_DODO_LEGACY_PRODUCT_IDS_TEAM', 'S3CONSOLE_DODO_LEGACY_PRODUCT_IDS_TEAM', 'BUCKETS_DODO_PRODUCT_ID_YEARLY'];
+const KEYS = ['BUCKETS_DODO_PRODUCT_ID_TEAM', 'S3CONSOLE_DODO_PRODUCT_ID_TEAM', 'BUCKETS_DODO_LEGACY_PRODUCT_IDS_TEAM', 'S3CONSOLE_DODO_LEGACY_PRODUCT_IDS_TEAM', 'BUCKETS_DODO_PRODUCT_ID_YEARLY', 'BUCKETS_DODO_PRODUCT_ID_LIFETIME', 'S3CONSOLE_DODO_PRODUCT_ID_LIFETIME', 'SUITE_DODO_PRODUCT_ID_LIFETIME', 'SUITE_DODO_LEGACY_PRODUCT_IDS_LIFETIME'];
 const saved = Object.fromEntries(KEYS.map(k => [k, process.env[k]]));
 for (const k of KEYS) delete process.env[k];
 beforeEach(() => { process.env.BUCKETS_DODO_LEGACY_PRODUCT_IDS_TEAM = RETIRED; });
@@ -124,4 +125,32 @@ test('user-data shows team owners the rate their product charges, without blocki
   res = await r.get(); assert.equal(res.body.userData.teamSeatPriceUsd, undefined); assert.equal(r.calls.length, 0);
   r = userDataRoute({ email: 'Owner@Example.com', tier: 'yearly', paid: true }, null);
   await r.get(); assert.equal(r.calls.length, 0);
+});
+
+// ─── Tables + Buckets Suite ($149): one product, shown and sold consistently ───
+test('the Suite price is shown as $149 and saves $49 against two Lifetime licenses', () => {
+  assert.equal(suiteOffer.SUITE_PRICE_USD, 149);
+  assert.equal(suiteOffer.LIFETIME_PRICE_USD, reddit.tierValue('lifetime'));
+  assert.equal(suiteOffer.SUITE_SEPARATE_PRICE_USD, 198);
+  assert.equal(suiteOffer.SUITE_SAVINGS_USD, 49);
+  assert.equal(reddit.tierValue('suite'), 149);
+  assert.equal(suiteOffer.SUITE_ORIGIN_APP, 'serverless-buckets');
+  assert.equal(suiteOffer.SUITE_APP_ID, 'serverless-suite');
+});
+
+test('the Suite product is recognized as lifetime but never sold as Buckets Lifetime', () => {
+  process.env.BUCKETS_DODO_PRODUCT_ID_LIFETIME = 'pdt_lifetime';
+  assert.throws(() => dodo.getSuiteProductId(), /SUITE_DODO_PRODUCT_ID_LIFETIME/);
+  process.env.SUITE_DODO_PRODUCT_ID_LIFETIME = ' pdt_suite ';
+  process.env.SUITE_DODO_LEGACY_PRODUCT_IDS_LIFETIME = 'pdt_suite_old';
+  assert.equal(dodo.getSuiteProductId(), 'pdt_suite');
+  assert.deepEqual(dodo.getSuiteProductIds(), ['pdt_suite', 'pdt_suite_old']);
+  assert.equal(dodo.getProductId('lifetime'), 'pdt_lifetime');
+  assert.deepEqual(dodo.getPurchasableProductIds('lifetime'), ['pdt_lifetime']);
+  assert.deepEqual(dodo.getConfiguredProductIds('lifetime'), ['pdt_lifetime', 'pdt_suite', 'pdt_suite_old']);
+  assert.equal(dodo.getTierForProductId('pdt_suite'), 'lifetime');
+  assert.ok(!dodo.getConfiguredProductIds('monthly').includes('pdt_suite'));
+  assert.ok(dodo.isSuiteProductId('pdt_suite') && dodo.isSuiteProductId('pdt_suite_old') && !dodo.isSuiteProductId('pdt_lifetime'));
+  assert.ok(!dodo.isRetiredProductId('pdt_suite'));
+  assert.ok(dodo.isCheckoutTier('suite') && dodo.isCheckoutTier('lifetime') && !dodo.isCheckoutTier('bundle') && !dodo.isLicenseTier('suite'));
 });

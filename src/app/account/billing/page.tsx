@@ -74,6 +74,7 @@ import {
 } from "@/components/account/kit";
 import { cn } from "@/lib/utils";
 import { TEAM_SEAT_PRICE_USD } from "@/lib/reddit";
+import { SuiteUpsell } from "@/components/account/suite-upsell";
 
 type Tier = "monthly" | "yearly" | "lifetime" | "team";
 type SoloTier = Exclude<Tier, "team">;
@@ -762,6 +763,11 @@ export default function BillingDashboardPage() {
           />
         )}
       </div>
+
+      {/* The Suite (or, for accounts that already have Buckets for good, the other half of it) */}
+      {!userData.revoked && (
+        <SuiteUpsell kind={isLifetime ? "lifetime" : isTeam ? "team" : "subscription"} className="mt-4" />
+      )}
 
       {/* Change plan */}
       {canChangePlan && (
