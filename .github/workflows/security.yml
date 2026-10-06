@@ -26,6 +26,7 @@ jobs:
       BUCKETS_DODO_PRODUCT_ID_YEARLY: ci-yearly
       BUCKETS_DODO_PRODUCT_ID_LIFETIME: ci-lifetime
       BUCKETS_DODO_PRODUCT_ID_TEAM: ci-team
+      SUITE_DODO_PRODUCT_ID_LIFETIME: ci-suite
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
