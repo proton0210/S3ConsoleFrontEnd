@@ -11,7 +11,7 @@ import { createCheckout, CheckoutError } from "@/lib/checkout-client";
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useUser } from "@clerk/nextjs";
+import { useClerk, useUser } from "@clerk/nextjs";
 import { compositeLegalVersion } from "@/lib/legalVersions";
 import { sendGAEvent } from "@next/third-parties/google";
 import { trackReddit, tierValue, TEAM_SEAT_PRICE_USD } from "@/lib/reddit";
@@ -50,8 +50,23 @@ function BuyPageContent() {
   // the in-app PricingDialog. When absent (e.g. lifecycle-email magic link),
   // the user must consent below before we redirect to Dodo.
   const queryAtv = sp.get("atv") || undefined;
+  // Set by the desktop app: the email of the account signed in to the app.
+  // The purchase is keyed to the Clerk account signed in to THIS browser, and
+  // the app's entitlement is bound to ITS account — if they differ, the
+  // purchase would never show up in the app. So we compare before checkout.
+  const accountEmail = sp.get("account_email")?.trim().toLowerCase() || undefined;
+  const fromApp = sp.get("from") === "app";
   const { user, isLoaded } = useUser();
+  const { signOut } = useClerk();
   const userId = user?.id;
+  const browserEmail = user?.primaryEmailAddress?.emailAddress?.trim().toLowerCase();
+  const [accountMismatchAccepted, setAccountMismatchAccepted] = useState(false);
+  const accountMismatch = Boolean(
+    isLoaded && userId && accountEmail && browserEmail && browserEmail !== accountEmail
+  ) && !accountMismatchAccepted;
+  // Where to come back to after switching accounts, with the app's identity
+  // hint preserved so the check runs again for the new session.
+  const selfUrl = `/buy?${sp.toString()}`;
   // Team checkouts always pause at the consent box so the buyer sees the seat
   // selector — a pre-stamped ?atv= must not race them past it with the
   // default seat count.
@@ -109,6 +124,10 @@ function BuyPageContent() {
     // Wait until we know what the signed-in user already owns.
     if (planLoading || blocked) return;
 
+    // The browser is signed in as a different account than the desktop app:
+    // hold the checkout until the user switches or explicitly continues.
+    if (accountMismatch) return;
+
     // Hold the redirect until the user has accepted ToS. The desktop app
     // pre-stamps `atv` to skip this gate — magic-link visitors see the
     // checkbox below before we kick them to Dodo.
@@ -122,6 +141,8 @@ function BuyPageContent() {
       // the user lands back here with the default and has to re-pick.
       const here = `/buy?tier=${encodeURIComponent(tier!)}${
         tier === "team" ? `&seats=${seats}` : ""
+      }${accountEmail ? `&account_email=${encodeURIComponent(accountEmail)}` : ""}${
+        fromApp ? "&from=app" : ""
       }`;
       router.replace(`/sign-up?redirect_url=${encodeURIComponent(here)}`);
       return;
@@ -167,7 +188,7 @@ function BuyPageContent() {
     return () => {
       canceled = true;
     };
-  }, [tier, seats, email, name, isLoaded, termsAccepted, confirmed, queryAtv, planLoading, blocked, userId, router]);
+  }, [tier, seats, email, name, isLoaded, termsAccepted, confirmed, queryAtv, planLoading, blocked, userId, router, accountMismatch, accountEmail, fromApp]);
 
   if (!isValidTier(tier)) {
     return (
@@ -184,7 +205,7 @@ function BuyPageContent() {
 
   // Visitors without `atv` review the order and accept the terms here, so we
   // capture acceptance *before* sending them to Dodo.
-  const needsConsent = !confirmed && !blocked && !planLoading;
+  const needsConsent = !confirmed && !blocked && !planLoading && !accountMismatch;
   const order = ORDER[tier];
   const total = tier === "team" ? TEAM_SEAT_PRICE_USD * seats : null;
 
@@ -328,7 +349,38 @@ function BuyPageContent() {
         </form>
       ) : null}
 
-      {!needsConsent && (status === "loading" || status === "redirecting") && !blocked && (
+      {accountMismatch && status !== "error" && (
+        <StatusCard tone="danger" icon={<AlertTriangle className="h-6 w-6" />} title="This browser is signed in to a different account">
+          <p>
+            The Buckets app is signed in as{" "}
+            <span className="font-medium text-foreground">{accountEmail}</span>, but this
+            browser is signed in as{" "}
+            <span className="font-medium text-foreground">{browserEmail}</span>. A purchase
+            made now would be linked to <span className="font-medium text-foreground">{browserEmail}</span>{" "}
+            and would not appear in the app.
+          </p>
+          <button
+            type="button"
+            onClick={() =>
+              void signOut({
+                redirectUrl: `/sign-in?redirect_url=${encodeURIComponent(selfUrl)}`,
+              })
+            }
+            className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 text-[15px] font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            Sign in as {accountEmail}<ArrowRight className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setAccountMismatchAccepted(true)}
+            className="mt-3 inline-flex h-11 w-full items-center justify-center rounded-xl border border-input bg-card px-4 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            Buy for {browserEmail} anyway
+          </button>
+        </StatusCard>
+      )}
+
+      {!needsConsent && !accountMismatch && (status === "loading" || status === "redirecting") && !blocked && (
         <StatusCard
           icon={<Loader2 className="h-6 w-6 animate-spin" />}
           title={status === "redirecting" ? "Taking you to secure checkout…" : "Preparing your checkout…"}
@@ -339,7 +391,7 @@ function BuyPageContent() {
         </StatusCard>
       )}
 
-      {blocked && (
+      {blocked && !accountMismatch && (
         <StatusCard icon={<Check className="h-6 w-6" />} title="You already have Buckets Pro">
           <p>{checkoutBlockedMessage(currentPlan, tier)}</p>
           <a

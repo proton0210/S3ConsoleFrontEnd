@@ -106,6 +106,22 @@ export default function PricingPage() {
   // Existing customers see their plan marked and upgrades routed through
   // Billing instead of a second checkout.
   const { loading: planLoading, plan: currentPlan } = useCurrentPlan();
+  // Opened from the desktop app ("See pricing" / Upgrade): the app passes the
+  // email of the account it is signed in as. Carry it through to /buy, which
+  // pre-fills checkout with it and blocks the purchase if this browser is
+  // signed in as someone else — otherwise the license would never reach the
+  // app. Read from window (not useSearchParams) so this static page needs no
+  // Suspense boundary; it is only used on click, never in markup, so the
+  // server/client render stays identical.
+  const [appAccount] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    const params = new URLSearchParams(window.location.search);
+    const email = params.get("account_email")?.trim();
+    return params.get("from") === "app" && email ? email : null;
+  });
+  const appIdentityQuery = appAccount
+    ? `&account_email=${encodeURIComponent(appAccount)}&from=app`
+    : "";
 
   const handleCheckout = async (tier: Tier) => {
     try {
@@ -116,6 +132,14 @@ export default function PricingPage() {
         location: "pricing_page",
         signedIn: !!isSignedIn,
       });
+
+      // From the desktop app every tier goes through /buy so the account
+      // check above runs before any money moves.
+      if (appAccount) {
+        const buyUrl = `/buy?tier=${encodeURIComponent(tier)}${tier === "team" ? "&seats=3" : ""}${appIdentityQuery}`;
+        router.push(isSignedIn ? buyUrl : `/sign-up?redirect_url=${encodeURIComponent(buyUrl)}`);
+        return;
+      }
 
       // Team checkout picks a seat count on /buy before paying.
       if (tier === "team") {
