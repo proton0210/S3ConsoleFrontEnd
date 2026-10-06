@@ -57,7 +57,10 @@ export async function GET() {
             memberOf: {
               ownerEmail: Item.teamOwner,
               licenseKey: typeof Item.key === "string" ? Item.key : null,
-              active: Item.paid === true && Item.revoked !== true && (inCycle || inGrace),
+              active: Item.paid === true && Item.revoked !== true && Item.seatRevoked !== true && (inCycle || inGrace),
+              // The owner suspended this seat (get-license already reports
+              // paid=false; this flag lets the page explain why).
+              suspended: Item.seatRevoked === true,
               machineCount: Array.isArray(Item.machines) ? Item.machines.length : 0,
               licenseCount: typeof Item.licenseCount === "number" ? Item.licenseCount : 2,
             },

@@ -20,9 +20,13 @@ import { useUser } from "@clerk/nextjs";
 import {
   AlertTriangle,
   ArrowRight,
+  Ban,
   CheckCircle2,
+  ClipboardCopy,
   CreditCard,
   Download,
+  EyeOff,
+  KeyRound,
   Loader2,
   Mail,
   Minus,
@@ -30,6 +34,7 @@ import {
   RefreshCw,
   Send,
   Trash2,
+  Undo2,
   UserPlus,
   Users,
 } from "lucide-react";
@@ -66,7 +71,14 @@ interface TeamMember {
   isOwner: boolean;
   activated: boolean;
   machineCount: number;
+  /** The seat's key; null while the invite is still being provisioned or when the member holds a personal plan. */
+  licenseKey?: string | null;
+  /** Owner suspended this seat: still assigned, but grants no access. */
+  seatRevoked?: boolean;
+  keyIssuedAt?: number | null;
 }
+
+type SeatAction = "revoke" | "reinstate" | "rotate";
 
 interface TeamOverview {
   ownerEmail: string;
@@ -86,10 +98,13 @@ interface MemberOf {
   ownerEmail: string;
   licenseKey: string | null;
   active: boolean;
+  suspended?: boolean;
   machineCount: number;
   licenseCount: number;
 }
 
+const APP_NAME = "Buckets";
+const SITE_URL = "https://buckets.serverlesscreed.com";
 const MIN_SEATS = 3;
 const MAX_SEATS = 50; // matches /api/team/seats
 
@@ -108,6 +123,8 @@ export default function TeamPage() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [seatConfirm, setSeatConfirm] = useState<number | null>(null);
   const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
+  const [confirmSeat, setConfirmSeat] = useState<{ email: string; action: "revoke" | "rotate" } | null>(null);
+  const [revealedKey, setRevealedKey] = useState<string | null>(null); // member email whose key is shown
   const [busy, setBusy] = useState<string | null>(null); // "invite" | "seats" | member email
 
   const refresh = useCallback(async () => {
@@ -230,6 +247,63 @@ export default function TeamPage() {
     await submitSeats(next);
   }
 
+  /**
+   * Suspend / reinstate / issue a new key for one seat. Suspension and new
+   * keys are confirmed in a dialog first; reinstating is immediate.
+   */
+  async function seatAction(memberEmail: string, action: SeatAction) {
+    if (busy || pendingSeats !== null) return;
+    setConfirmSeat(null);
+    setBusy(`${action}:${memberEmail}`);
+    setError(null);
+    setNotice(null);
+    try {
+      const resp = await fetch("/api/team/seat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ memberEmail, action }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data?.error || "Seat update failed");
+      if (action === "rotate") {
+        setRevealedKey(memberEmail);
+        setNotice(data?.emailed
+          ? `New key issued for ${memberEmail} and emailed to them. Their existing installs keep working; the old key can't activate anything new.`
+          : `New key issued for ${memberEmail}, but the email could not be sent — share the key from their row below.`);
+      } else if (action === "revoke") {
+        setNotice(`Suspended ${memberEmail}. ${APP_NAME} locks on their next check-in; the seat stays assigned to them.`);
+      } else {
+        setNotice(`Reinstated ${memberEmail} — their existing key works again.`);
+      }
+      await refresh();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Seat update failed");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  /** Copy a ready-to-paste activation message so the owner can share a key over chat. */
+  async function copyShareMessage(m: TeamMember) {
+    if (!m.licenseKey) return;
+    const message = [
+      `You have a seat on our ${APP_NAME} team.`,
+      ``,
+      `1. Download ${APP_NAME}: ${SITE_URL}/downloads`,
+      `2. Open the app and choose "Activate license"`,
+      `3. Sign in / activate with this email: ${m.email}`,
+      `   License key: ${m.licenseKey}`,
+      ``,
+      `The key works on up to 2 machines. You can also see it any time by signing in at ${SITE_URL}/account/team with that email.`,
+    ].join("\n");
+    try {
+      await navigator.clipboard.writeText(message);
+      setNotice(`Copied an activation message for ${m.email} — paste it into chat or email.`);
+    } catch {
+      setError("Couldn't access the clipboard — select the key and copy it manually.");
+    }
+  }
+
   async function submitSeats(next: number) {
     if (!team || busy || pendingSeats !== null) return;
     setBusy("seats");
@@ -302,6 +376,8 @@ export default function TeamPage() {
   const statusTone = team?.inGrace || team?.subscriptionStatus === "past_due" ? "warning" : team?.effectiveActive ? "success" : "neutral";
   const statusLabel = team?.inGrace ? "Grace period" : team?.subscriptionStatus === "past_due" ? "Payment due" : team?.effectiveActive ? "Active" : team?.subscriptionStatus ? team.subscriptionStatus.replace(/_/g, " ") : "Inactive";
   const removing = confirmRemove ? team?.members.find((m) => m.email === confirmRemove) : undefined;
+  const seatTarget = confirmSeat ? team?.members.find((m) => m.email === confirmSeat.email) : undefined;
+  const seatRotate = confirmSeat?.action === "rotate";
 
   return (
     <AccountMain>
@@ -378,9 +454,13 @@ export default function TeamPage() {
             title={<>You&apos;re on <span className="text-[hsl(var(--acct-accent-ink))]">{memberOf.ownerEmail}</span>&apos;s team</>}
             description={memberOf.active
               ? `Your license is active on ${memberOf.machineCount} of ${memberOf.licenseCount} machines.`
-              : "Your seat is currently inactive — ask the team owner to check the subscription."}
+              : memberOf.suspended
+                ? "The team owner suspended your seat. Ask them to reinstate it or issue you a new key."
+                : "Your seat is currently inactive — ask the team owner to check the subscription."}
           >
-            <StatusBadge tone={memberOf.active ? "success" : "neutral"} dot>{memberOf.active ? "Active seat" : "Inactive"}</StatusBadge>
+            <StatusBadge tone={memberOf.active ? "success" : memberOf.suspended ? "danger" : "neutral"} dot>
+              {memberOf.active ? "Active seat" : memberOf.suspended ? "Suspended" : "Inactive"}
+            </StatusBadge>
           </PanelHeader>
           {memberOf.licenseKey && (
             <div className="mt-6 max-w-xl">
@@ -524,48 +604,110 @@ export default function TeamPage() {
                 <span className="text-xs text-muted-foreground">{team.seatsUsed} of {team.seatsPurchased} seats</span>
               </div>
               <ul className="divide-y divide-border border-t border-border">
-                {team.members.map((m) => (
-                  <li key={m.email} className="flex flex-wrap items-center gap-x-4 gap-y-3 px-6 py-4 sm:px-7">
-                    <Avatar email={m.email} />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium" title={m.email}>{m.email}</p>
-                      <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-                        {m.isOwner && <StatusBadge tone="brand">Owner</StatusBadge>}
-                        {!m.activated && <StatusBadge tone="warning">Invited</StatusBadge>}
-                        <span>
-                          {m.activated
-                            ? `Activated on ${m.machineCount} machine${m.machineCount === 1 ? "" : "s"}`
-                            : "Hasn't activated the app yet"}
-                        </span>
-                      </p>
-                    </div>
-                    {!m.isOwner && (
-                      <div className="flex items-center gap-2">
-                        {!m.activated && (
+                {team.members.map((m) => {
+                  const rowBusy = busy !== null && busy.endsWith(`:${m.email}`) || busy === m.email;
+                  const locked = busy !== null || pendingSeats !== null;
+                  const revealed = revealedKey === m.email;
+                  return (
+                  <li key={m.email} className="px-6 py-4 sm:px-7">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+                      <Avatar email={m.email} />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium" title={m.email}>{m.email}</p>
+                        <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+                          {m.isOwner && <StatusBadge tone="brand">Owner</StatusBadge>}
+                          {m.seatRevoked && <StatusBadge tone="danger" icon={Ban}>Suspended</StatusBadge>}
+                          {!m.isOwner && !m.activated && !m.seatRevoked && <StatusBadge tone="warning">Invited</StatusBadge>}
+                          <span>
+                            {m.seatRevoked
+                              ? "No access until reinstated or given a new key"
+                              : m.activated
+                                ? `Activated on ${m.machineCount} machine${m.machineCount === 1 ? "" : "s"}`
+                                : m.isOwner ? "You haven't activated the app yet" : "Hasn't activated the app yet"}
+                          </span>
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {m.licenseKey && (
                           <Button
                             variant="outline"
                             size="sm"
-                            disabled={busy !== null || !team.effectiveActive}
-                            onClick={() => resendInvite(m.email)}
-                            title="Re-send the invite email with their license key"
+                            aria-expanded={revealed}
+                            aria-controls={`seat-key-${m.email}`}
+                            onClick={() => setRevealedKey(revealed ? null : m.email)}
+                            title={revealed ? "Hide license key" : "Show license key, share it, or issue a new one"}
                           >
-                            {busy === `resend:${m.email}` ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <><Send className="mr-1.5 h-3.5 w-3.5" />Resend</>}
+                            {revealed ? <EyeOff className="mr-1.5 h-3.5 w-3.5" /> : <KeyRound className="mr-1.5 h-3.5 w-3.5" />}
+                            {revealed ? "Hide key" : "Key"}
                           </Button>
                         )}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-muted-foreground hover:bg-red-500/10 hover:text-red-700 dark:hover:text-red-300"
-                          disabled={busy !== null}
-                          onClick={() => setConfirmRemove(m.email)}
-                          aria-label={`Remove ${m.email}`}
-                        >
-                          {busy === m.email ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                        </Button>
+                        {!m.isOwner && (m.seatRevoked ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={locked}
+                            onClick={() => seatAction(m.email, "reinstate")}
+                            title="Restore access with their existing key"
+                          >
+                            {busy === `reinstate:${m.email}` ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <><Undo2 className="mr-1.5 h-3.5 w-3.5" />Reinstate</>}
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={locked}
+                            onClick={() => setConfirmSeat({ email: m.email, action: "revoke" })}
+                            title="Suspend access but keep the seat assigned to them"
+                          >
+                            {busy === `revoke:${m.email}` ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <><Ban className="mr-1.5 h-3.5 w-3.5" />Suspend</>}
+                          </Button>
+                        ))}
+                        {!m.isOwner && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-muted-foreground hover:bg-red-500/10 hover:text-red-700"
+                            disabled={locked}
+                            onClick={() => setConfirmRemove(m.email)}
+                            aria-label={`Remove ${m.email}`}
+                            title="Remove from the team and free the seat"
+                          >
+                            {busy === m.email ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                    {revealed && m.licenseKey && (
+                      <div id={`seat-key-${m.email}`} className="mt-3 rounded-2xl border border-border bg-muted/40 p-4 sm:ml-[52px]">
+                        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                          License key{m.isOwner ? " (yours)" : ""}
+                          {typeof m.keyIssuedAt === "number" && <span className="normal-case tracking-normal"> · reissued {formatDate(m.keyIssuedAt)}</span>}
+                        </p>
+                        <CopyField value={m.licenseKey} label="Copy license key" className="mt-1.5 max-w-xl" />
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                          <Button variant="outline" size="sm" disabled={locked} onClick={() => void copyShareMessage(m)} title="Copy a ready-to-paste message with the download link, email and key">
+                            <ClipboardCopy className="mr-1.5 h-3.5 w-3.5" />Copy activation message
+                          </Button>
+                          {!m.isOwner && !m.seatRevoked && (
+                            <Button variant="outline" size="sm" disabled={locked} onClick={() => resendInvite(m.email)} title="Email them their key again">
+                              {busy === `resend:${m.email}` ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <><Send className="mr-1.5 h-3.5 w-3.5" />Email key</>}
+                            </Button>
+                          )}
+                          <Button variant="outline" size="sm" disabled={locked || !team.effectiveActive} onClick={() => setConfirmSeat({ email: m.email, action: "rotate" })} title="Generate a new key; the old one stops working for new activations">
+                            {busy === `rotate:${m.email}` ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <><RefreshCw className="mr-1.5 h-3.5 w-3.5" />Issue new key</>}
+                          </Button>
+                        </div>
+                        <p className="mt-3 text-xs leading-5 text-muted-foreground">
+                          {m.isOwner
+                            ? `Activate ${APP_NAME} with ${m.email} and this key. It's also on your billing page.`
+                            : `They activate ${APP_NAME} with ${m.email} and this key, or sign in to ${SITE_URL.replace("https://", "")}/account/team with that email to see it themselves.`}
+                        </p>
                       </div>
                     )}
+                    {rowBusy && <span className="sr-only" role="status">Updating {m.email}</span>}
                   </li>
-                ))}
+                  );
+                })}
                 {Array.from({ length: openSeats }, (_, i) => (
                   <li key={`open-${i}`} className="flex items-center gap-4 px-6 py-4 sm:px-7">
                     <span aria-hidden className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-dashed border-border text-muted-foreground">
@@ -625,6 +767,35 @@ export default function TeamPage() {
         </Dialog>
       )}
 
+      {/* Confirm suspend / new key */}
+      {team && confirmSeat !== null && (
+          <Dialog open onOpenChange={(open) => { if (!open && busy === null) setConfirmSeat(null); }}>
+            <DialogContent className="rounded-3xl border-border bg-card p-0 sm:max-w-md sm:rounded-3xl">
+              <div className="p-6">
+                <DialogHeader className="space-y-0 text-left">
+                  <span className={`mb-4 inline-flex h-11 w-11 items-center justify-center rounded-2xl ${seatRotate ? "bg-[hsl(var(--acct-accent)/0.10)] text-[hsl(var(--acct-accent-ink))]" : "bg-amber-500/15 text-amber-800"}`}>
+                    {seatRotate ? <KeyRound className="h-5 w-5" /> : <Ban className="h-5 w-5" />}
+                  </span>
+                  <DialogTitle className="text-xl tracking-tight">
+                    {seatRotate ? `Issue a new key for ${confirmSeat.email}?` : `Suspend ${confirmSeat.email}?`}
+                  </DialogTitle>
+                  <DialogDescription className="pt-1.5 text-sm leading-6">
+                    {seatRotate
+                      ? `A new key is generated and emailed to them. The old key can no longer activate ${APP_NAME} anywhere; installs already activated on this email keep working and pick up the new key automatically. Use this when a key was shared too widely or the invite went missing.`
+                      : `${APP_NAME} stops working for them${seatTarget?.activated ? ` on ${seatTarget.machineCount} machine${seatTarget.machineCount === 1 ? "" : "s"}` : ""} the next time it checks in. The seat stays assigned to them and still counts toward your plan — reinstate them or issue a new key whenever you're ready. To free the seat instead, remove them.`}
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter className="mt-6 flex-col-reverse gap-2 sm:flex-row sm:gap-2">
+                  <Button variant="outline" onClick={() => setConfirmSeat(null)} disabled={busy !== null}>Not now</Button>
+                  <Button variant={seatRotate ? "default" : "destructive"} onClick={() => void seatAction(confirmSeat.email, confirmSeat.action)} disabled={busy !== null}>
+                    {busy !== null && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}{seatRotate ? "Issue new key" : "Suspend access"}
+                  </Button>
+                </DialogFooter>
+              </div>
+            </DialogContent>
+          </Dialog>
+      )}
+
       {/* Confirm member removal */}
       {team && confirmRemove !== null && (
         <Dialog open onOpenChange={(open) => { if (!open && busy !== confirmRemove) setConfirmRemove(null); }}>
@@ -636,7 +807,7 @@ export default function TeamPage() {
                 </span>
                 <DialogTitle className="text-xl tracking-tight">Remove {confirmRemove}?</DialogTitle>
                 <DialogDescription className="pt-1.5 text-sm leading-6">
-                  Their license stops working immediately{removing?.activated ? ` on ${removing.machineCount} machine${removing.machineCount === 1 ? "" : "s"}` : ""}. The seat stays on your plan, ready for someone new.
+                  Their license stops working immediately{removing?.activated ? ` on ${removing.machineCount} machine${removing.machineCount === 1 ? "" : "s"}` : ""}. The seat stays on your plan, ready for someone new. Want to keep the seat assigned to them? Use Suspend instead.
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter className="mt-6 flex-col-reverse gap-2 sm:flex-row sm:gap-2">
