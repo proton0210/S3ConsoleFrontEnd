@@ -17,13 +17,15 @@ import { sendGAEvent } from "@next/third-parties/google";
 import { trackReddit, tierValue, TEAM_SEAT_PRICE_USD } from "@/lib/reddit";
 import { AlertTriangle, ArrowLeft, ArrowRight, Check, ExternalLink, Loader2, Lock, Minus, Plus, RotateCcw, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useCurrentPlan } from "@/lib/hooks/use-current-plan";
+import { useSuiteState } from "@/lib/hooks/use-suite-state";
 import {
   checkoutAllowed,
   checkoutBlockedCta,
   checkoutBlockedHref,
   checkoutBlockedMessage,
   ownsLifetime,
+  ownsPartnerLifetime,
+  suitePartnerBlock,
 } from "@/lib/plan-options";
 import { LIFETIME_PRICE_USD, SUITE_FEATURES, SUITE_PARTNER, SUITE_PRICE_USD, SUITE_SAVINGS_USD, SUITE_SEPARATE_PRICE_USD, SUITE_UPGRADE_PRICE_USD, SUITE_UPGRADE_SAVINGS_USD } from "@/lib/suite-offer";
 
@@ -110,12 +112,16 @@ function BuyPageContent() {
 
   // Existing customers never get a second checkout from a stale link: they
   // see what they own and where to change it instead.
-  const { loading: planLoading, plan: currentPlan } = useCurrentPlan();
+  // Includes what they own of Tables: owning Tables Lifetime changes the Suite
+  // offers (nothing to buy, or the $49 upgrade on the Tables site).
+  const { loading: planLoading, plan: currentPlan, suite } = useSuiteState();
   // The Suite upgrade is judged once the person is signed in: an anonymous
   // visitor resolves to "none", but may well own Buckets Lifetime once they
   // sign in below (the checkout route re-checks either way).
+  const partnerBlock =
+    !planLoading && isValidTier(tier) ? suitePartnerBlock(currentPlan, tier, ownsPartnerLifetime(currentPlan, suite)) : null;
   const blocked =
-    !planLoading && isValidTier(tier) && (tier !== "suite-upgrade" || !!userId) && !checkoutAllowed(currentPlan, tier);
+    !planLoading && isValidTier(tier) && (!!partnerBlock || ((tier !== "suite-upgrade" || !!userId) && !checkoutAllowed(currentPlan, tier)));
   const [manageUrl, setManageUrl] = useState<string | null>(null);
 
   const [error, setError] = useState<string | null>(null);
@@ -412,14 +418,14 @@ function BuyPageContent() {
       )}
 
       {blocked && !accountMismatch && (
-        <StatusCard icon={<Check className="h-6 w-6" />} title={tier === "suite-upgrade" ? "This price is for Buckets Lifetime owners" : tier === "suite" && ownsLifetime(currentPlan) ? "You already own Buckets Lifetime" : "You already have Buckets Pro"}>
-          <p>{checkoutBlockedMessage(currentPlan, tier)}</p>
+        <StatusCard icon={<Check className="h-6 w-6" />} title={partnerBlock ? (partnerBlock.code === "already_owned" ? "You already own the Suite" : "You already own Tables Lifetime") : tier === "suite-upgrade" ? "This price is for Buckets Lifetime owners" : tier === "suite" && ownsLifetime(currentPlan) ? "You already own Buckets Lifetime" : "You already have Buckets Pro"}>
+          <p>{partnerBlock?.message ?? checkoutBlockedMessage(currentPlan, tier)}</p>
           <a
-            href={checkoutBlockedHref(currentPlan, tier)}
-            {...(checkoutBlockedHref(currentPlan, tier).startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+            href={partnerBlock?.href ?? checkoutBlockedHref(currentPlan, tier)}
+            {...((partnerBlock?.href ?? checkoutBlockedHref(currentPlan, tier)).startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})}
             className="mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            {checkoutBlockedCta(currentPlan, tier)}<ArrowRight className="h-4 w-4" />
+            {partnerBlock?.cta ?? checkoutBlockedCta(currentPlan, tier)}<ArrowRight className="h-4 w-4" />
           </a>
           <a href="/downloads" className="mt-3 inline-block text-xs font-medium text-muted-foreground underline underline-offset-2 hover:text-foreground">Download Buckets</a>
         </StatusCard>

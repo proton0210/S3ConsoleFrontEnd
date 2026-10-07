@@ -18,7 +18,9 @@
  *   - accessKeyId             SDK config field
  *   - secretAccessKey         SDK config field
  */
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- This Node CLI runs as CommonJS.
 const fs = require("fs");
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- This Node CLI runs as CommonJS.
 const path = require("path");
 
 const STATIC_DIR = path.join(__dirname, "..", ".next", "static", "chunks");
@@ -51,6 +53,13 @@ for (const file of walk(STATIC_DIR)) {
     const match = contents.match(pattern);
     if (match) {
       findings.push({ file: path.relative(process.cwd(), file), pattern: pattern.toString() });
+    }
+  }
+  // Server-only secrets must never be inlined into a client chunk.
+  for (const name of ["SUITE_PARTNER_SECRET"]) {
+    const value = (process.env[name] || "").trim();
+    if (value.length >= 16 && contents.includes(value)) {
+      findings.push({ file: path.relative(process.cwd(), file), pattern: `value of ${name}` });
     }
   }
 }

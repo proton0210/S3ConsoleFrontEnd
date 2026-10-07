@@ -40,6 +40,10 @@ export const SUITE_PARTNER_PRICING_URL = "https://tables.serverlesscreed.com/pri
 export const SUITE_UPGRADE_HREF = "/buy?tier=suite-upgrade";
 export const SUITE_UPGRADE_PRICE_USD = 49;
 export const SUITE_HREF = "/buy?tier=suite";
+/** Where a Tables Lifetime owner adds Buckets Lifetime: the upgrade is sold on
+ * the site that owns the Lifetime, so that is the Tables website (mirrors
+ * SUITE_PARTNER.upgradeUrl in suite-offer.ts). */
+export const SUITE_PARTNER_UPGRADE_URL = "https://tables.serverlesscreed.com/buy?tier=suite-upgrade";
 
 /**
  * - Paid rows without a tier are early-access (pre-tier) customers: perpetual
@@ -216,4 +220,80 @@ export function checkoutBlockedMessage(current: CurrentPlan, target: CheckoutTar
     default:
       return "This plan isn't available for your account.";
   }
+}
+
+/**
+ * What this person owns across BOTH apps, as far as this website can tell.
+ * Buckets and Tables have separate accounts and backends, so the other app is
+ * learned server-side from the Tables backend by verified email
+ * (`partnerLifetime`; null when that lookup is unavailable). `viaSuite` is
+ * true when this site's Lifetime row was granted by a Suite or Suite-upgrade
+ * payment — both imply Tables Lifetime — and is only a fallback for an
+ * unknown partner answer.
+ */
+export interface SuiteOwnership {
+  partnerLifetime: boolean | null;
+  viaSuite: boolean;
+}
+
+/**
+ * Which version of the Suite offer to show:
+ * - public:        no relevant plan (signed out, trial, none, cancelled)
+ * - subscriber:    Buckets Monthly/Yearly — $149 Suite, subscription cancelled for them
+ * - team:          Buckets seat covered by a Team — Tables Lifetime on its own
+ * - upgrade-here:  owns Buckets Lifetime only — add Tables for $49, sold here
+ * - upgrade-there: owns Tables Lifetime only — add Buckets for $49, sold on Tables
+ * - owned:         owns both — nothing to buy
+ */
+export type SuiteState = "public" | "subscriber" | "team" | "upgrade-here" | "upgrade-there" | "owned";
+
+/** True when the other app's Lifetime is owned (live answer first, then the row hint). */
+export function ownsPartnerLifetime(current: CurrentPlan, suite: SuiteOwnership | null | undefined): boolean {
+  if (suite?.partnerLifetime != null) return suite.partnerLifetime;
+  return ownsLifetime(current) && suite?.viaSuite === true;
+}
+
+export function suiteStateFor(current: CurrentPlan, suite: SuiteOwnership | null | undefined): SuiteState {
+  const here = ownsLifetime(current);
+  const there = ownsPartnerLifetime(current, suite);
+  if (here && there) return "owned";
+  if (here) return "upgrade-here";
+  if (there) return "upgrade-there";
+  if (current === "monthly" || current === "yearly") return "subscriber";
+  if (current === "team") return "team";
+  return "public";
+}
+
+export interface SuitePartnerBlock {
+  code: "already_owned" | "partner_owned";
+  message: string;
+  href: string;
+  cta: string;
+}
+
+/**
+ * Checkout rule for the $149 Suite and the $49 Suite upgrade once Tables
+ * ownership is known (the server checks it before creating either checkout;
+ * /buy checks it first for a friendlier message):
+ * - owns both: nothing to buy — the upgrade would charge $49 for a license
+ *   Tables already has (its webhook keeps the original purchase).
+ * - owns only Tables Lifetime: the Suite would charge for Tables again and the
+ *   upgrade is not sold here — send them to the Tables site's upgrade.
+ */
+export function suitePartnerBlock(current: CurrentPlan, target: CheckoutTarget, partnerLifetime: boolean): SuitePartnerBlock | null {
+  if ((target !== "suite" && target !== "suite-upgrade") || !partnerLifetime) return null;
+  if (ownsLifetime(current)) {
+    return {
+      code: "already_owned",
+      message: "You already own Buckets Lifetime and Tables Lifetime — the whole Suite. There's nothing more to buy.",
+      href: "/suite",
+      cta: "See your Suite",
+    };
+  }
+  return {
+    code: "partner_owned",
+    message: `You already own Tables Lifetime, so you can add Buckets Lifetime for $${SUITE_UPGRADE_PRICE_USD} instead. Checkout runs on the Tables website, where your Lifetime is — sign in there with this same email.`,
+    href: SUITE_PARTNER_UPGRADE_URL,
+    cta: `Add Buckets Lifetime for $${SUITE_UPGRADE_PRICE_USD}`,
+  };
 }

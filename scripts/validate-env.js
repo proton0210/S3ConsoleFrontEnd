@@ -7,6 +7,7 @@
 
 // Match Next.js's environment loading behavior for local builds. In Amplify,
 // the same values are already present in the process environment.
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- This Node CLI runs as CommonJS.
 require('@next/env').loadEnvConfig(process.cwd());
 
 // Phase 11 — `NEXT_PUBLIC_DYNAMO_*` removed; DDB now goes through the Amplify
@@ -111,6 +112,27 @@ for (const id of suiteUpgradeProductIds) {
   if (suiteProductIds.includes(id)) {
     missing.push(`SUITE_UPGRADE_DODO_PRODUCT_ID_LIFETIME - ${id} is the Suite product; the Suite upgrade must be a different Dodo product`);
   }
+}
+
+// The Suite partner lookup: this site asks the Tables backend whether a
+// verified email owns Tables Lifetime (POST /suite/partner-lifetime), so
+// /suite, pricing and billing can tell when someone owns both apps, and the
+// Suite and Suite-upgrade checkouts can refuse to sell a license they already
+// own. SUITE_PARTNER_API_URL is the Tables backend's API Gateway base URL;
+// SUITE_PARTNER_SECRET is one random value shared by both backends and both
+// websites. Server-only — never NEXT_PUBLIC_.
+if (!(process.env.SUITE_PARTNER_API_URL || '').trim()) {
+  missing.push('SUITE_PARTNER_API_URL - the Tables backend API base URL (same value as the Tables site\'s LICENSE_API_URL)');
+} else if (!/^https:\/\//.test(process.env.SUITE_PARTNER_API_URL.trim()) && process.env.SUITE_PARTNER_API_URL.trim() !== 'ci-partner') {
+  missing.push('SUITE_PARTNER_API_URL - must be an https:// URL');
+}
+if ((process.env.SUITE_PARTNER_SECRET || '').includes(',')) {
+  missing.push('SUITE_PARTNER_SECRET - a website sends ONE secret; only the backends accept a comma-separated "new,old" list during rotation');
+} else if ((process.env.SUITE_PARTNER_SECRET || '').trim().length < 32) {
+  missing.push('SUITE_PARTNER_SECRET - the shared Suite partner secret (at least 32 characters; same value on both backends and both websites)');
+}
+if (Object.keys(process.env).some((name) => name.startsWith('NEXT_PUBLIC_SUITE_PARTNER'))) {
+  securityErrors.push('NEXT_PUBLIC_SUITE_PARTNER_* must not exist — the partner URL and secret are server-only');
 }
 
 // A retired Team product (listed in *_DODO_LEGACY_PRODUCT_IDS_TEAM; keep in sync

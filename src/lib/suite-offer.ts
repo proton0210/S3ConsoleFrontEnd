@@ -71,6 +71,8 @@ export const SUITE_PARTNER = {
   pricingUrl: "https://tables.serverlesscreed.com/pricing",
   billingUrl: "https://tables.serverlesscreed.com/account/billing",
   downloadsUrl: "https://tables.serverlesscreed.com/downloads",
+  /** Where a Tables Lifetime owner adds Buckets Lifetime for $49 (sold there). */
+  upgradeUrl: "https://tables.serverlesscreed.com/buy?tier=suite-upgrade",
 } as const;
 
 export const SUITE_FEATURES = [

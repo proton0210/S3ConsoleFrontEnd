@@ -34,6 +34,7 @@ import { CopyField } from "@/components/account/kit";
 import { trackReddit, tierValue } from "@/lib/reddit";
 import { SUITE_PARTNER, SUITE_RETURN_PARAM, SUITE_UPGRADE_PATH, SUITE_UPGRADE_PRICE_USD, SUITE_UPGRADE_RETURN_PARAM } from "@/lib/suite-offer";
 import { clearCheckout } from "@/lib/checkout-client";
+import { useSuiteState } from "@/lib/hooks/use-suite-state";
 import { paymentSignInUrl, waitForNextPoll, fetchPaymentConfirmation } from "@/lib/payment-confirmation";
 
 type UiPhase =
@@ -130,6 +131,8 @@ function PaymentStatusContent() {
   const [paymentMethodType, setPaymentMethodType] = useState<string | null>(
     null
   );
+  // Someone who already owns the other app's Lifetime too is not offered it.
+  const { state: suiteState } = useSuiteState();
   const confettiFired = useRef(false);
   const purchaseTracked = useRef(false);
 
@@ -556,7 +559,7 @@ function PaymentStatusContent() {
           </div>
         )}
 
-        {!isSuite && license.tier === "lifetime" && (
+        {!isSuite && license.tier === "lifetime" && suiteState !== "owned" && (
           <p className="mt-4 rounded-2xl border border-dashed border-border px-5 py-4 text-left text-sm leading-6 text-muted-foreground">
             Use Amazon DynamoDB too? <span className="font-medium text-foreground">Tables</span> is the same idea for DynamoDB, from the same studio —
             as a Buckets Lifetime owner you can add Tables Lifetime for ${SUITE_UPGRADE_PRICE_USD}.{" "}

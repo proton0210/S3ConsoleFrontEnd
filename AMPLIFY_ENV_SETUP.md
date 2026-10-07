@@ -52,6 +52,12 @@ SUITE_DODO_PRODUCT_ID_LIFETIME=pdt_...
 # Lifetime owner. Also ONE Dodo product with the SAME id on both sites and both
 # backends; must differ from the Suite. Required like the Suite.
 SUITE_UPGRADE_DODO_PRODUCT_ID_LIFETIME=pdt_...
+# Suite partner lookup (server-only): lets this site learn whether the signed-in
+# email owns Tables Lifetime too. URL = the Tables backend API base URL
+# (the Tables site's LICENSE_API_URL). SECRET = one random value
+# (openssl rand -hex 32), the SAME on both backends and both Amplify apps.
+SUITE_PARTNER_API_URL=https://xxxx.execute-api.ap-south-1.amazonaws.com/prod
+SUITE_PARTNER_SECRET=...
 ```
 
 ## Best Practices for AWS Amplify

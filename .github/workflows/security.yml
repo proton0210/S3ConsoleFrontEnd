@@ -28,6 +28,8 @@ jobs:
       BUCKETS_DODO_PRODUCT_ID_TEAM: ci-team
       SUITE_DODO_PRODUCT_ID_LIFETIME: ci-suite
       SUITE_UPGRADE_DODO_PRODUCT_ID_LIFETIME: ci-suite-upgrade
+      SUITE_PARTNER_API_URL: ci-partner
+      SUITE_PARTNER_SECRET: ci-partner-secret-0000000000000000000000
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -38,6 +40,7 @@ jobs:
       - run: npm run test:security
       - run: npm run test:invoices
       - run: npm run test:build-info
+      - run: npm run test:checkout
       - run: npm audit --audit-level=high
       - run: npm run check:payment-identity
       - run: npm run check:trust-center

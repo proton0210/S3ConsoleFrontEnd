@@ -95,7 +95,7 @@ function clientFixture(options = {}) {
     '@clerk/nextjs': { useAuth: () => ({ isLoaded: true, userId: options.signedOut ? null : 'user-a' }), useUser: () => ({ isLoaded: true, user: { primaryEmailAddress: { emailAddress: owner } } }) },
     'canvas-confetti': () => {}, 'react-icons/fa': {}, '@/components/ui/button': {}, '@/components/sections/header': () => null,
     'lucide-react': new Proxy({}, { get: (_, name) => `icon:${String(name)}` }), '@/components/account/kit': { CopyField: 'copy-field' },
-    '@/lib/reddit': {}, '@/lib/suite-offer': compile('src/lib/suite-offer.ts', {}), '@/lib/payment-confirmation': policy, '@/lib/checkout-client': { clearCheckout: () => {} },
+    '@/lib/reddit': {}, '@/lib/suite-offer': compile('src/lib/suite-offer.ts', {}), '@/lib/payment-confirmation': policy, '@/lib/checkout-client': { clearCheckout: () => {} }, '@/lib/hooks/use-suite-state': { useSuiteState: () => ({ state: 'public', pending: false, loading: false }) },
   });
   const tree = compiled.default();
   const content = tree.type === 'fragment' ? tree.props.children[1].props.children : tree;

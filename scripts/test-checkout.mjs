@@ -22,10 +22,11 @@ assert.equal(options.currentPlanFromLicense({paid:true}),'early');
 assert.equal(options.currentPlanFromLicense({paid:true,tier:'lifetime',productId:'paid-lifetime'}),'lifetime');
 assert.equal(options.currentPlanFromLicense({paid:true,tier:'lifetime',productId:'legacy',revoked:true}),'none');
 const fixture = (status, data = {}) => ({ response: { ok: status === 200, status }, data });
-let license, team, verified, subject, providerCalls, payload, checkoutResult, suiteUnset, upgradeUnset;
+let license, team, verified, subject, providerCalls, payload, checkoutResult, suiteUnset, upgradeUnset, partnerLifetime, partnerFails, partnerConfigured, partnerCalls;
 function reset() {
   license = fixture(404); team = fixture(404); verified = 'verified'; subject = 'owner'; providerCalls = 0; suiteUnset = false; upgradeUnset = false;
   checkoutResult = { ok: true, status: 200, json: async () => ({ checkout_url: 'https://checkout.example/session' }) };
+  partnerLifetime = false; partnerFails = false; partnerConfigured = true; partnerCalls = [];
 }
 const checkoutImports = {
   'node:crypto': { randomUUID: () => 'server-attempt' },
@@ -46,6 +47,10 @@ const checkoutImports = {
   '@/lib/maintenance': { isMaintenanceMode: () => false },
   '@/lib/license-api': { getLicenseForAccount: async () => { if (license instanceof Error) throw license; return license; }, getTeamByOwner: async () => team },
   '@/lib/plan-options': options,
+  '@/lib/partner-license': {
+    partnerLookupConfigured: () => partnerConfigured,
+    partnerOwnsLifetime: async email => { partnerCalls.push(email); if (partnerFails) throw new Error('partner down'); return partnerLifetime; },
+  },
 };
 const providerFetch = async (_, init) => { providerCalls++; payload = JSON.parse(init.body); return checkoutResult; };
 const checkout = load('src/app/api/dodo/create-checkout/route.ts', checkoutImports, { fetch: providerFetch });
@@ -179,6 +184,52 @@ const post = body => checkout.POST({ json: async () => body, nextUrl: { origin: 
   reset(); license = fixture(200, { paid: true, tier: 'lifetime' }); upgradeUnset = true; assert.equal((await post({ tier: 'suite-upgrade' })).status, 500); assert.equal(providerCalls, 0);
   reset(); license = fixture(200, { paid: true, tier: 'lifetime' }); assert.equal((await post({ tier: 'suite-upgrade', quantity: 2 })).status, 400);
   reset(); license = fixture(200, { paid: true, tier: 'lifetime' }); assert.equal((await post({ productId: 'product-upgrade' })).status, 400); assert.equal(providerCalls, 0);
+  // ─── Owning the OTHER app (Tables Lifetime) — learned from the Tables backend by verified email ───
+  reset(); license = fixture(200, { paid: true, tier: 'lifetime' }); partnerLifetime = true;
+  const bothOwned = await post({ tier: 'suite-upgrade' });
+  assert.equal(bothOwned.status, 409); assert.equal(bothOwned.data.code, 'already_owned'); assert.equal(bothOwned.data.manageUrl, '/suite'); assert.equal(providerCalls, 0);
+  assert.deepEqual(partnerCalls, ['Owner@example.com'], 'asked with the verified Clerk email');
+  for (const plan of [undefined, { paid: true, tier: 'monthly', subscriptionStatus: 'active' }, { paid: true, tier: 'team' }]) {
+    for (const tier of ['suite', 'suite-upgrade']) {
+      reset(); if (plan) license = fixture(200, plan); partnerLifetime = true;
+      const sent = await post({ tier });
+      assert.equal(sent.status, 409, `${tier} ${JSON.stringify(plan)}`); assert.equal(sent.data.code, 'partner_owned');
+      assert.equal(sent.data.manageUrl, 'https://tables.serverlesscreed.com/buy?tier=suite-upgrade'); assert.match(sent.data.cta, /\$49/); assert.equal(providerCalls, 0);
+    }
+  }
+  for (const tier of ['suite', 'suite-upgrade']) {
+    reset(); license = fixture(200, { paid: true, tier: 'lifetime' }); partnerFails = true;
+    assert.equal((await post({ tier })).status, 503, `${tier} fails closed when Tables cannot answer`); assert.equal(providerCalls, 0);
+  }
+  reset(); partnerLifetime = true; assert.equal((await post({ tier: 'lifetime' })).status, 200); assert.deepEqual(partnerCalls, [], 'never asked for Buckets-only plans');
+  reset(); license = fixture(200, { paid: true, tier: 'lifetime' }); partnerConfigured = false; partnerFails = true;
+  assert.equal((await post({ tier: 'suite-upgrade' })).status, 200, 'skipped where unconfigured (local dev)'); assert.deepEqual(partnerCalls, []);
+  reset(); assert.equal((await post({ tier: 'suite' })).status, 200, 'no Tables Lifetime: the Suite sells as before');
+  // A Buckets Lifetime owner who ALSO owns a Buckets Team keeps the $49 upgrade (it sells Tables)...
+  const ownedTeam = fixture(200, { ownerEmail: 'Owner@example.com', ownerClerkId: 'owner', subscriptionId: 'team-sub', subscriptionStatus: 'active' });
+  reset(); license = fixture(200, { paid: true, tier: 'lifetime' }); team = ownedTeam;
+  assert.equal((await post({ tier: 'suite-upgrade' })).status, 200, 'Lifetime + Team owner may add Tables for $49'); assert.equal(providerCalls, 1);
+  // ...while every other purchase still stops at the owned team.
+  reset(); license = fixture(200, { paid: true, tier: 'lifetime' }); team = ownedTeam;
+  assert.equal((await post({ tier: 'team', seats: 3 })).status, 409); assert.equal(providerCalls, 0);
+  reset(); team = ownedTeam; assert.equal((await post({ tier: 'suite' })).status, 409); assert.equal(providerCalls, 0);
+  // ─── Suite page state across both apps ───
+  assert.equal(options.SUITE_PARTNER_UPGRADE_URL, suiteOffer.SUITE_PARTNER.upgradeUrl);
+  const yes = { partnerLifetime: true, viaSuite: false }, no = { partnerLifetime: false, viaSuite: false }, unknown = { partnerLifetime: null, viaSuite: false };
+  assert.equal(options.suiteStateFor('none', null), 'public');
+  assert.equal(options.suiteStateFor('none', no), 'public');
+  assert.equal(options.suiteStateFor('monthly', no), 'subscriber');
+  assert.equal(options.suiteStateFor('yearly', unknown), 'subscriber');
+  assert.equal(options.suiteStateFor('team', no), 'team');
+  assert.equal(options.suiteStateFor('lifetime', no), 'upgrade-here');
+  assert.equal(options.suiteStateFor('early', unknown), 'upgrade-here', 'unknown partner never claims ownership');
+  assert.equal(options.suiteStateFor('lifetime', yes), 'owned');
+  assert.equal(options.suiteStateFor('early', yes), 'owned');
+  for (const current of ['none', 'monthly', 'yearly', 'team']) assert.equal(options.suiteStateFor(current, yes), 'upgrade-there');
+  assert.equal(options.suiteStateFor('lifetime', { partnerLifetime: null, viaSuite: true }), 'owned', 'Suite grant implies Tables when the lookup is down');
+  assert.equal(options.suiteStateFor('lifetime', { partnerLifetime: false, viaSuite: true }), 'upgrade-here', 'a live no wins');
+  for (const target of ['monthly', 'yearly', 'lifetime', 'team']) assert.equal(options.suitePartnerBlock('lifetime', target, true), null);
+  assert.equal(options.suitePartnerBlock('lifetime', 'suite', false), null);
   // Team portal must select the team customer even when its owner keeps a
   // separate personal Lifetime customer; members cannot open owner billing.
   let portalUrl;

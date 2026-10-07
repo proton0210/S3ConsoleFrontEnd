@@ -87,6 +87,7 @@ const route = () => load('src/app/api/dodo/create-checkout/route.ts',{
   '@/lib/maintenance':{isMaintenanceMode:()=>false},'@/lib/plan-options':policy,
   '@/lib/suite-offer':load('src/lib/suite-offer.ts',{}),
   '@/lib/license-api':{getLicenseForAccount:async()=>license,getTeamByOwner:async()=>team},
+  '@/lib/partner-license':{partnerLookupConfigured:()=>false,partnerOwnsLifetime:async()=>false},
 });
 const req={json:async()=>({tier:'lifetime'}),nextUrl:{origin:'https://buckets.example'}};
 const pair=await Promise.all([route().POST(req),route().POST(req)]);

@@ -21,6 +21,7 @@ import {
   checkoutBlockedHref,
   checkoutBlockedMessage,
   currentPlanFromLicense,
+  suitePartnerBlock,
   TEAM_URL,
   type CheckoutTarget,
 } from "@/lib/plan-options";
@@ -35,6 +36,7 @@ import {
   SUITE_UPGRADE_RETURN_PARAM,
   SUITE_UPGRADE_TARGET_APP,
 } from "@/lib/suite-offer";
+import { partnerLookupConfigured, partnerOwnsLifetime } from "@/lib/partner-license";
 
 type CreateCheckoutBody = {
   /** New tier-based flow (preferred). */
@@ -246,6 +248,24 @@ export async function POST(req: NextRequest) {
       // No row at all is "none": every plan may be bought, except the Suite
       // upgrade, which is priced for existing Buckets Lifetime owners.
       const current = licenseResponse.ok ? currentPlanFromLicense(license) : "none";
+      // The Suite and the Suite upgrade both sell a Tables Lifetime. Ask the
+      // Tables backend first: someone who already owns it would pay for it
+      // again (the Tables webhook keeps their original purchase). Fails closed
+      // — a failed lookup throws into the 503 below, never a $49 charge for
+      // nothing. Skipped only where unconfigured (local dev; validate-env
+      // requires it for every hosted build).
+      if ((isSuite || isSuiteUpgrade) && partnerLookupConfigured()) {
+        const partnerBlock = suitePartnerBlock(current, policyTarget!, await partnerOwnsLifetime(clerkEmail));
+        if (partnerBlock) {
+          return NextResponse.json({
+            error: partnerBlock.message,
+            code: partnerBlock.code,
+            currentPlan: current,
+            manageUrl: partnerBlock.href,
+            cta: partnerBlock.cta,
+          }, { status: 409 });
+        }
+      }
       if (!checkoutAllowed(current, policyTarget!)) {
         return NextResponse.json({
           error: checkoutBlockedMessage(current, policyTarget!),
@@ -260,7 +280,10 @@ export async function POST(req: NextRequest) {
       if (teamResponse.ok && team.ownerClerkId && team.ownerClerkId !== userId) {
         return NextResponse.json({ error: "Team does not belong to authenticated user." }, { status: 403 });
       }
-      if (teamResponse.ok && team.subscriptionId &&
+      // The Suite upgrade sells a TABLES Lifetime to someone whose personal
+      // Buckets Lifetime was verified above; owning a Buckets Team as well
+      // does not change that, so only other purchases stop at an owned team.
+      if (!isSuiteUpgrade && teamResponse.ok && team.subscriptionId &&
         !["canceled", "cancelled", "expired", "failed"].includes(team.subscriptionStatus)) {
         return NextResponse.json({ error: "Your account already owns a Team subscription. Manage it from your Team page.", manageUrl: TEAM_URL }, { status: 409 });
       }
