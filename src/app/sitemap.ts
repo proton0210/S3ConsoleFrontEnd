@@ -1,4 +1,5 @@
 import { getBlogPosts } from "@/lib/blog";
+import { allDocsPages } from "@/lib/docs";
 import { MetadataRoute } from "next";
 
 /**
@@ -64,6 +65,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly",
       priority: 0.85,
     },
+
+    // Documentation (generated from the desktop app's in-app docs)
+    {
+      url: `${baseUrl}/docs`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    ...allDocsPages().map((page) => ({
+      url: `${baseUrl}/docs/${page.id}`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    })),
 
     // Blog
     {

@@ -1,330 +1,259 @@
-# Serverless Buckets - Feature Reference
-
-A powerful cross-platform desktop S3 client built with React and the AWS SDK v3.
-
----
-
-## 🔐 Authentication & Profiles
-
-| Feature                           | Description                                              |
-| --------------------------------- | -------------------------------------------------------- |
-| **AWS Access Keys**               | Manual entry or select from `~/.aws/credentials`         |
-| **AWS Session Token**             | Support for temporary credentials (STS) and manual entry |
-| **AWS SSO / IAM Identity Center** | Full OAuth device authorization flow                     |
-| **Multi-Profile Support**         | Create, switch, and manage multiple AWS profiles         |
-| **Session Credentials**           | Automatic token refresh for SSO sessions                 |
-| **License System**                | 7-day trial, license key activation                      |
-
----
-
-## 📦 Bucket Operations
-
-### Core
-
-- List all S3 buckets (with refresh)
-- Create bucket with advanced configuration
-- Empty bucket (bulk delete all objects)
-- Delete bucket (with optional force-empty)
-
-### Create Bucket Options
-
-| Option                 | Description                                      |
-| ---------------------- | ------------------------------------------------ |
-| Region                 | All AWS regions (excluding China)                |
-| Versioning             | Enable/disable object versioning                 |
-| Block Public Access    | 4 granular public access settings                |
-| Encryption             | None, SSE-S3, or SSE-KMS (with custom key ARN)   |
-| Object Lock            | WORM compliance (permanent, requires versioning) |
-| Static Website Hosting | Index document, error document, auto-policy      |
-
-### Bucket Insights
-
-- **Cost Estimation** - Real-time monthly storage cost calculation based on Standard tier pricing
-
----
-
-## 📁 Object Management
-
-### Browsing
-
-- Paginated object listing (100/page with next/prev)
-- Folder navigation with breadcrumbs
-- "Up" button for parent directory
-- Sort by name, size, last modified
-
-### Actions
-
-| Action            | Description                                 |
-| ----------------- | ------------------------------------------- |
-| **Upload**        | Files & folders via button or drag-and-drop |
-| **Download**      | Single file with save dialog                |
-| **Delete**        | Single object or batch deletion             |
-| **Delete Folder** | Recursive deletion of all contents          |
-| **Create Folder** | New folder in current path                  |
-| **Copy Object**   | Within same bucket (multipart for >5GB)     |
-| **Preview**       | Inline preview for images & text            |
-| **Copy ARN**      | Copy object ARN to clipboard                |
-
-### Upload Features
-
-- Progress tracking per file
-- Cancel individual or all uploads
-- Retry failed uploads
-- Resume pending uploads on restart
-- Background upload processing
-
----
-
-## 🔗 Sharing & URLs
-
-| Feature              | Description                                            |
-| -------------------- | ------------------------------------------------------ |
-| **Presigned URLs**   | Generate time-limited shareable links (1 min - 7 days) |
-| **Copy Website URL** | One-click copy for static website hosted buckets       |
-
----
-
-## 🔒 Access Control
-
-Unified modal with 5 tabs for comprehensive access management:
-
-### 1. ACL (Access Control Lists)
-
-- **Canned ACLs**: private, public-read, public-read-write, authenticated-read, etc.
-- **Custom ACL**: Granular grants with:
-  - Canonical User ID
-  - Email address
-  - Group URIs (AllUsers, AuthenticatedUsers, LogDelivery)
-- Permissions: READ, WRITE, READ_ACP, WRITE_ACP, FULL_CONTROL
-
-### 2. Bucket Policy
-
-- JSON editor with syntax highlighting
-- **Templates included**:
-  - Public Read Access
-  - Restricted IP Access
-  - CloudFront OAI Access
-  - Cross-Account Access
-  - Enforce HTTPS
-  - VPC Endpoint Access
-- Format JSON button
-- Create, update, delete policies
-
-### 3. IAM Policy Generator
-
-- Generate IAM policies for external use
-- **Templates included**:
-  - Read-Only Access
-  - Read-Write Access
-  - Full Admin Access
-  - List Only
-  - Upload Only
-  - Delete Deny
-- Copy to clipboard for IAM console
-
-### 4. Public Access Block
-
-| Setting                   | Description                        |
-| ------------------------- | ---------------------------------- |
-| Block new public ACLs     | Prevent new public ACL creation    |
-| Ignore public ACLs        | Ignore all existing public ACLs    |
-| Block new public policies | Prevent public bucket policies     |
-| Restrict public buckets   | Ignore public/cross-account access |
-
-### 5. CORS Configuration
-
-- JSON editor for CORS rules
-- Create, update, delete CORS config
-- Syntax validation
-
----
-
-## 📊 Storage Class
-
-- View current storage class per bucket
-- Modify storage class (Standard, Intelligent-Tiering, Glacier, etc.)
-
----
-
-## 💻 Code Generation
-
-Generate ready-to-use code in **TypeScript**, **JavaScript**, and **Python**.
-
-### Supported Operations
-
-| Operation            | Description                       |
-| -------------------- | --------------------------------- |
-| `listBucketObjects`  | List objects with optional prefix |
-| `getObject`          | Download object to file           |
-| `putObject`          | Upload file to S3                 |
-| `deleteObject`       | Delete single or multiple objects |
-| `copyObject`         | Copy between locations            |
-| `getObjectUrl`       | Generate presigned URL            |
-| `createBucket`       | Create new bucket                 |
-| `deleteBucket`       | Delete bucket (with empty helper) |
-| `getBucketPolicy`    | Retrieve bucket policy            |
-| `putBucketPolicy`    | Set/update bucket policy          |
-| `deleteBucketPolicy` | Remove bucket policy              |
-
-### Code Execution
-
-- Execute TypeScript/JavaScript/Python snippets directly
-- AWS credentials auto-injected
-- Console output captured
-
----
-
-## 🖥️ AWS CLI Integration
-
-Generate and execute AWS CLI commands.
-
-### Supported Commands
-
-| Command                           | Description             |
-| --------------------------------- | ----------------------- |
-| `aws s3 ls`                       | List buckets or objects |
-| `aws s3 cp`                       | Upload/download files   |
-| `aws s3 rm`                       | Delete objects          |
-| `aws s3 sync`                     | Sync directories        |
-| `aws s3 mb`                       | Create bucket           |
-| `aws s3 rb`                       | Delete bucket           |
-| `aws s3 presign`                  | Generate presigned URL  |
-| `aws s3api head-object`           | Get object metadata     |
-| `aws s3api list-object-versions`  | List versions           |
-| `aws s3api put-bucket-versioning` | Set versioning          |
-| `aws s3api get-bucket-location`   | Get bucket region       |
-
-### Execution
-
-- Run CLI commands with credentials injected as environment variables
-- Output captured and displayed
-
----
-
-## 🌐 CloudFront Integration
-
-| Feature                 | Description                       |
-| ----------------------- | --------------------------------- |
-| **List Distributions**  | View all CloudFront distributions |
-| **Create Distribution** | Create with S3 bucket origin      |
-| **Update Distribution** | Modify configuration              |
-| **Delete Distribution** | Remove distribution               |
-| **Invalidate Cache**    | Create invalidation for paths     |
-
----
-
-## 🎨 User Interface
-
-| Feature               | Description                           |
-| --------------------- | ------------------------------------- |
-| Dark/Light Theme      | Toggle with system preference support |
-| Collapsible Sidebar   | Expand/collapse bucket list           |
-| Breadcrumb Navigation | Click-to-navigate path segments       |
-| Toast Notifications   | Success, error, info feedback         |
-| Loading Skeletons     | Graceful loading states               |
-| Keyboard Accessible   | Tab navigation, Enter/Space actions   |
-| Tooltips              | Contextual help throughout            |
-
----
-
-## 🔄 Auto-Update
-
-- Automatic update check on startup
-- Download progress indicator
-- "Quit & Install" prompt when ready
-- GitHub Releases integration
-
----
-
-## 📧 Support
-
-- In-app support email form
-- Attach files/screenshots
-- Direct email to support team
-
----
-
-## 🔐 Security
-
-| Feature                | Description                                       |
-| ---------------------- | ------------------------------------------------- |
-| Secure Storage         | Credentials stored in encrypted local application storage |
-| Machine ID Binding     | License tied to hardware fingerprint              |
-| Clock Tamper Detection | Prevents trial manipulation                       |
-| Credential Validation  | Auto-detect invalid/expired credentials           |
-| Context Isolation      | Secure IPC between main/renderer                  |
-
----
-
-## 📱 Platform Support
-
-| Platform    | Formats                         |
-| ----------- | ------------------------------- |
-| **macOS**   | DMG, ZIP (Universal, notarized) |
-| **Windows** | Microsoft Store MSIX            |
-| **Linux**   | AppImage, DEB, RPM, ZIP         |
-
----
-
-## 📂 File Preview
-
-### Supported Preview Types
-
-| Type   | Extensions                                  |
-| ------ | ------------------------------------------- |
-| Images | PNG, JPG, JPEG, GIF, WebP, AVIF, BMP, SVG   |
-| Text   | TXT, JSON, XML, HTML, CSS, JS, TS, MD, etc. |
-
-### Preview Features
-
-- Metadata display (size, MIME, lastModified, ETag)
-- Human-readable file sizes
-- Text truncation for large files (2000 chars)
-- Download from preview modal
-- Share (presign) from preview modal
-- Copy ARN from preview modal
-
----
-
-## 🛠️ Tech Stack
-
-- **Cross-platform desktop runtime**
-- **React** 19.x
-- **TypeScript** 5.x
-- **AWS SDK v3** (S3, STS, SSO, CloudFront, CloudWatch, DynamoDB)
-- **TanStack Query** (React Query)
-- **Zustand** (State management)
-- **Tailwind CSS** + **shadcn/ui**
-- **Vite** (Renderer bundling)
-
----
-
-## 📁 Project Structure
-
-```
-s3Console/
-├── packages/
-│   ├── main/           # Desktop application process
-│   │   └── src/
-│   │       ├── index.ts              # Main entry, IPC handlers
-│   │       ├── preload.ts            # Context bridge API
-│   │       ├── ssoAuth.ts            # SSO authentication
-│   │       ├── cloudFrontService.ts  # CloudFront operations
-│   │       ├── codeExecutorService.ts # Code execution
-│   │       ├── licenseService.ts     # License management
-│   │       └── ...
-│   └── renderer/       # React frontend
-│       └── src/
-│           ├── components/           # UI components
-│           ├── hooks/                # React Query hooks
-│           ├── store/                # Zustand stores
-│           └── lib/                  # Utilities, templates
-├── scripts/            # Build scripts
-└── package.json        # Root package
-```
-
----
-
-## Version
-
-Current: **2.0.5**
+<!-- GENERATED FILE — do not edit. Source: s3Console/packages/renderer/src/lib/commandRegistry.ts. Regenerate with `npm run docs:generate` in s3Console. -->
+
+# Buckets — Feature Reference (website)
+
+App version 2.7.55. This list is generated from the app's command registry, so it always matches what ships. Every feature links to its page under [/docs](https://buckets.serverlesscreed.com/docs).
+
+## Workspaces
+
+- **Home** — Workspaces · [docs](/docs/workspace-modes)
+- **Browse** — Workspaces · [docs](/docs/workspace-modes)
+- **Operate** — Workspaces · [docs](/docs/workspace-modes)
+- **Build** — Workspaces · [docs](/docs/workspace-modes)
+- **CloudFront** — Workspaces · [docs](/docs/viewing-distributions)
+- **Documentation** — Workspaces · [docs](/docs/introduction)
+- **Legal** — Workspaces · [docs](/docs/legal-documents)
+
+## Browse
+
+- **Upload files** — Browse › Upload · [docs](/docs/uploading)
+- **Upload folders** — Browse › Upload · [docs](/docs/uploading)
+- **Upload from URL** — Browse › Upload · [docs](/docs/upload-from-url)
+- **New folder** — Browse · [docs](/docs/creating-folder)
+- **Search in this bucket** — Browse › Breadcrumbs · [docs](/docs/in-bucket-search)
+- **Filter objects on this page** — Browse › Filter bar · [docs](/docs/object-filter)
+- **Refresh object list** — Browse · [docs](/docs/browsing-objects)
+- **Go to parent folder** — Browse · [docs](/docs/browsing-objects)
+- **Share a deep link to this location** — Browse › More › Bucket · [docs](/docs/deep-links)
+- **Copy static website URL** — Browse › More › Transfer · [docs](/docs/static-website)
+- **Toggle Inspector pane** — Browse › Inspector · [docs](/docs/split-pane-inspector)
+- **Cycle Inspector permissions tab** — Browse › Inspector › Permissions · [docs](/docs/split-pane-inspector)
+- **Inspector Permissions Editor** — Browse › More › Bucket · [docs](/docs/split-pane-inspector)
+- **Edit ACL** — Browse › Inspector › Permissions · [docs](/docs/split-pane-inspector)
+- **Edit Bucket Policy** — Browse › Inspector › Permissions · [docs](/docs/split-pane-inspector)
+- **Edit Public Access Block** — Browse › Inspector › Permissions · [docs](/docs/split-pane-inspector)
+- **Edit CORS** — Browse › Inspector › Permissions · [docs](/docs/split-pane-inspector)
+
+## Object
+
+- **Preview object** — Object · [docs](/docs/previewing)
+- **Download object** — Object · [docs](/docs/downloading)
+- **Copy s3:// URI** — Object › Inspector · [docs](/docs/split-pane-inspector)
+- **Copy ARN** — Object › Inspector · [docs](/docs/split-pane-inspector)
+- **Generate presigned URL** — Object › Preview · [docs](/docs/presigned-urls)
+- **Edit object tags** — Object › More actions · [docs](/docs/object-tagging)
+- **Edit object metadata** — Object › More actions · [docs](/docs/object-metadata)
+- **View object versions** — Object › More actions · [docs](/docs/bucket-versioning)
+- **Rename object** — Object › More actions · [docs](/docs/renaming-objects)
+- **Query object with S3 Select** — Object › More actions · [docs](/docs/s3-select)
+- **Generate code for object** — Object › More actions · [docs](/docs/code-generation)
+- **Transfer object to another bucket or profile** — Object › More actions · [docs](/docs/cross-profile-transfer)
+- **Restore object from Glacier** — Object › More actions · [docs](/docs/glacier-restore)
+- **Delete object** — Object · [docs](/docs/deleting-objects)
+
+## Selection
+
+- **Select all objects on this page** — Browse › Selection · [docs](/docs/bulk-object-actions)
+- **Clear selection** — Browse › Selection · [docs](/docs/bulk-object-actions)
+- **Download selection as ZIP** — Browse › Selection · [docs](/docs/bulk-object-actions)
+- **Bulk tag selection** — Browse › Selection · [docs](/docs/bulk-object-actions)
+- **Edit metadata & Object Lock for selection** — Browse › Selection · [docs](/docs/bulk-object-actions)
+- **Transfer selection** — Browse › Selection · [docs](/docs/cross-profile-transfer)
+- **Restore selection from Glacier** — Browse › Selection · [docs](/docs/glacier-restore)
+- **Delete selection** — Browse › Selection · [docs](/docs/deleting-objects)
+
+## Bucket
+
+- **Create bucket** — Sidebar · [docs](/docs/creating-bucket)
+- **Refresh bucket list** — Sidebar · [docs](/docs/viewing-buckets)
+- **Toggle All Accounts bucket view** — Sidebar · [docs](/docs/all-accounts-view)
+- **Bucket properties** — Sidebar › Bucket menu · [docs](/docs/bucket-properties)
+- **Bucket cost estimate** — Sidebar › Bucket menu · [docs](/docs/bucket-cost)
+- **Execute code against bucket** — Sidebar › Bucket menu · [docs](/docs/code-execution)
+- **Incomplete multipart uploads** — Sidebar › Bucket menu · [docs](/docs/multipart-management)
+- **Storage Class** — Sidebar › Bucket menu › Storage Class · [docs](/docs/storage-class)
+- **Bulk storage-class transition** — Sidebar › Bucket menu › Storage Class · [docs](/docs/storage-class)
+- **Empty bucket** — Sidebar › Bucket menu · [docs](/docs/emptying-bucket)
+- **Delete bucket** — Sidebar › Bucket menu · [docs](/docs/deleting-bucket)
+- **Generate code for this prefix** — Browse › More › Tools · [docs](/docs/code-generation)
+- **Code generation setup** — Browse › More › Tools › Generate code · [docs](/docs/code-generation)
+
+## Bucket settings
+
+- **Versioning** — Browse › More › Settings · [docs](/docs/bucket-versioning)
+- **Lifecycle rules** — Browse › More › Settings · [docs](/docs/lifecycle-rules)
+- **Event notifications** — Browse › More › Settings · [docs](/docs/event-notifications)
+- **Replication** — Browse › More › Settings · [docs](/docs/replication-rules)
+- **S3 Inventory** — Browse › More › Settings · [docs](/docs/inventory-config)
+- **Local index** — Browse › More › Settings · [docs](/docs/local-inventory-index)
+- **Metrics** — Browse › More › Settings · [docs](/docs/metrics-analytics)
+- **Costs & Cost Autopilot** — Browse › More › Settings · [docs](/docs/cost-autopilot)
+
+## Access control
+
+- **ACL** — Sidebar › Bucket menu › Access Control · [docs](/docs/bucket-acl)
+- **Bucket policy** — Sidebar › Bucket menu › Access Control · [docs](/docs/bucket-policy)
+- **IAM policy generator** — Sidebar › Bucket menu › Access Control · [docs](/docs/iam-policy-generator)
+- **Public Access Block** — Sidebar › Bucket menu › Access Control · [docs](/docs/public-access-block)
+- **CORS** — Sidebar › Bucket menu › Access Control · [docs](/docs/cors-config)
+
+## Advanced bucket features
+
+- **Transfer Acceleration** — Browse › More › Tools › Advanced features · [docs](/docs/transfer-acceleration)
+- **Requester Pays** — Browse › More › Tools › Advanced features · [docs](/docs/requester-pays)
+- **Multipart uploads** — Browse › More › Tools › Advanced features · [docs](/docs/multipart-management)
+- **Bucket tags** — Browse › More › Tools › Advanced features · [docs](/docs/bucket-tagging)
+- **Server access logging** — Browse › More › Tools › Advanced features · [docs](/docs/server-access-logging)
+- **Object Lock** — Browse › More › Tools › Advanced features · [docs](/docs/object-lock)
+- **Intelligent-Tiering** — Browse › More › Tools › Advanced features · [docs](/docs/intelligent-tiering)
+- **Access Points** — Browse › More › Tools › Advanced features · [docs](/docs/access-points)
+- **Batch Operations** — Browse › More › Tools › Advanced features · [docs](/docs/batch-operations)
+- **Saved accounts** — Browse › More › Tools › Advanced features · [docs](/docs/saved-accounts-panel)
+
+## Developer tools
+
+- **Developer tools launcher** — Browse › More › Tools · [docs](/docs/developer-tools-launcher)
+- **Object diff** — Browse › More › Tools › Developer tools › Diff Tool · [docs](/docs/s3-diff)
+- **Bucket diff** — Browse › More › Tools › Developer tools › Diff Tool · [docs](/docs/s3-diff)
+- **Lambda Builder** — Browse › More › Tools › Developer tools · [docs](/docs/lambda-builder)
+- **Two-Pane Compare & Sync** — Browse › More › Tools › Developer tools · [docs](/docs/cross-bucket-ops)
+- **S3 URI Builder** — Browse › More › Tools › Developer tools · [docs](/docs/s3-uri-builder)
+- **Lambda triggers** — Browse › More › Tools · [docs](/docs/trigger-management)
+- **AWS CDK (TypeScript)** — Browse › More › Tools › Export infrastructure · [docs](/docs/iac-export)
+- **AWS CDK (Python)** — Browse › More › Tools › Export infrastructure · [docs](/docs/iac-export)
+- **CloudFormation** — Browse › More › Tools › Export infrastructure · [docs](/docs/iac-export)
+- **AWS SAM** — Browse › More › Tools › Export infrastructure · [docs](/docs/iac-export)
+- **Terraform** — Browse › More › Tools › Export infrastructure · [docs](/docs/iac-export)
+- **AWS CLI console** — Top bar › More · [docs](/docs/cli-integration)
+
+## Transfer & sync
+
+- **Folder Sync** — Sidebar › Footer · [docs](/docs/folder-sync-overview)
+- **Transfer this prefix to another bucket or profile** — Browse › More › Transfer · [docs](/docs/cross-profile-transfer)
+- **Transfer Center** — Browse › More › Transfer · [docs](/docs/cross-profile-transfer)
+- **Migrate bucket to another profile** — Browse › More › Transfer · [docs](/docs/cross-profile-transfer)
+- **Compare & sync relationships** — Browse › More › Transfer › Compare & sync · [docs](/docs/cross-profile-transfer)
+- **New compare & sync** — Browse › More › Transfer › Compare & sync · [docs](/docs/cross-profile-transfer)
+- **Compare & sync run history** — Browse › More › Transfer › Compare & sync · [docs](/docs/cross-profile-transfer)
+- **Drop Zones** — Browse › More › Bucket › Drop Zones · [docs](/docs/secure-sharing-upload-requests)
+- **New Drop Zone upload request** — Browse › More › Bucket › Drop Zones · [docs](/docs/secure-sharing-upload-requests)
+- **Virtual drive** — Browse › More › Bucket · [docs](/docs/optional-virtual-drive)
+- **Connect S3-compatible storage** — Home › Quick actions · [docs](/docs/s3-compatible-connections)
+- **SFTP / WebDAV / FTPS mounts** — Home › Quick actions · [docs](/docs/external-protocols)
+
+## Security & audit
+
+- **Security Scanner** — Browse › More › Bucket · [docs](/docs/security-scanner)
+- **CloudTrail events** — Browse › More › Bucket › AWS audit evidence · [docs](/docs/aws-audit-evidence)
+- **Access Analyzer findings** — Browse › More › Bucket › AWS audit evidence · [docs](/docs/aws-audit-evidence)
+- **Organization Lens** — Browse › More › Bucket › AWS audit evidence · [docs](/docs/aws-audit-evidence)
+- **Time Travel** — Browse › More › Bucket · [docs](/docs/s3-time-machine)
+- **Encrypted vault** — Browse › More › Bucket · [docs](/docs/client-side-encrypted-vaults)
+- **Private content search** — Browse › More › Bucket · [docs](/docs/private-content-search)
+
+## Analytics
+
+- **Athena Workbench** — Browse › More › Tools › Athena query · [docs](/docs/athena-workbench)
+- **Athena Glue catalog** — Browse › More › Tools › Athena query · [docs](/docs/athena-workbench)
+- **Athena setup** — Browse › More › Tools › Athena query · [docs](/docs/athena-workbench)
+- **Inventory index search** — Browse › More › Tools · [docs](/docs/local-inventory-index)
+- **Glacier Restore** — Browse › More › Bucket · [docs](/docs/glacier-restore)
+- **Storage Lens** — Top bar › More · [docs](/docs/storage-lens)
+- **Search across buckets** — Top bar · [docs](/docs/global-search)
+
+## Operate
+
+- **Operate overview** — Operate · [docs](/docs/workspace-modes)
+- **Guardrails workbench** — Operate · [docs](/docs/powerhouse-guardrails)
+- **Speed workbench** — Operate · [docs](/docs/powerhouse-speed)
+- **Safe workflow recipes** — Operate · [docs](/docs/safe-workflow-recipes)
+- **Recipe: Make a bucket recoverable** — Operate › Recipes · [docs](/docs/safe-workflow-recipes)
+- **Recipe: Lower storage cost safely** — Operate › Recipes · [docs](/docs/safe-workflow-recipes)
+- **Recipe: Collect files from an external partner** — Operate › Recipes · [docs](/docs/safe-workflow-recipes)
+- **Recipe: Publish a private-origin website** — Operate › Recipes · [docs](/docs/safe-workflow-recipes)
+- **Team Access Hub** — Operate › Overview · [docs](/docs/team-access-hub)
+- **S3 Access Grants** — Operate › Overview · [docs](/docs/s3-access-grants)
+- **Directory buckets & Multi-Region Access Points** — Operate › Overview · [docs](/docs/storage-topology)
+- **Automation Command Center** — Operate › Overview · [docs](/docs/automation-command-center)
+- **Shareable deep links** — Operate › Speed · [docs](/docs/powerhouse-speed)
+- **Large-bucket latency budget** — Operate › Speed · [docs](/docs/powerhouse-speed)
+- **Transfer engine & bandwidth presets** — Operate › Speed · [docs](/docs/powerhouse-speed)
+- **Command palette depth** — Operate › Speed · [docs](/docs/command-palette)
+- **Security Control Center** — Operate › Guardrails · [docs](/docs/security-control-center)
+- **Manage profile read-only mode** — Operate › Guardrails · [docs](/docs/powerhouse-guardrails)
+- **Review destructive-operation diffs** — Operate › Guardrails · [docs](/docs/powerhouse-guardrails)
+- **Search and export the audit log** — Operate › Guardrails · [docs](/docs/powerhouse-guardrails)
+- **Restore a recent app mutation** — Operate › Guardrails · [docs](/docs/powerhouse-guardrails)
+- **Schedule a security scan** — Operate › Guardrails · [docs](/docs/powerhouse-guardrails)
+
+## Build
+
+- **Browse S3 Table buckets** — Build › Lakehouse · [docs](/docs/powerhouse-lakehouse)
+- **Make a prefix queryable** — Build › Lakehouse · [docs](/docs/powerhouse-lakehouse)
+- **Maintain an Iceberg table** — Build › Lakehouse · [docs](/docs/powerhouse-lakehouse)
+- **Browse table snapshots and time travel** — Build › Lakehouse · [docs](/docs/powerhouse-lakehouse)
+- **Inspect query cost and partition health** — Build › Lakehouse · [docs](/docs/powerhouse-lakehouse)
+- **Audit Glue catalog hygiene** — Build › Lakehouse · [docs](/docs/powerhouse-lakehouse)
+- **Deploy a static site** — Build › Publish · [docs](/docs/powerhouse-publish)
+- **Run incremental deploy and invalidation** — Build › Publish · [docs](/docs/powerhouse-publish)
+- **Manage signed URLs and cookies** — Build › Publish · [docs](/docs/powerhouse-publish)
+- **Edit CloudFront or Lambda@Edge functions** — Build › Publish · [docs](/docs/powerhouse-publish)
+- **Debug CloudFront cache behavior** — Build › Publish · [docs](/docs/powerhouse-publish)
+- **Manage deploy environments** — Build › Publish · [docs](/docs/powerhouse-publish)
+- **Browse vector buckets and indexes** — Build › AI retrieval · [docs](/docs/powerhouse-ai-retrieval)
+- **Run a similarity query** — Build › AI retrieval · [docs](/docs/powerhouse-ai-retrieval)
+- **Create a Knowledge Base from a prefix** — Build › AI retrieval · [docs](/docs/powerhouse-ai-retrieval)
+- **Monitor Knowledge Base ingestion** — Build › AI retrieval · [docs](/docs/powerhouse-ai-retrieval)
+- **Estimate vector retrieval cost** — Build › AI retrieval · [docs](/docs/powerhouse-ai-retrieval)
+- **View bucket event pipelines** — Build › Pipelines · [docs](/docs/powerhouse-pipelines)
+- **Test-fire an S3 event** — Build › Pipelines · [docs](/docs/powerhouse-pipelines)
+- **Create from a pipeline template** — Build › Pipelines · [docs](/docs/powerhouse-pipelines)
+- **Explain a CloudFront cache miss** — Build › Publish · [docs](/docs/powerhouse-publish)
+- **Lakehouse** — Build · [docs](/docs/powerhouse-lakehouse)
+- **Publish** — Build · [docs](/docs/powerhouse-publish)
+- **AI retrieval** — Build · [docs](/docs/powerhouse-ai-retrieval)
+- **Pipelines** — Build · [docs](/docs/powerhouse-pipelines)
+
+## CloudFront
+
+- **Create CloudFront distribution** — CloudFront · [docs](/docs/creating-distribution)
+- **Origin Access Controls** — CloudFront · [docs](/docs/viewing-distributions)
+- **Refresh CloudFront distributions** — CloudFront · [docs](/docs/viewing-distributions)
+- **Create cache invalidation** — CloudFront › Distribution › Manage · [docs](/docs/managing-distributions)
+- **Enable or disable a distribution** — CloudFront › Distribution › Manage · [docs](/docs/managing-distributions)
+- **Distribution configuration & history** — CloudFront › Distribution › Manage · [docs](/docs/managing-distributions)
+- **CloudFront specialist controls** — CloudFront › Distribution › Manage · [docs](/docs/managing-distributions)
+- **Delete a distribution** — CloudFront › Distribution › Manage · [docs](/docs/managing-distributions)
+
+## Account
+
+- **Add access-key profile** — Top bar › Add profile · [docs](/docs/access-keys-auth)
+- **Add AWS SSO profile** — Top bar › Add profile · [docs](/docs/sso-auth)
+- **Browser CLI login (aws login)** — Top bar › Add profile · [docs](/docs/cli-auth)
+- **Profile & license** — Top bar › Profile menu · [docs](/docs/licensing)
+- **View pricing & upgrade** — Top bar › License · [docs](/docs/licensing)
+- **Billing & invoices** — Top bar › Profile menu · [docs](/docs/account-and-billing)
+- **Contact support** — Top bar › Profile menu · [docs](/docs/support)
+- **Log out** — Top bar › Profile menu · [docs](/docs/account-and-billing)
+
+## Preferences
+
+- **Theme: Light** — Top bar › Theme · [docs](/docs/themes)
+- **Theme: Dark** — Top bar › Theme · [docs](/docs/themes)
+- **Theme: Match system** — Top bar › Theme · [docs](/docs/themes)
+- **Language & region** — Top bar › More · [docs](/docs/language-settings)
+- **Language: English** — Top bar › More › Language · [docs](/docs/language-settings)
+- **Language: Hindi** — Top bar › More › Language · [docs](/docs/language-settings)
+- **Language: Spanish** — Top bar › More › Language · [docs](/docs/language-settings)
+- **Language: Japanese** — Top bar › More › Language · [docs](/docs/language-settings)
+- **Toggle sidebar** — Top bar · [docs](/docs/viewing-buckets)
+- **Clear recent objects & commands** — Command palette · [docs](/docs/command-palette)
+
+## Help
+
+- **How the command palette works** — Help · [docs](/docs/command-palette)
+- **Keyboard shortcuts** — Help · [docs](/docs/keyboard-shortcuts)
+- **How cost & permission reviews work** — Help · [docs](/docs/cost-permission-preflight)
+- **Terms & Conditions** — Top bar › Profile menu › Legal · [docs](/docs/legal-documents)
+- **Privacy Policy** — Top bar › Profile menu › Legal · [docs](/docs/legal-documents)
+- **End-User License Agreement** — Top bar › Profile menu › Legal · [docs](/docs/legal-documents)

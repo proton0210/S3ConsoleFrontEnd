@@ -16,6 +16,16 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
 
+## Product documentation (`/docs`)
+
+The `/docs` pages (`src/app/docs`) and `FEATURES.md` are generated from the desktop app's in-app documentation and command registry, so the website always matches the app:
+
+- Data: `src/content/docs/docs.generated.json` (read through `src/lib/docs.ts`)
+- Regenerate: run `npm run docs:generate` in `../s3Console` after changing the app's docs
+- Check: `npm run docs:check` in `../s3Console` fails if this copy is stale
+
+Do not edit the generated JSON or `FEATURES.md` by hand.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

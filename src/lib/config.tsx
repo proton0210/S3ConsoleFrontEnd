@@ -78,6 +78,10 @@ export const siteConfig = {
       label: "Suite",
     },
     {
+      href: "/docs",
+      label: "Docs",
+    },
+    {
       href: "/blog",
       label: "Blog",
     },
@@ -297,6 +301,7 @@ export const siteConfig = {
         { href: "/pricing", text: "Pricing", icon: null },
         { href: "/suite", text: "Tables + Buckets Suite", icon: null },
         { href: "/downloads", text: "Download", icon: null },
+        { href: "/docs", text: "Documentation", icon: null },
         { href: "/#faq", text: "FAQ", icon: null },
       ],
     },
