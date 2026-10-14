@@ -8,7 +8,7 @@
     "check:client-secrets": "node scripts/check-bundle-for-secrets.js",
     "check:payment-identity": "node scripts/check-payment-identity-contracts.js",
     "check:trust-center": "node scripts/check-trust-center-contracts.mjs",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "start": "next start",
     "lint": "eslint .",
     "validate-env": "node scripts/validate-env.js",
@@ -18,7 +18,10 @@
     "test:security": "node --test scripts/test-braces-security.mjs",
     "build:info": "node scripts/write-build-info.mjs",
     "test:build-info": "node --test scripts/test-build-info.mjs",
-    "test:invoices": "node --test scripts/test-invoice-access.cjs"
+    "test:invoices": "node --test scripts/test-invoice-access.cjs",
+    "security:dependencies": "npm audit --audit-level=high",
+    "verify:prebuild": "npm run security:dependencies && npm run test:security && npm run test:invoices && npm run test:build-info && npm run test:checkout && npm run test:billing-operations && npm run validate-env && npm run check:payment-identity && npm run check:trust-center && npm run typecheck",
+    "verify:deploy": "npm run verify:prebuild && npm run build && npm run check:client-secrets"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.1116.0",

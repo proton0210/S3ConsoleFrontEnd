@@ -4,7 +4,7 @@ on:
   push:
     branches: [main, master]
   schedule:
-    - cron: "31 3 * * 1"
+    - cron: "31 3 * * *"
 
 permissions:
   contents: read
@@ -36,17 +36,8 @@ jobs:
         with:
           node-version: "22"
           cache: npm
-      - run: npm ci
-      - run: npm run test:security
-      - run: npm run test:invoices
-      - run: npm run test:build-info
-      - run: npm run test:checkout
-      - run: npm audit --audit-level=high
-      - run: npm run check:payment-identity
-      - run: npm run check:trust-center
-      - run: npm run typecheck
-      - run: npm run build
-      - run: npm run check:client-secrets
+      - run: npm ci --legacy-peer-deps
+      - run: npm run verify:deploy
 
   codeql:
     runs-on: ubuntu-latest

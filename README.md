@@ -10,6 +10,27 @@ npm run dev
 
 This repository uses npm and `package-lock.json` as its single dependency lockfile.
 
+## Validate before pushing
+
+Use Node.js 22 and install the locked dependencies with `npm ci --legacy-peer-deps`.
+With the required environment variables in `.env.local`, run:
+
+```bash
+npm run verify:deploy
+```
+
+This runs the same prebuild checks as Amplify and GitHub CI, followed by the
+production build and client-bundle secret check. It includes the high-severity
+dependency audit, checkout and billing regressions, environment validation,
+content contracts, and freshly generated route types. Fix a failing check before
+pushing; keep the dependency audit enabled in production builds.
+
+GitHub CI also runs daily, since a newly published advisory can affect an
+unchanged lockfile. Dependabot checks npm updates daily and groups Next.js and
+its related packages into one update PR. Review and merge those PRs after CI
+passes; updates are not merged automatically. Amplify keeps the previous
+successful deployment serving if a new build fails.
+
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
