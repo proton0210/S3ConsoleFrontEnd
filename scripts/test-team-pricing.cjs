@@ -19,8 +19,11 @@ const RETIRED = 'pdt_old_team_99';
 const LIVE_TEAM = 'pdt_0Ngjrw1D8wTdKaMz9Xd6X';
 const KEYS = ['BUCKETS_DODO_PRODUCT_ID_TEAM', 'S3CONSOLE_DODO_PRODUCT_ID_TEAM', 'BUCKETS_DODO_LEGACY_PRODUCT_IDS_TEAM', 'S3CONSOLE_DODO_LEGACY_PRODUCT_IDS_TEAM', 'BUCKETS_DODO_PRODUCT_ID_YEARLY', 'BUCKETS_DODO_PRODUCT_ID_LIFETIME', 'S3CONSOLE_DODO_PRODUCT_ID_LIFETIME', 'SUITE_DODO_PRODUCT_ID_LIFETIME', 'SUITE_DODO_LEGACY_PRODUCT_IDS_LIFETIME', 'SUITE_UPGRADE_DODO_PRODUCT_ID_LIFETIME', 'SUITE_UPGRADE_DODO_LEGACY_PRODUCT_IDS_LIFETIME'];
 const saved = Object.fromEntries(KEYS.map(k => [k, process.env[k]]));
-for (const k of KEYS) delete process.env[k];
-beforeEach(() => { process.env.BUCKETS_DODO_LEGACY_PRODUCT_IDS_TEAM = RETIRED; });
+beforeEach(() => {
+  // CI supplies product IDs globally; each case needs its own empty fixture.
+  for (const k of KEYS) delete process.env[k];
+  process.env.BUCKETS_DODO_LEGACY_PRODUCT_IDS_TEAM = RETIRED;
+});
 afterEach(() => { for (const k of KEYS) { if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k]; } });
 
 test('displayed seat price matches Yearly and is per seat in cart value', () => {
