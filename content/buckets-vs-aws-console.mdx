@@ -1,0 +1,53 @@
+---
+title: "Buckets vs the AWS S3 Console: when a desktop client is worth it"
+publishedAt: "2026-10-13"
+lastModified: "2026-10-13"
+summary: "The AWS Management Console is free and gets new S3 features first. Here is an honest look at when the console is enough and when a desktop client like Buckets saves real effort. Verified 13 Oct 2026."
+author: "Buckets by ServerlessCreed Team"
+---
+
+> **Verified 13 Oct 2026.** This page is written by the team that makes Buckets. Buckets uses the same AWS APIs as the console. Your IAM policies, bucket policies, and AWS charges apply in exactly the same way.
+
+The Amazon S3 console is free and needs no installation. When AWS launches an S3 feature, it appears there first. AWS also offers Storage Browser for S3, a component that organizations can embed in their own web apps to give end users a browsing interface.
+
+Buckets is a paid desktop app. It gathers S3, CloudFront, and the surrounding AWS administration into one window, and adds workflows the console does not have.
+
+## At a glance
+
+| | Buckets | AWS Console |
+|---|---|---|
+| Price | 14-day trial, then $5/month, $49/year, $99 lifetime, or Team at $49/seat/year (3-seat minimum) | Free (AWS usage charges apply either way) |
+| Where it runs | Desktop app for macOS (Apple silicon), Windows (x64), and Linux (x64, arm64) | Any browser |
+| New S3 features | Added after AWS ships them | Available first |
+| Switching accounts | Saved profiles, IAM Identity Center with automatic refresh, and one-click switching in a multi-account dashboard | Sign in, switch roles, or use multi-session sign-in in the browser |
+| Transfers | Drag and drop folders to and from your computer, resumable multipart uploads, side-by-side copy between buckets and accounts, and Folder Sync | Browser uploads and downloads |
+| Cost before you click | Billable operations show an estimate and the permissions they need before they run | See the AWS pricing pages; charges appear in Billing |
+| Searching big buckets | A local index built from S3 Inventory, plus S3 Metadata tables, so repeat searches don't re-list the bucket | Prefix-based browsing in the console |
+| Recovery | Time Travel plans and applies a restore of a whole prefix to a point in time | Show versions, then act on the versions you select |
+| CloudFront | Publish a folder to a private bucket behind CloudFront with Origin Access Control, invalidate only what changed, sign URLs and cookies, test and publish Functions | Full CloudFront console |
+
+## Stay with the console if…
+
+- **You touch S3 occasionally.** A browser tab is enough, and it costs nothing.
+- **You need a feature AWS launched this week.** The console gets it first.
+- **You can't install software** on the machine you use, or your organization only allows browser access.
+- **You want one tool for every AWS service**, not just storage and delivery.
+
+## Add Buckets if…
+
+- **You work in S3 every day across several accounts or clients.** Switching between saved profiles and IAM Identity Center sessions takes one click, and sessions refresh themselves.
+- **You move real files.** Drag folders in and out. Large uploads resume after interruptions. You can copy between buckets in different accounts side by side.
+- **You want to know what an action costs first.** Examples include restores from archive storage, Batch Operations, and CloudFront invalidations (the first 1,000 paths each month are free).
+- **You need recovery that works on a whole prefix.** Time Travel rebuilds an earlier state from retained versions and delete markers, and shows you a plan before applying it. It works from the version history S3 kept: a plan covers up to 200,000 versions and delete markers, incomplete plans are refused, and permanently deleted versions cannot be brought back.
+- **You publish sites.** Deploy a local folder to a private bucket behind CloudFront in one reviewed step, and later syncs invalidate exactly the files that changed.
+
+## Privacy and access
+
+Buckets talks to AWS directly from your computer with your own credentials. ServerlessCreed never receives your AWS keys or file contents. The desktop app has no analytics or crash-reporting SDK. The [Trust Center](/trust) lists every connection it makes.
+
+## Sources
+
+- [What's new in Amazon S3](https://docs.aws.amazon.com/AmazonS3/latest/userguide/WhatsNew.html) and [CloudFront invalidation pricing](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/PayingForInvalidation.html), checked 13 Oct 2026
+- Buckets facts: [pricing](/pricing), [documentation](/docs), [Trust Center](/trust)
+
+[Download the 14-day trial](/downloads), connect the profile you already use with the AWS CLI, and keep the console open alongside it.

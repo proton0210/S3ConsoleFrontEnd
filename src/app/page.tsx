@@ -9,6 +9,7 @@ import Pricing from "@/components/sections/pricing";
 import Ribbon from "@/components/sections/ribbon";
 import Security from "@/components/sections/security";
 import Tour from "@/components/sections/tour";
+import WhatsNew from "@/components/sections/whats-new";
 import Workflow from "@/components/sections/workflow";
 import { MotionProvider } from "@/components/motion-provider";
 import { StructuredData } from "@/components/structured-data";
@@ -34,6 +35,7 @@ export default function Home() {
         <Hero />
         <Ribbon />
         <Tour />
+        <WhatsNew />
         <Features />
         <Workflow />
         <Capabilities />

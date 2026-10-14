@@ -2,7 +2,7 @@
 
 # Buckets — Feature Reference (website)
 
-App version 2.7.55. This list is generated from the app's command registry, so it always matches what ships. Every feature links to its page under [/docs](https://buckets.serverlesscreed.com/docs).
+App version 2.8.0. This list is generated from the app's command registry, so it always matches what ships. Every feature links to its page under [/docs](https://buckets.serverlesscreed.com/docs).
 
 ## Workspaces
 
@@ -33,6 +33,10 @@ App version 2.7.55. This list is generated from the app's command registry, so i
 - **Edit Bucket Policy** — Browse › Inspector › Permissions · [docs](/docs/split-pane-inspector)
 - **Edit Public Access Block** — Browse › Inspector › Permissions · [docs](/docs/split-pane-inspector)
 - **Edit CORS** — Browse › Inspector › Permissions · [docs](/docs/split-pane-inspector)
+- **Use continuous scrolling object list** — Browse › Object list · [docs](/docs/browse-performance)
+- **Use paged object list (100 per page)** — Browse › Object list · [docs](/docs/browse-performance)
+- **Load all objects in this folder** — Browse › Object list · [docs](/docs/browse-performance)
+- **How bucket search picks its source** — Browse › Breadcrumbs › Search · [docs](/docs/in-bucket-search)
 
 ## Object
 
@@ -50,10 +54,13 @@ App version 2.7.55. This list is generated from the app's command registry, so i
 - **Transfer object to another bucket or profile** — Object › More actions · [docs](/docs/cross-profile-transfer)
 - **Restore object from Glacier** — Object › More actions · [docs](/docs/glacier-restore)
 - **Delete object** — Object · [docs](/docs/deleting-objects)
+- **View and edit S3 annotations** — Object › Inspector › Annotations · [docs](/docs/s3-annotations)
+- **Query annotations in Athena** — Object › Inspector › Annotations · [docs](/docs/s3-annotations)
+- **Copy CloudFront URL** — Object › More actions · [docs](/docs/split-pane-inspector)
 
 ## Selection
 
-- **Select all objects on this page** — Browse › Selection · [docs](/docs/bulk-object-actions)
+- **Select all loaded objects** — Browse › Selection · [docs](/docs/bulk-object-actions)
 - **Clear selection** — Browse › Selection · [docs](/docs/bulk-object-actions)
 - **Download selection as ZIP** — Browse › Selection · [docs](/docs/bulk-object-actions)
 - **Bulk tag selection** — Browse › Selection · [docs](/docs/bulk-object-actions)
@@ -88,6 +95,7 @@ App version 2.7.55. This list is generated from the app's command registry, so i
 - **Local index** — Browse › More › Settings · [docs](/docs/local-inventory-index)
 - **Metrics** — Browse › More › Settings · [docs](/docs/metrics-analytics)
 - **Costs & Cost Autopilot** — Browse › More › Settings · [docs](/docs/cost-autopilot)
+- **S3 Metadata annotation table** — Browse › More › Settings › Local index · [docs](/docs/local-inventory-index)
 
 ## Access control
 
@@ -139,6 +147,10 @@ App version 2.7.55. This list is generated from the app's command registry, so i
 - **New Drop Zone upload request** — Browse › More › Bucket › Drop Zones · [docs](/docs/secure-sharing-upload-requests)
 - **Virtual drive** — Browse › More › Bucket · [docs](/docs/optional-virtual-drive)
 - **Connect S3-compatible storage** — Home › Quick actions · [docs](/docs/s3-compatible-connections)
+- **Transfers panel** — Top bar · [docs](/docs/transfers-panel)
+- **Rename or move this folder** — Browse › Folder actions · [docs](/docs/renaming-objects)
+- **S3-compatible provider feature support** — Home › Quick actions › S3-compatible · [docs](/docs/s3-compatible-connections)
+- **Virtual drive setup guide** — Browse › More › Bucket › Virtual drive · [docs](/docs/virtual-drive-setup)
 - **SFTP / WebDAV / FTPS mounts** — Home › Quick actions · [docs](/docs/external-protocols)
 
 ## Security & audit
@@ -159,6 +171,8 @@ App version 2.7.55. This list is generated from the app's command registry, so i
 - **Inventory index search** — Browse › More › Tools · [docs](/docs/local-inventory-index)
 - **Glacier Restore** — Browse › More › Bucket · [docs](/docs/glacier-restore)
 - **Storage Lens** — Top bar › More · [docs](/docs/storage-lens)
+- **Money leaks report** — Bucket settings › Costs & Cost Autopilot · [docs](/docs/money-leaks-report)
+- **Money leaks for this bucket** — Bucket settings › Costs & Cost Autopilot · [docs](/docs/money-leaks-report)
 - **Search across buckets** — Top bar · [docs](/docs/global-search)
 
 ## Operate
@@ -179,6 +193,10 @@ App version 2.7.55. This list is generated from the app's command registry, so i
 - **Large-bucket latency budget** — Operate › Speed · [docs](/docs/powerhouse-speed)
 - **Transfer engine & bandwidth presets** — Operate › Speed · [docs](/docs/powerhouse-speed)
 - **Command palette depth** — Operate › Speed · [docs](/docs/command-palette)
+- **AI agent access (MCP)** — Operate › Overview · [docs](/docs/ai-agent-access)
+- **Connect Claude Code, Claude Desktop or Cursor** — Operate › Overview › AI agent access · [docs](/docs/ai-agent-access)
+- **Review AI agent approvals and activity** — Operate › Overview › AI agent access · [docs](/docs/ai-agent-access)
+- **Rotate AI agent token** — Operate › Overview › AI agent access · [docs](/docs/ai-agent-access)
 - **Security Control Center** — Operate › Guardrails · [docs](/docs/security-control-center)
 - **Manage profile read-only mode** — Operate › Guardrails · [docs](/docs/powerhouse-guardrails)
 - **Review destructive-operation diffs** — Operate › Guardrails · [docs](/docs/powerhouse-guardrails)
@@ -202,6 +220,8 @@ App version 2.7.55. This list is generated from the app's command registry, so i
 - **Manage deploy environments** — Build › Publish · [docs](/docs/powerhouse-publish)
 - **Browse vector buckets and indexes** — Build › AI retrieval · [docs](/docs/powerhouse-ai-retrieval)
 - **Run a similarity query** — Build › AI retrieval · [docs](/docs/powerhouse-ai-retrieval)
+- **Inspect vectors by key** — Build › AI retrieval · [docs](/docs/powerhouse-ai-retrieval)
+- **Export or import vectors (JSONL)** — Build › AI retrieval · [docs](/docs/powerhouse-ai-retrieval)
 - **Create a Knowledge Base from a prefix** — Build › AI retrieval · [docs](/docs/powerhouse-ai-retrieval)
 - **Monitor Knowledge Base ingestion** — Build › AI retrieval · [docs](/docs/powerhouse-ai-retrieval)
 - **Estimate vector retrieval cost** — Build › AI retrieval · [docs](/docs/powerhouse-ai-retrieval)
@@ -224,6 +244,8 @@ App version 2.7.55. This list is generated from the app's command registry, so i
 - **Distribution configuration & history** — CloudFront › Distribution › Manage · [docs](/docs/managing-distributions)
 - **CloudFront specialist controls** — CloudFront › Distribution › Manage · [docs](/docs/managing-distributions)
 - **Delete a distribution** — CloudFront › Distribution › Manage · [docs](/docs/managing-distributions)
+- **S3 site doctor (OAC, SPA routing, index.html)** — CloudFront › Distribution › Manage · [docs](/docs/managing-distributions)
+- **CloudFront flat-rate plan advisor** — CloudFront › Distribution › Manage · [docs](/docs/managing-distributions)
 
 ## Account
 
@@ -235,6 +257,8 @@ App version 2.7.55. This list is generated from the app's command registry, so i
 - **Billing & invoices** — Top bar › Profile menu · [docs](/docs/account-and-billing)
 - **Contact support** — Top bar › Profile menu · [docs](/docs/support)
 - **Log out** — Top bar › Profile menu · [docs](/docs/account-and-billing)
+- **Auth doctor** — Account › Sign-in help · [docs](/docs/auth-doctor)
+- **TLS & proxy settings** — Account › Network · [docs](/docs/tls-and-proxy)
 
 ## Preferences
 
@@ -248,9 +272,13 @@ App version 2.7.55. This list is generated from the app's command registry, so i
 - **Language: Japanese** — Top bar › More › Language · [docs](/docs/language-settings)
 - **Toggle sidebar** — Top bar · [docs](/docs/viewing-buckets)
 - **Clear recent objects & commands** — Command palette · [docs](/docs/command-palette)
+- **Choose what you use S3 for** — Top bar › More · [docs](/docs/essentials-mode)
+- **Show everything** — Top bar › Essentials · [docs](/docs/essentials-mode)
+- **Switch to Essentials mode** — Top bar › More › What I use S3 for · [docs](/docs/essentials-mode)
 
 ## Help
 
+- **Run live AWS benchmarks** — Help · [docs](/docs/measured-benchmarks)
 - **How the command palette works** — Help · [docs](/docs/command-palette)
 - **Keyboard shortcuts** — Help · [docs](/docs/keyboard-shortcuts)
 - **How cost & permission reviews work** — Help · [docs](/docs/cost-permission-preflight)

@@ -8,6 +8,11 @@ import { cn } from "@/lib/utils";
  * in its E2E mock mode with sample data, so no real AWS accounts, keys or
  * customer objects appear. The site's theme decides which one is visible, so
  * the product always matches the page around it.
+ *
+ * The shots after "operate" (transfers … essentials) show features from the
+ * next release. They were captured on 14 Oct 2026 at 2x from the
+ * next-release renderer build in its E2E mock mode with the Northstar sample
+ * data, so they too contain no real accounts, keys or customer objects.
  */
 export const PRODUCT_SHOTS = {
   workspace: {
@@ -64,6 +69,92 @@ export const PRODUCT_SHOTS = {
     w: 3200,
     h: 2000,
     alt: "Buckets Operate workspace for recovery, transfer tuning, CloudFront delivery and team handoffs",
+  },
+  // Next-release shots (captured 14 Oct 2026, see the note above).
+  transfers: {
+    w: 1024,
+    h: 2300,
+    alt: "Buckets Transfers panel with an 8.8 GB video upload in progress, a 5.6 GB ZIP download of 1,284 objects, a Glacier restore request, a failed upload with an AccessDenied error, a paused folder move and a checksum-verified download",
+  },
+  foldermove: {
+    w: 1344,
+    h: 1716,
+    alt: "Buckets folder move review for 3,412 objects (48.6 GB) with request counts, an estimated request cost of $0.02, versioning and existing-key warnings, and example key changes",
+  },
+  continuous: {
+    w: 3200,
+    h: 2000,
+    alt: "Buckets object list in continuous mode on a 48,210-object prefix served from the Local Index, filtered by size, with 1,000 objects loaded and a Load all prompt that needs 0 LIST requests",
+  },
+  searchbadge: {
+    w: 680,
+    h: 862,
+    alt: "Buckets in-bucket search for q3 answered by the Local Index with 0 LIST requests, reporting six matching objects",
+  },
+  authdoctor: {
+    w: 1536,
+    h: 1664,
+    alt: "Buckets Auth Doctor report for an IAM Identity Center session, with passing credential, SSO token and network checks and a warning that the SSO client registration expires in 9 hours",
+  },
+  compatible: {
+    w: 1536,
+    h: 1664,
+    alt: "Buckets S3-compatible connection dialog with the MinIO preset selected, the endpoint filled in and its compatibility preview",
+  },
+  "compatible-matrix": {
+    w: 1356,
+    h: 1502,
+    alt: "Buckets compatibility preview for MinIO listing which S3 features are supported, hidden or untested, with notes for each",
+  },
+  moneyleaks: {
+    w: 3200,
+    h: 2000,
+    alt: "Buckets Money leaks report showing at least $22.31 a month in estimated savings and $27.90 a month of cost at risk, with findings for noncurrent versions, public egress and old Standard data",
+  },
+  "moneyleaks-fix": {
+    w: 1536,
+    h: 1664,
+    alt: "Buckets lifecycle fix review adding a rule that expires noncurrent versions after 30 days, shown as an exact diff that keeps the two existing rules",
+  },
+  mcp: {
+    w: 3200,
+    h: 2000,
+    alt: "Buckets AI agent access (MCP) settings with the local gateway on and two agents connected, one profile exposed read-write with approval and another read-only, each with a bucket and prefix allowlist",
+  },
+  "mcp-activity": {
+    w: 3200,
+    h: 2000,
+    alt: "Buckets AI agent access setup command for Claude Code, the list of tools agents can call and recent agent activity with allowed, approved and blocked calls",
+  },
+  "mcp-approval": {
+    w: 1344,
+    h: 2020,
+    alt: "Buckets approval prompt for a Claude Code request to overwrite a Markdown object, with object details, a versioning warning, a content preview, the estimated AWS cost and Approve and Deny buttons",
+  },
+  annotations: {
+    w: 848,
+    h: 1722,
+    alt: "Buckets object inspector with tags, two S3 Annotations including an expanded JSON mediainfo annotation, and CloudFront URLs for the object",
+  },
+  "annotations-window": {
+    w: 3200,
+    h: 2000,
+    alt: "Buckets desktop app browsing an S3 bucket with the object inspector showing a JSON S3 Annotation on a video file",
+  },
+  planadvisor: {
+    w: 1536,
+    h: 1664,
+    alt: "Buckets CloudFront flat-rate plan advisor comparing 30 days of requests and data transfer with the Free, Pro, Business and Premium plans and an estimated pay-as-you-go bill",
+  },
+  sitedoctor: {
+    w: 1536,
+    h: 1660,
+    alt: "Buckets S3 site doctor listing CloudFront and S3 website issues such as anonymous origin access, a missing default root object and plain HTTP, each with a Review fix button",
+  },
+  essentials: {
+    w: 1280,
+    h: 1088,
+    alt: "Buckets first-run picker asking what you use S3 for, with Files & sharing and Websites & CDN selected",
   },
 } as const;
 

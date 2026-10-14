@@ -1,0 +1,49 @@
+---
+title: "Buckets vs Transmit 5 for Amazon S3 on the Mac (2026)"
+publishedAt: "2026-10-13"
+lastModified: "2026-10-13"
+summary: "Transmit is the most loved Mac file-transfer app. Buckets is an S3 and CloudFront console. A fair comparison of when each one is the right tool. Verified 13 Oct 2026."
+author: "Buckets by ServerlessCreed Team"
+---
+
+> **Verified 13 Oct 2026.** This page is written by the team that makes Buckets. We have tried to be fair. Check [panic.com/transmit](https://panic.com/transmit/) for current pricing and features. If something here is out of date, email [buckets@serverlesscreed.com](mailto:buckets@serverlesscreed.com).
+
+Transmit 5 by Panic is a polished Mac file-transfer app that many people have used for years and are happy with. It connects to many kinds of servers and cloud storage, including Amazon S3. Buckets does one job: it is a desktop console for Amazon S3, CloudFront and S3-compatible storage.
+
+## At a glance
+
+| | Buckets | Transmit 5 |
+|---|---|---|
+| Price | 14-day trial, then $5/month, $49/year, $99 lifetime, or Team at $49/seat/year (3-seat minimum) | $45 |
+| Platforms | macOS (Apple silicon), Windows (x64), and Linux (x64, arm64) | macOS |
+| Scope | Amazon S3, S3-compatible storage, and CloudFront | Many protocols and cloud services, including S3 |
+| AWS sign-in | IAM Identity Center (SSO) with automatic token refresh, saved profiles, AssumeRole, the AWS CLI browser login, and a multi-account dashboard | See Panic's documentation |
+| S3 administration | Bucket policies and an IAM policy generator, lifecycle, Object Lock, replication, Batch Operations, Storage Lens, and IaC export | See Panic's documentation |
+| CloudFront | Distributions, invalidations with a cost preview, Origin Access Control, signed URLs and cookies, CloudFront Functions, and folder-to-site publishing | See Panic's documentation |
+| Cost visibility | Cost preview before billable operations, Cost Explorer, storage-class analysis | See Panic's documentation |
+
+## Choose Transmit if…
+
+- **You move files between many kinds of servers**, not just S3. Buckets has no FTP support, and it can only mount SFTP, WebDAV and FTPS servers as a folder through rclone, not browse them in the app.
+- **You want the most Mac-native feel.** Transmit is a long-standing Mac app with a devoted following.
+- **You want a single low one-time price** and your S3 use is mostly uploading and downloading.
+- **You have an Intel Mac.** Buckets currently ships for Apple silicon only.
+
+## Choose Buckets if…
+
+- **S3 is your job, not just a destination.** Buckets covers policies, lifecycle rules, Object Lock and retention, replication, Batch Operations, a security and PII scanner, Time Travel recovery from object versions, and IaC export to CDK, CloudFormation, SAM, or Terraform.
+- **You work across many AWS accounts** with IAM Identity Center and want sessions that refresh themselves.
+- **You run websites or downloads behind CloudFront.** You can publish a local folder to a private bucket with Origin Access Control and targeted invalidations. You can also sign URLs and cookies, and test and publish CloudFront Functions.
+- **Your team isn't all on Macs.** The same license covers Windows and Linux; each seat includes 2 machines.
+- **You want a lifetime option without a subscription.** Buckets' Lifetime license is $99 one-time, with future updates included.
+
+## Privacy
+
+The Buckets desktop app has no analytics or crash-reporting SDK. AWS requests go directly from your computer to AWS. Our [Trust Center](/trust) lists every network connection the app makes.
+
+## Sources
+
+- [Transmit 5 by Panic](https://panic.com/transmit/), checked 13 Oct 2026
+- Buckets facts: [pricing](/pricing), [documentation](/docs), [Trust Center](/trust)
+
+[Download the 14-day trial](/downloads) and try both on the bucket you use every day.

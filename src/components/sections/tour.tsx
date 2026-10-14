@@ -7,11 +7,12 @@ import {
   useInView,
   useMotionValue,
 } from "framer-motion";
-import { History, Inbox, LayoutGrid, Pause, Play, Search, ShieldCheck } from "lucide-react";
+import { Bot, History, Inbox, LayoutGrid, Pause, PiggyBank, Play, Search, ShieldCheck } from "lucide-react";
 import { useEffect, useRef, useState, type ComponentType, type CSSProperties, type KeyboardEvent } from "react";
 
 import { ProductShot, type ProductShotName } from "@/components/product-shot";
 import Section from "@/components/section";
+import { ReleaseBadge, WHATS_NEW_LABEL } from "@/components/sections/whats-new";
 import { EASE_OUT, SPRING, useCalm, useHydrated } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +27,8 @@ type Stop = {
   modal?: { width: string; sizes: string };
   /** On phones the full window is unreadable, so zoom in around this x% (top-anchored). */
   focusX?: string;
+  /** Ships in the next release: badge the caption and the tab. */
+  upcoming?: boolean;
 };
 
 const STOPS: Stop[] = [
@@ -73,6 +76,26 @@ const STOPS: Stop[] = [
     body: "Recovery guardrails, transfer tuning, CloudFront delivery and team handoffs, always scoped to the account, region and bucket you are in.",
     shot: "operate",
     focusX: "70%",
+  },
+  {
+    id: "moneyleaks",
+    label: "Money leaks",
+    icon: PiggyBank,
+    title: "See what S3 quietly costs you",
+    body: "A read-only scan with a hard request budget flags noncurrent versions, incomplete uploads, old Standard data and public egress, with every saving labelled as an estimate.",
+    shot: "moneyleaks",
+    focusX: "38%",
+    upcoming: true,
+  },
+  {
+    id: "agents",
+    label: "AI agents",
+    icon: Bot,
+    title: "AI agents, on your terms",
+    body: "A local MCP server for Claude Code, Cursor and other MCP clients, off by default. Agents never receive AWS credentials, and every write or delete waits for your approval.",
+    shot: "mcp",
+    focusX: "44%",
+    upcoming: true,
   },
 ];
 
@@ -200,6 +223,12 @@ export default function Tour() {
                   <span className="relative z-10 inline-flex items-center gap-2">
                     <Icon className={cn("h-4 w-4", on && "text-primary")} />
                     {s.label}
+                    {s.upcoming && (
+                      <>
+                        <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-primary" />
+                        <span className="sr-only">({WHATS_NEW_LABEL})</span>
+                      </>
+                    )}
                   </span>
                   {on && autoplay && (
                     <motion.span
@@ -225,7 +254,7 @@ export default function Tour() {
         </div>
 
         {/* Caption */}
-        <div className="mx-auto mt-6 min-h-[120px] max-w-2xl text-center sm:min-h-[96px]">
+        <div className="mx-auto mt-6 min-h-[184px] max-w-2xl text-center sm:min-h-[124px]">
           <AnimatePresence mode="popLayout" initial={false}>
             <motion.div
               key={stop.id}
@@ -234,7 +263,10 @@ export default function Tour() {
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.3, ease: EASE_OUT }}
             >
-              <h3 className="text-2xl font-semibold tracking-[-0.02em] text-foreground">{stop.title}</h3>
+              <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5">
+                {stop.upcoming && <ReleaseBadge />}
+                <h3 className="text-2xl font-semibold tracking-[-0.02em] text-foreground">{stop.title}</h3>
+              </div>
               <p className="mt-2 text-[15px] leading-7 text-muted-foreground">{stop.body}</p>
             </motion.div>
           </AnimatePresence>

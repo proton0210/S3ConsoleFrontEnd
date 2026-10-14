@@ -1,96 +1,13 @@
 "use client";
 
+import { Bleed, Card } from "@/components/bento";
 import Section from "@/components/section";
 import { ProductShot } from "@/components/product-shot";
 import { cn } from "@/lib/utils";
-import { motion, useInView } from "framer-motion";
+import { useInView } from "framer-motion";
 import { useCalm } from "@/lib/motion";
 import { CheckCircle2, Code2, Command, Globe, KeyRound, Link2, Share2 } from "lucide-react";
-import { useEffect, useRef, useState, type ReactNode } from "react";
-
-function Card({
-  className,
-  icon,
-  eyebrow,
-  title,
-  body,
-  children,
-  index,
-  layout = "stack",
-}: {
-  className?: string;
-  icon: ReactNode;
-  eyebrow: string;
-  title: string;
-  body: string;
-  children?: ReactNode;
-  index: number;
-  layout?: "stack" | "split";
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.6, delay: (index % 3) * 0.08, ease: [0.16, 1, 0.3, 1] }}
-      className={cn(
-        "surface group relative flex flex-col overflow-hidden rounded-2xl p-7 transition-colors duration-300 hover:border-primary/30",
-        className
-      )}
-    >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -right-24 -top-24 h-48 w-48 rounded-full bg-primary/10 opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-100"
-      />
-      <div
-        className={cn(
-          "flex flex-1 flex-col",
-          layout === "split" && "gap-8 md:grid md:grid-cols-2 md:items-end"
-        )}
-      >
-        <div className={cn(layout === "split" && "md:self-center")}>
-          <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.16em] text-primary">
-            {icon}
-            {eyebrow}
-          </div>
-          <h3 className="mt-4 text-xl font-semibold tracking-[-0.02em] text-foreground">{title}</h3>
-          <p className="mt-2 max-w-md text-[15px] leading-7 text-muted-foreground">{body}</p>
-        </div>
-        {children && (
-          <div className={cn("relative", layout === "split" ? "" : "mt-6 flex flex-1 flex-col justify-end")}>
-            {children}
-          </div>
-        )}
-      </div>
-    </motion.div>
-  );
-}
-
-/**
- * A real app screenshot that slides off the bottom (and optionally right)
- * edge of its card, framed like a window peeking out of the surface.
- */
-function Bleed({
-  children,
-  right,
-  className,
-}: {
-  children: ReactNode;
-  right?: boolean;
-  className?: string;
-}) {
-  return (
-    <div
-      className={cn(
-        "-mb-7 overflow-hidden border border-b-0 border-border bg-card shadow-[0_-12px_40px_-16px_rgb(0_0_0/0.25)] transition-transform duration-500 ease-out group-hover:-translate-y-1",
-        right ? "-mr-7 rounded-tl-xl border-r-0" : "rounded-t-xl",
-        className
-      )}
-    >
-      {children}
-    </div>
-  );
-}
+import { useEffect, useRef, useState } from "react";
 
 function CodeSnippet() {
   return (

@@ -1,0 +1,54 @@
+---
+title: "Buckets vs SandCrab: a simple S3 client or a full S3 console?"
+publishedAt: "2026-10-13"
+lastModified: "2026-10-13"
+summary: "SandCrab is a newer, low-cost S3 client known for simplicity and fast regex search across buckets. A fair comparison with Buckets and when each fits. Verified 13 Oct 2026."
+author: "Buckets by ServerlessCreed Team"
+---
+
+> **Verified 13 Oct 2026.** This page is written by the team that makes Buckets. We have tried to be fair. SandCrab is a young product that is changing quickly, so check [sandcrab.io](https://sandcrab.io) for its current features and price. If something here is out of date, email [buckets@serverlesscreed.com](mailto:buckets@serverlesscreed.com).
+
+SandCrab launched in 2025 as a simple, inexpensive S3 client. Its main selling points are simplicity and fast regex search across buckets.
+
+Buckets is broader. It is a desktop console for Amazon S3, CloudFront, and S3-compatible storage that also covers account sign-in, governance, recovery, and cost.
+
+## At a glance
+
+| | Buckets | SandCrab |
+|---|---|---|
+| Price | 14-day trial, then $5/month, $49/year, $99 lifetime, or Team at $49/seat/year (3-seat minimum) | $20 |
+| Philosophy | Full S3 and CloudFront console | Simple and fast |
+| Search | Search within a bucket, across buckets, and across saved accounts. Large buckets can use a local index built from S3 Inventory or an S3 Metadata table. | Fast cross-bucket regex search |
+| AWS sign-in | IAM Identity Center (SSO) with automatic token refresh, saved profiles, AssumeRole, and a multi-account dashboard | See SandCrab's documentation |
+| CloudFront | Distributions, invalidations with a cost preview, Origin Access Control, signed URLs and cookies, CloudFront Functions, and folder-to-site publishing | See SandCrab's documentation |
+| Governance and recovery | Object Lock and retention, read-only profiles, an audit log, a security and PII scanner, and Time Travel restore | See SandCrab's documentation |
+| Platforms | macOS (Apple silicon), Windows (x64), and Linux (x64, arm64) | See SandCrab's site |
+
+## Choose SandCrab if…
+
+- **You want the simplest possible S3 browser** and few features beyond browsing, transferring and searching.
+- **Price matters most.** $20 is less than any Buckets plan.
+- **Fast regex search across buckets is the main thing you need.** On a bucket that hasn't been indexed, Buckets' search still has to list objects through S3, so we don't claim to be faster there.
+
+## Choose Buckets if…
+
+- **You manage S3 for a team or for clients.** Buckets has:
+  - multi-account sign-in;
+  - per-profile read-only guardrails, on by default for profiles whose names look like production;
+  - an audit log;
+  - a cost preview before billable operations.
+- **You have very large buckets.** You can import S3 Inventory reports into a local index, or query a bucket's S3 Metadata table. Both answer searches without listing the bucket each time.
+- **You deliver content with CloudFront.** Buckets handles Origin Access Control, invalidate-on-change publishing, signed URLs and cookies, and CloudFront Functions.
+- **You need recovery and compliance tools.** These include Time Travel, Object Lock, Batch Operations, lifecycle rules, and a security and PII scanner.
+- **You prefer to pay once.** The Lifetime license is $99 one-time and includes future updates.
+
+## Privacy
+
+The Buckets desktop app has no analytics or crash-reporting SDK. AWS requests go directly from your computer to AWS. Our [Trust Center](/trust) lists every network connection the app makes.
+
+## Sources
+
+- [SandCrab](https://sandcrab.io), checked 13 Oct 2026
+- Buckets facts: [pricing](/pricing), [documentation](/docs), [Trust Center](/trust)
+
+[Download the 14-day trial](/downloads) and try both on your largest bucket.

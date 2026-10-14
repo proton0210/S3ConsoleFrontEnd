@@ -1,0 +1,55 @@
+---
+title: "Buckets vs CS Browser (formerly S3 Browser) in 2026"
+publishedAt: "2026-10-13"
+lastModified: "2026-10-13"
+summary: "S3 Browser is now called CS Browser. Here is a fair comparison with Buckets for Amazon S3 work on Windows, Mac and Linux, including where CS Browser is the better pick. Verified 13 Oct 2026."
+author: "Buckets by ServerlessCreed Team"
+---
+
+> **Verified 13 Oct 2026.** This page is written by the team that makes Buckets. We have tried to be fair. Check the [vendor's pricing page](https://s3browser.com/buypro.aspx) for current editions and terms. If something here is out of date, email [buckets@serverlesscreed.com](mailto:buckets@serverlesscreed.com).
+
+**S3 Browser was renamed CS Browser in October 2026.** If you are searching for "S3 Browser alternative", this is the same product under a new name. It has been the default S3 client for many Windows users for years. Its vendor also makes TntDrive, which mounts S3 as a Windows drive.
+
+Buckets is a cross-platform desktop app for Amazon S3, CloudFront and S3-compatible storage.
+
+## At a glance
+
+| | Buckets | CS Browser (S3 Browser) |
+|---|---|---|
+| Price | 14-day trial, then $5/month, $49/year, $99 lifetime, or Team at $49/seat/year (3-seat minimum) | Free edition; Pro is $49.99 |
+| Platforms | Windows (x64, through Microsoft Store or a direct installer), macOS (Apple silicon), and Linux (x64, arm64) | Windows |
+| Mount as a drive | Virtual Drive, which needs rclone and WinFsp (Windows) installed separately | TntDrive, a separate product from the same vendor |
+| AWS sign-in | IAM Identity Center (SSO) with automatic token refresh, saved profiles, AssumeRole, and a multi-account dashboard | See the vendor's documentation |
+| CloudFront | Distributions, invalidations with a cost preview, Origin Access Control, signed URLs and cookies, CloudFront Functions, and folder-to-site publishing | See the vendor's documentation |
+| Cost visibility | Cost preview before billable operations, Cost Explorer, Storage Lens, storage-class analysis | See the vendor's documentation |
+| Recovery | Time Travel restores a prefix to an earlier point using retained versions | See the vendor's documentation |
+
+We only list CS Browser features we could verify. For everything else, its own documentation is the authority.
+
+## Choose CS Browser if…
+
+- **You work only on Windows and want a free tool.** The free edition costs nothing. Buckets has no free tier after its 14-day trial.
+- **You already rely on TntDrive** for a mapped S3 drive, or your team has standardized on the tool.
+- **You want a long-established Windows product** with a large existing user base.
+
+## Choose Buckets if…
+
+- **Your team uses Mac or Linux as well as Windows.** One app and one license works across all three; each seat covers 2 machines.
+- **You sign in through IAM Identity Center or switch between many AWS accounts.** Buckets runs the SSO device flow itself, refreshes tokens automatically, and switches between saved accounts in one click.
+- **You manage CloudFront.** Buckets handles Origin Access Control, invalidations with a cost preview, signed URLs and cookies, CloudFront Functions, and deploying a local folder to a private bucket behind CloudFront.
+- **You want guardrails.**
+  - Billable operations show an estimate and the permissions they need before they run.
+  - Profiles can be set to read-only.
+  - Profiles whose names look like production default to read-only.
+- **You need recovery and governance.** Buckets includes Time Travel, Object Lock and retention, Batch Operations, a sampling security and PII scanner, and IaC export. Time Travel can only use the version history S3 kept.
+
+## Privacy
+
+The Buckets desktop app has no analytics or crash-reporting SDK. AWS requests go directly from your computer to AWS. Our [Trust Center](/trust) lists every network connection the app makes, and it also notes that the direct Windows installer is not yet code-signed. The Microsoft Store edition is signed by Microsoft.
+
+## Sources
+
+- [CS Browser / S3 Browser editions and pricing](https://s3browser.com/buypro.aspx), checked 13 Oct 2026
+- Buckets facts: [pricing](/pricing), [documentation](/docs), [Trust Center](/trust)
+
+[Download the 14-day trial](/downloads) and compare both on the bucket you use every day.

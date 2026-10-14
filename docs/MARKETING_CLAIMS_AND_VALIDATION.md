@@ -17,6 +17,16 @@ Reviewed September 5, 2026 against desktop source v2.7.12. This is an internal e
 
 Positioning (September 26, 2026): the website does not compare Buckets with other products. Do not name other clients, publish comparison tables, or add "vs" / "alternative" pages or keywords; describe what Buckets does and the value it brings. Retired /vs/* URLs permanently redirect to the homepage. Do not change an article's publication date when updating it; update lastModified instead.
 
+Positioning update (October 13, 2026, pending owner sign-off): market-gap plan item D4 reverses the September 26 rule for five head-to-head blog posts: `content/buckets-vs-{cyberduck,cs-browser,transmit,aws-console,sandcrab}.mdx`, linked from `best-s3-desktop-client-2026`. The rules for them:
+- Every competitor fact must come from the plan's cited sources (vendor pages, public issue trackers).
+- Every page shows "Verified 13 Oct 2026" and has a "Choose <competitor> if…" section.
+- Where we could not verify a competitor capability, the page says "see the vendor's documentation" instead of claiming it is absent.
+- The retired `/vs/*` redirects are unchanged.
+
+If the owner keeps the September rule, delete those five files and the "Comparing Buckets with other tools" section. Re-verify competitor prices before changing lastModified.
+
+Desktop telemetry (October 13, 2026): the unused `posthog-js` dependency was removed from the desktop app. The Trust Center's "No telemetry in the desktop app" section lists every desktop network connection and is enforced by `check:trust-center`. Keep the claim scoped to the desktop app; this website uses Google Analytics and Reddit and X conversion pixels.
+
 ## Positioning and pricing
 
 Target hypothesis: consultants and small platform teams who manage S3 across accounts every week. Validate this hypothesis with paying users before treating it as established demand.

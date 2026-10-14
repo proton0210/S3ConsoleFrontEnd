@@ -1,0 +1,55 @@
+---
+title: "Buckets vs Cyberduck for Amazon S3 (2026)"
+publishedAt: "2026-10-13"
+lastModified: "2026-10-13"
+summary: "An honest head-to-head for people who mainly work with Amazon S3: where Cyberduck and Mountain Duck are the better choice, and where Buckets is. Verified 13 Oct 2026."
+author: "Buckets by ServerlessCreed Team"
+---
+
+> **Verified 13 Oct 2026.** This page is written by the team that makes Buckets. We have tried to be fair. Prices and features change, so check the [Cyberduck](https://cyberduck.io) and [Mountain Duck](https://mountainduck.io/buy/) sites before you decide. If something here is out of date, email [buckets@serverlesscreed.com](mailto:buckets@serverlesscreed.com) and we will fix it.
+
+Cyberduck is the best-known free file-transfer client. Its sibling, Mountain Duck, mounts remote storage as a drive. Buckets is a paid desktop app built only for Amazon S3, CloudFront, and S3-compatible storage.
+
+The two products start from different places. Cyberduck is a general file-transfer tool that supports S3 among many protocols. Buckets is an S3 and CloudFront console.
+
+## At a glance
+
+| | Buckets | Cyberduck / Mountain Duck |
+|---|---|---|
+| Price | 14-day trial, then $5/month, $49/year, $99 lifetime, or Team at $49/seat/year (3-seat minimum) | Cyberduck is free. Mountain Duck is about $60 per year. |
+| Protocols | Amazon S3 and S3-compatible storage. SFTP, WebDAV and FTPS servers can be mounted as a folder through rclone, but not browsed in the app. | Many protocols, including S3 |
+| Mount as a drive | Virtual Drive, which needs rclone and macFUSE / WinFsp / FUSE3 installed separately | Mountain Duck mounts natively through macOS File Provider and Windows Cloud Files |
+| AWS sign-in | IAM Identity Center (SSO) with automatic token refresh, saved profiles, AssumeRole, the AWS CLI browser login, and a multi-account dashboard | Supports AWS profiles and SSO |
+| CloudFront | Distributions, invalidations, Origin Access Control, signed URLs and cookies, CloudFront Functions, and folder-to-site publishing | See Cyberduck's documentation |
+| S3 administration | Bucket policies, lifecycle, Object Lock, replication, Batch Operations, Storage Lens, IaC export | See Cyberduck's documentation |
+| Cost visibility | Cost preview before billable operations, Cost Explorer, storage-class analysis | See Cyberduck's documentation |
+| Recovery | Time Travel restores a prefix to an earlier point using object versions | See Cyberduck's documentation |
+| Platforms | macOS (Apple silicon), Windows (x64), Linux (x64, arm64) | macOS and Windows |
+| Source | Proprietary | Open source (Cyberduck) |
+
+## Choose Cyberduck or Mountain Duck if…
+
+- **You need more than S3.** Cyberduck browses and transfers over many protocols in one app. Buckets is built around S3: it has no FTP support, and it can only mount SFTP, WebDAV and FTPS servers as a folder through rclone, not browse them in the app.
+- **You want a native drive without extra installs.** Mountain Duck uses the operating system's own cloud-file APIs. Buckets' Virtual Drive works, but it relies on rclone and a FUSE driver that you install separately.
+- **You want free.** Cyberduck costs nothing. Buckets has a 14-day full trial and no free tier.
+- **You prefer open source.**
+
+## Choose Buckets if…
+
+- **Sign-in is your daily pain.** Problems with IAM Identity Center and AssumeRole sessions come up repeatedly in Cyberduck's public issue tracker (for example [#13377](https://github.com/iterate-ch/cyberduck/issues/13377) and [#17694](https://github.com/iterate-ch/cyberduck/issues/17694)). Buckets runs its own SSO device flow with automatic refresh. It also runs `aws login` in an isolated sandbox and switches between saved accounts in one click. Try it with your own organization during the trial.
+- **You administer S3, not just move files.** Buckets covers bucket policies, lifecycle rules, Object Lock, replication, Batch Operations, Storage Lens, a security and PII scanner, and IaC export to CDK, CloudFormation, SAM, or Terraform.
+- **You run sites on CloudFront.** Buckets supports Origin Access Control and targeted invalidations, with a cost preview: the first 1,000 paths each month are free. It can also sign URLs and cookies, test and publish CloudFront Functions, and deploy a local folder to a private bucket behind CloudFront.
+- **You want to see costs before you incur them.** Billable operations show an estimate and the permissions they need before they run.
+- **You need point-in-time recovery.** Time Travel rebuilds a prefix's earlier state from retained versions and delete markers, and you review the plan before you apply it. It works from the version history S3 kept: a plan covers up to 200,000 versions and delete markers, incomplete plans are refused, and permanently deleted versions cannot be brought back.
+
+## Privacy
+
+The Buckets desktop app has no analytics or crash-reporting SDK. AWS requests go directly from your computer to AWS. Our [Trust Center](/trust) lists every network connection the app makes.
+
+## Sources
+
+- [Cyberduck](https://cyberduck.io) and [Mountain Duck pricing](https://mountainduck.io/buy/), checked 13 Oct 2026
+- Cyberduck issue tracker: [#13377](https://github.com/iterate-ch/cyberduck/issues/13377), [#17694](https://github.com/iterate-ch/cyberduck/issues/17694), [#17690](https://github.com/iterate-ch/cyberduck/issues/17690)
+- Buckets facts: [pricing](/pricing), [documentation](/docs), [Trust Center](/trust)
+
+The best test is your own workload. [Download the 14-day trial](/downloads) and run the task you do every week.

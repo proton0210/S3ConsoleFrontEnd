@@ -33,7 +33,22 @@ const requireText = (file, label, value) => {
   "at least 400 days",
   "independent penetration test",
   "not yet been completed",
+  // Desktop no-telemetry statement: it must stay scoped to the desktop app and
+  // keep disclosing the connections the app does make.
+  "No telemetry in the desktop app",
+  "This statement covers the **desktop app only**",
+  "Google Analytics",
+  "GitHub Releases",
+  "ServerlessCreed licensing API",
+  "one-way device fingerprint",
+  "Folder Sync metadata",
+  "/api/legal/current-versions",
+  "not** Authenticode-signed",
+  "Spell-check dictionaries",
+  "SFTP, WebDAV, or FTPS",
+  "unused copy of the `posthog-js` library",
 ].forEach((value) => requireText(files.trust, "Trust Center", value));
+
 [
   "not represented here as currently available through AWS Marketplace",
   "one-time Marketplace registration token is consumed server-side",
