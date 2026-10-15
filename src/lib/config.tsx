@@ -59,6 +59,7 @@ export const siteConfig = {
     github: "https://github.com/s3console",
     instagram: "https://www.instagram.com/serverlesscreed/",
     linkedin: "https://www.linkedin.com/company/serverless-creed",
+    youtube: "https://www.youtube.com/@BucketsApp",
   },
   header: [
     {

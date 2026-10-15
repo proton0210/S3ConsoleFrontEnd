@@ -33,26 +33,53 @@ export function FilmPlayer({
   className?: string;
 }) {
   const ref = useRef<HTMLIFrameElement>(null);
+  const ready = useRef(false);
+  const pending = useRef<number | null>(null);
   // Fixed at mount: changing the src would reload the player.
   const [src] = useState(() =>
     filmEmbedSrc(startAt, typeof window === "undefined" ? undefined : window.location.origin)
   );
 
-  useEffect(() => {
-    if (!seekRequest || seekRequest.n === 0) return;
+  const seekTo = (t: number) => {
     const w = ref.current?.contentWindow;
     if (!w) return;
     const send = (func: string, args: unknown[] = []) =>
       w.postMessage(JSON.stringify({ event: "command", func, args }), YT_ORIGIN);
-    send("seekTo", [seekRequest.t, true]);
+    send("seekTo", [t, true]);
     send("playVideo");
+  };
+
+  // Chapter jumps: commands sent before the player has loaded are dropped by
+  // YouTube, so hold the latest one until the iframe's load event.
+  useEffect(() => {
+    if (!seekRequest || seekRequest.n === 0) return;
     sendGAEvent("event", "film_chapter", { location, t: seekRequest.t });
+    if (ready.current) seekTo(seekRequest.t);
+    else pending.current = seekRequest.t;
   }, [seekRequest, location]);
+
+  const onLoad = () => {
+    // The player script boots shortly after the frame's load event. It only
+    // accepts postMessage commands after this "listening" handshake (verified
+    // against the live embed: without it, seekTo is ignored).
+    window.setTimeout(() => {
+      ref.current?.contentWindow?.postMessage(
+        JSON.stringify({ event: "listening", id: FILM.youtubeId, channel: "widget" }),
+        YT_ORIGIN
+      );
+      ready.current = true;
+      if (pending.current !== null) {
+        seekTo(pending.current);
+        pending.current = null;
+      }
+    }, 800);
+  };
 
   return (
     <iframe
       ref={ref}
       src={src}
+      onLoad={onLoad}
       title={FILM.title}
       className={cn("h-full w-full border-0 bg-black", className)}
       allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
@@ -111,7 +138,13 @@ export function FilmDialog({
 }) {
   const [seek, setSeek] = useState({ t: 0, n: 0 });
   return (
-    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
+    <DialogPrimitive.Root
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) setSeek({ t: 0, n: 0 });
+        onOpenChange(next);
+      }}
+    >
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
         <DialogPrimitive.Content

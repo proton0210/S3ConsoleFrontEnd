@@ -1,7 +1,7 @@
 import { Icons } from "@/components/icons";
 import { siteConfig } from "@/lib/config";
 import Link from "next/link";
-import { FaLinkedinIn, FaXTwitter } from "react-icons/fa6";
+import { FaLinkedinIn, FaXTwitter, FaYoutube } from "react-icons/fa6";
 import { RiInstagramFill } from "react-icons/ri";
 
 const SOCIALS = [
@@ -20,6 +20,11 @@ const SOCIALS = [
     href: "https://www.linkedin.com/company/serverless-creed",
     Icon: FaLinkedinIn,
   },
+  {
+    label: "YouTube",
+    href: siteConfig.links.youtube,
+    Icon: FaYoutube,
+  },
 ];
 
 /**
@@ -32,6 +37,7 @@ const NAV = [
   {
     title: "Product",
     links: [
+      { label: "Watch the film", href: "/#film" },
       { label: "Features", href: "/#features" },
       { label: "Pricing", href: "/pricing" },
       { label: "Download", href: "/downloads" },

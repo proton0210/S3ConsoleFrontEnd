@@ -144,6 +144,7 @@ export function StructuredData({ type = "website", data }: StructuredDataProps) 
       siteConfig.links.github,
       siteConfig.links.instagram,
       siteConfig.links.linkedin,
+      siteConfig.links.youtube,
     ],
     contactPoint: {
       "@type": "ContactPoint",
