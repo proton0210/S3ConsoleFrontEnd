@@ -3,7 +3,7 @@ import { siteConfig } from "@/lib/config";
 import { isValidElement } from "react";
 
 interface StructuredDataProps {
-  type?: "website" | "software" | "faq" | "article";
+  type?: "website" | "software" | "faq" | "article" | "video";
   data?: unknown;
 }
 
@@ -187,6 +187,7 @@ export function StructuredData({ type = "website", data }: StructuredDataProps) 
       schema = faqSchema;
       break;
     case "article":
+    case "video":
       schema = data;
       break;
     default:

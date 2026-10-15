@@ -18,6 +18,7 @@ import Link from "next/link";
 import { ArrowRight, Check, Link2, Lock, MonitorSmartphone, Sparkles, Zap } from "lucide-react";
 import { FaApple, FaLinux, FaWindows } from "react-icons/fa";
 
+import { WatchFilmButton } from "@/components/film";
 import { BorderBeam } from "@/components/magicui/border-beam";
 import { ProductShot } from "@/components/product-shot";
 import { buttonVariants } from "@/components/ui/button";
@@ -153,15 +154,7 @@ function HeroCTA() {
           <span className="hidden sm:inline">Download free trial</span>
           <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
         </Link>
-        <Link
-          href="#tour"
-          className={cn(
-            buttonVariants({ variant: "outline", size: "lg" }),
-            "h-12 w-full rounded-full border-border bg-foreground/[0.03] px-7 text-base font-medium hover:bg-foreground/[0.07] sm:w-auto"
-          )}
-        >
-          Take the tour
-        </Link>
+        <WatchFilmButton />
       </div>
       <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
         <span className="inline-flex items-center gap-2">
