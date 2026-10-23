@@ -2,7 +2,7 @@
 
 # Buckets — Feature Reference (website)
 
-App version 2.8.0. This list is generated from the app's command registry, so it always matches what ships. Every feature links to its page under [/docs](https://buckets.serverlesscreed.com/docs).
+App version 2.8.4. This list is generated from the app's command registry, so it always matches what ships. Every feature links to its page under [/docs](https://buckets.serverlesscreed.com/docs).
 
 ## Workspaces
 
@@ -94,7 +94,7 @@ App version 2.8.0. This list is generated from the app's command registry, so it
 - **S3 Inventory** — Browse › More › Settings · [docs](/docs/inventory-config)
 - **Local index** — Browse › More › Settings · [docs](/docs/local-inventory-index)
 - **Metrics** — Browse › More › Settings · [docs](/docs/metrics-analytics)
-- **Costs & Cost Autopilot** — Browse › More › Settings · [docs](/docs/cost-autopilot)
+- **Cost Explorer & Cost Autopilot** — Browse › More › Settings · [docs](/docs/cost-autopilot)
 - **S3 Metadata annotation table** — Browse › More › Settings › Local index · [docs](/docs/local-inventory-index)
 
 ## Access control
@@ -171,6 +171,7 @@ App version 2.8.0. This list is generated from the app's command registry, so it
 - **Inventory index search** — Browse › More › Tools · [docs](/docs/local-inventory-index)
 - **Glacier Restore** — Browse › More › Bucket · [docs](/docs/glacier-restore)
 - **Storage Lens** — Top bar › More · [docs](/docs/storage-lens)
+- **Cost Explorer** — Operate · [docs](/docs/cost-autopilot)
 - **Money leaks report** — Bucket settings › Costs & Cost Autopilot · [docs](/docs/money-leaks-report)
 - **Money leaks for this bucket** — Bucket settings › Costs & Cost Autopilot · [docs](/docs/money-leaks-report)
 - **Search across buckets** — Top bar · [docs](/docs/global-search)
@@ -187,7 +188,8 @@ App version 2.8.0. This list is generated from the app's command registry, so it
 - **Recipe: Publish a private-origin website** — Operate › Recipes · [docs](/docs/safe-workflow-recipes)
 - **Team Access Hub** — Operate › Overview · [docs](/docs/team-access-hub)
 - **S3 Access Grants** — Operate › Overview · [docs](/docs/s3-access-grants)
-- **Directory buckets & Multi-Region Access Points** — Operate › Overview · [docs](/docs/storage-topology)
+- **AWS storage topology & Multi-Region Access Points** — Operate › Overview · [docs](/docs/storage-topology)
+- **Browse S3 Express directory buckets** — Operate › Overview › S3 Express · [docs](/docs/storage-topology)
 - **Automation Command Center** — Operate › Overview · [docs](/docs/automation-command-center)
 - **Shareable deep links** — Operate › Speed · [docs](/docs/powerhouse-speed)
 - **Large-bucket latency budget** — Operate › Speed · [docs](/docs/powerhouse-speed)
