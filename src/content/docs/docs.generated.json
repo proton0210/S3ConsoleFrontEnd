@@ -4027,7 +4027,7 @@
             {
               "heading": "AWS Service Availability",
               "anchor": "aws-service-availability",
-              "content": "AWS closed S3 Select to new customers on July 25, 2024. Existing S3 Select customers can continue using it. A MethodNotAllowed response may indicate this restriction, but does not confirm account eligibility. Buckets preserves the service code and response and shows guidance in the query dialog. An IAM permission change cannot enable a service availability restriction. Use an account with existing access to test S3 Select, use Athena, or download the object for local analysis. S3-compatible provider support depends on the provider.",
+              "content": "AWS closed S3 Select to new customers on July 25, 2024; eligible existing customers can continue using it. AWS also does not support S3 Select for directory buckets or S3 on Outposts. A MethodNotAllowed response does not distinguish account eligibility from an unsupported resource type, so confirm the bucket type and retry with an account known to have S3 Select access. The operation requires s3:GetObject, plus kms:Decrypt for customer managed KMS keys. Buckets preserves the service code, response, and AWS request IDs for support. S3-compatible provider support depends on the provider. Athena or downloading the object for local analysis are alternatives.",
               "steps": [],
               "tips": []
             },
@@ -4727,10 +4727,10 @@
             {
               "heading": "Viewing Triggers",
               "anchor": "viewing-triggers",
-              "content": "The trigger list shows the Lambda functions connected to a bucket's S3 event notifications.",
+              "content": "The trigger list shows everything that runs when objects in the bucket change. Direct S3 → Lambda notifications come first and can be edited. Below them, read-only cards show SQS queues and the functions reading them, SNS topics, and EventBridge rules that match the bucket (only while the bucket sends events to EventBridge), with each rule's state and targets. These routes are looked up when the view opens. SNS subscribers aren't listed. If a lookup isn't allowed, the list says which one and shows the rest, and a card whose lookup failed says so instead of looking idle.",
               "steps": [
                 "Open the Triggers Management modal for a bucket.",
-                "View all Lambda triggers configured for the bucket.",
+                "View all triggers and event routes configured for the bucket.",
                 "See function name, event types, and filter configurations.",
                 "Click a trigger to view its code, settings, and monitoring."
               ],
@@ -4739,14 +4739,14 @@
             {
               "heading": "Editing Triggers",
               "anchor": "editing-triggers",
-              "content": "Change a trigger's events and prefix or suffix filters. In Settings, edit the function's memory, timeout, /tmp storage, reserved concurrency, and environment variables, and see EventBridge rules and queue mappings that also invoke it. Single-file functions can be edited and redeployed from the Code view; only the code changes, so environment, layers, tracing, and VPC settings are kept. Functions with dependencies or several files are read-only here and are redeployed from Lambda Builder so nothing is dropped.",
+              "content": "Change a trigger's events and prefix or suffix filters. S3 allows only one notification per event for any object key, across Lambda, SQS and SNS destinations, so an edit that would overlap another notification isn't saved; the message names the notification in the way. Two suffixes overlap when one ends with the other, such as jpg and .jpg. Creating a trigger never removes another function's trigger; a Lambda Builder deploy replaces only this function's own overlapping trigger, and the preflight shows that first. In Settings, edit the function's memory, timeout, /tmp storage, reserved concurrency, and environment variables, and see EventBridge rules and queue mappings that also invoke it. Single-file functions can be edited and redeployed from the Code view; only the code changes, so environment, layers, tracing, and VPC settings are kept. Functions with dependencies or several files are read-only here and are redeployed from Lambda Builder so nothing is dropped.",
               "steps": [],
               "tips": []
             },
             {
               "heading": "Deleting Triggers",
               "anchor": "deleting-triggers",
-              "content": "Remove triggers that are no longer needed to clean up your event notification configuration.",
+              "content": "Remove triggers that are no longer needed to clean up your event notification configuration. S3 checks every remaining trigger when the configuration is saved, so a trigger whose Lambda function was deleted can block the removal. In that case Buckets also removes those triggers, but only when Lambda confirms the function no longer exists, and the confirmation lists them. If the check itself fails (for example, access is denied), nothing is changed.",
               "steps": [
                 "Open the Triggers Management modal.",
                 "Find the trigger you want to remove.",

@@ -1,9 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
-import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import Header from "@/components/sections/header";
 
 interface LegalDocPageProps {
   /** Filename inside `src/content/legal/`, e.g. "terms.md". */
@@ -18,22 +16,14 @@ function readLegalMarkdown(filename: string): string {
 export default function LegalDocPage({ filename }: LegalDocPageProps) {
   const markdown = readLegalMarkdown(filename);
 
+  // Site header, "Back to Home" link and legal footer links come from
+  // app/(legal)/layout.tsx (re-used by app/privacy/layout.tsx), so this
+  // component renders only the document body.
   return (
-    <>
-      <Header />
-      <div className="min-h-screen bg-background">
-        <div className="max-w-3xl mx-auto px-5 py-16 sm:px-10">
-          <Link
-            href="/"
-            className="text-sm text-muted-foreground hover:text-primary transition-colors"
-          >
-            &larr; Back to Home
-          </Link>
-          <article className="prose prose-neutral max-w-none mt-6">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdown}</ReactMarkdown>
-          </article>
-        </div>
-      </div>
-    </>
+    <div className="max-w-3xl mx-auto px-5 pt-6 pb-16 sm:px-10">
+      <article className="prose prose-neutral max-w-none">
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdown}</ReactMarkdown>
+      </article>
+    </div>
   );
 }
