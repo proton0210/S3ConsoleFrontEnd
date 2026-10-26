@@ -70,7 +70,7 @@
     "braces": "file:vendor/serverlesscreed-braces-3.0.3-tables.1.tgz",
     "eslint": "^9.39.2",
     "eslint-config-next": "16.4.3",
-    "postcss": "^8.5.26",
+    "postcss": "^8.5.31",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
   },
