@@ -2,7 +2,7 @@
 
 # Buckets — Feature Reference (website)
 
-App version 2.8.4. This list is generated from the app's command registry, so it always matches what ships. Every feature links to its page under [/docs](https://buckets.serverlesscreed.com/docs).
+App version 2.8.9. This list is generated from the app's command registry, so it always matches what ships. Every feature links to its page under [/docs](https://buckets.serverlesscreed.com/docs).
 
 ## Workspaces
 
@@ -35,6 +35,8 @@ App version 2.8.4. This list is generated from the app's command registry, so it
 - **Edit CORS** — Browse › Inspector › Permissions · [docs](/docs/split-pane-inspector)
 - **Use continuous scrolling object list** — Browse › Object list · [docs](/docs/browse-performance)
 - **Use paged object list (100 per page)** — Browse › Object list · [docs](/docs/browse-performance)
+- **Use list view** — Browse › Object list · [docs](/docs/browse-performance)
+- **Use gallery (thumbnail) view** — Browse › Object list · [docs](/docs/browse-performance)
 - **Load all objects in this folder** — Browse › Object list · [docs](/docs/browse-performance)
 - **How bucket search picks its source** — Browse › Breadcrumbs › Search · [docs](/docs/in-bucket-search)
 
@@ -48,11 +50,13 @@ App version 2.8.4. This list is generated from the app's command registry, so it
 - **Edit object tags** — Object › More actions · [docs](/docs/object-tagging)
 - **Edit object metadata** — Object › More actions · [docs](/docs/object-metadata)
 - **View object versions** — Object › More actions · [docs](/docs/bucket-versioning)
+- **Compare two versions of this object** — Object › More actions › View versions · [docs](/docs/bucket-versioning)
 - **Rename object** — Object › More actions · [docs](/docs/renaming-objects)
 - **Query object with S3 Select** — Object › More actions · [docs](/docs/s3-select)
 - **Generate code for object** — Object › More actions · [docs](/docs/code-generation)
 - **Transfer object to another bucket or profile** — Object › More actions · [docs](/docs/cross-profile-transfer)
 - **Restore object from Glacier** — Object › More actions · [docs](/docs/glacier-restore)
+- **Edit selected object in local app** — Object › More actions · [docs](/docs/edit-in-place)
 - **Delete object** — Object · [docs](/docs/deleting-objects)
 - **View and edit S3 annotations** — Object › Inspector › Annotations · [docs](/docs/s3-annotations)
 - **Query annotations in Athena** — Object › Inspector › Annotations · [docs](/docs/s3-annotations)
@@ -147,7 +151,7 @@ App version 2.8.4. This list is generated from the app's command registry, so it
 - **New Drop Zone upload request** — Browse › More › Bucket › Drop Zones · [docs](/docs/secure-sharing-upload-requests)
 - **Virtual drive** — Browse › More › Bucket · [docs](/docs/optional-virtual-drive)
 - **Connect S3-compatible storage** — Home › Quick actions · [docs](/docs/s3-compatible-connections)
-- **Transfers panel** — Top bar · [docs](/docs/transfers-panel)
+- **Transfers panel** — Top bar › More › Transfers · [docs](/docs/transfers-panel)
 - **Rename or move this folder** — Browse › Folder actions · [docs](/docs/renaming-objects)
 - **S3-compatible provider feature support** — Home › Quick actions › S3-compatible · [docs](/docs/s3-compatible-connections)
 - **Virtual drive setup guide** — Browse › More › Bucket › Virtual drive · [docs](/docs/virtual-drive-setup)
@@ -251,22 +255,23 @@ App version 2.8.4. This list is generated from the app's command registry, so it
 
 ## Account
 
-- **Add access-key profile** — Top bar › Add profile · [docs](/docs/access-keys-auth)
-- **Add AWS SSO profile** — Top bar › Add profile · [docs](/docs/sso-auth)
-- **Browser CLI login (aws login)** — Top bar › Add profile · [docs](/docs/cli-auth)
+- **Add access-key profile** — Top bar › More › Add new profile · [docs](/docs/access-keys-auth)
+- **Add AWS SSO profile** — Top bar › More › Add new profile · [docs](/docs/sso-auth)
+- **Browser CLI login (aws login)** — Top bar › More › Add new profile · [docs](/docs/cli-auth)
 - **Profile & license** — Top bar › Profile menu · [docs](/docs/licensing)
 - **View pricing & upgrade** — Top bar › License · [docs](/docs/licensing)
 - **Billing & invoices** — Top bar › Profile menu · [docs](/docs/account-and-billing)
 - **Contact support** — Top bar › Profile menu · [docs](/docs/support)
 - **Log out** — Top bar › Profile menu · [docs](/docs/account-and-billing)
 - **Auth doctor** — Account › Sign-in help · [docs](/docs/auth-doctor)
+- **Copy diagnostics for support** — Top bar › Profile menu › Contact support · [docs](/docs/support)
 - **TLS & proxy settings** — Account › Network · [docs](/docs/tls-and-proxy)
 
 ## Preferences
 
-- **Theme: Light** — Top bar › Theme · [docs](/docs/themes)
-- **Theme: Dark** — Top bar › Theme · [docs](/docs/themes)
-- **Theme: Match system** — Top bar › Theme · [docs](/docs/themes)
+- **Theme: Light** — Top bar › More › Theme · [docs](/docs/themes)
+- **Theme: Dark** — Top bar › More › Theme · [docs](/docs/themes)
+- **Theme: Match system** — Top bar › More › Theme · [docs](/docs/themes)
 - **Language & region** — Top bar › More · [docs](/docs/language-settings)
 - **Language: English** — Top bar › More › Language · [docs](/docs/language-settings)
 - **Language: Hindi** — Top bar › More › Language · [docs](/docs/language-settings)
@@ -274,8 +279,9 @@ App version 2.8.4. This list is generated from the app's command registry, so it
 - **Language: Japanese** — Top bar › More › Language · [docs](/docs/language-settings)
 - **Toggle sidebar** — Top bar · [docs](/docs/viewing-buckets)
 - **Clear recent objects & commands** — Command palette · [docs](/docs/command-palette)
+- **Show request timing** — Browse › Status strip · [docs](/docs/browse-performance)
 - **Choose what you use S3 for** — Top bar › More · [docs](/docs/essentials-mode)
-- **Show everything** — Top bar › Essentials · [docs](/docs/essentials-mode)
+- **Show everything** — Top bar › More › Show everything · [docs](/docs/essentials-mode)
 - **Switch to Essentials mode** — Top bar › More › What I use S3 for · [docs](/docs/essentials-mode)
 
 ## Help
