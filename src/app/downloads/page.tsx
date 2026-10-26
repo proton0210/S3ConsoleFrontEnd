@@ -88,6 +88,39 @@ const OS_LABELS: Record<DetectedOS, string> = {
 // canonical URL in source prevents a missing deployment variable from sending
 // Windows customers to a stale "coming soon" state after Store publication.
 const windowsInstallerUrl = "https://s3consolewindows.s3.ap-south-1.amazonaws.com/latest/Buckets-windows-x64.exe";
+// Every release since 2.8.9 promotes both macOS builds to these aliases.
+const MAC_DOWNLOADS = {
+  arm64: { url: "https://s3consolemac.s3.us-east-1.amazonaws.com/latest/Buckets-mac-arm64.zip", file: "Buckets-mac-arm64.zip" },
+  x64: { url: "https://s3consolemac.s3.us-east-1.amazonaws.com/latest/Buckets-mac-x64.zip", file: "Buckets-mac-x64.zip" },
+} as const;
+type MacArch = keyof typeof MAC_DOWNLOADS;
+
+// Package-manager installs. Homebrew and Scoop are published automatically by
+// the release workflow; winget installs the Microsoft Store listing.
+const PACKAGE_MANAGER_INSTALLS = [
+  { label: "macOS (Homebrew)", command: "brew install --cask proton0210/tap/buckets" },
+  { label: "Windows (Scoop)", command: "scoop bucket add proton0210 https://github.com/proton0210/scoop-bucket; scoop install proton0210/buckets" },
+  { label: "Windows (winget, Microsoft Store)", command: "winget install 9N62S7QSHBDN --source msstore" },
+] as const;
+
+function CopyCommand({ command }: { command: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        void navigator.clipboard?.writeText(command).then(() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        });
+      }}
+      className="shrink-0 rounded-full border border-border px-3 py-1 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+      aria-label={`Copy command: ${command}`}
+    >
+      {copied ? "Copied" : "Copy"}
+    </button>
+  );
+}
 const windowsStoreUrl = "https://apps.microsoft.com/detail/9N62S7QSHBDN";
 
 // Shared class names so the downloads page matches the premium theme used on
@@ -174,13 +207,12 @@ export default function DownloadsPage() {
   // The page itself renders immediately (and server-side) for everyone;
   // only the signed-in license panel waits for the account lookup.
 
-  const handleMacDownload = () => {
-    const downloadLink =
-      "https://s3consolemac.s3.us-east-1.amazonaws.com/latest/Buckets-mac-arm64.zip";
+  const handleMacDownload = (arch: MacArch = "arm64") => {
+    const { url: downloadLink, file } = MAC_DOWNLOADS[arch];
 
     const link = document.createElement("a");
     link.href = downloadLink;
-    link.download = "Buckets-mac-arm64.zip";
+    link.download = file;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -198,6 +230,7 @@ export default function DownloadsPage() {
 
     sendGAEvent("event", "download_clicked", {
       os: 'macOS',
+      arch,
       release_channel: "latest",
     });
 
@@ -435,7 +468,7 @@ export default function DownloadsPage() {
               ) : (
                 <Button
                   size="lg"
-                  onClick={detectedOS === "linux" ? handleLinuxDownload : handleMacDownload}
+                  onClick={() => (detectedOS === "linux" ? handleLinuxDownload() : handleMacDownload("arm64"))}
                   className={PRIMARY_CTA_CLASS}
                 >
                   {detectedOS === "linux" ? (
@@ -450,8 +483,20 @@ export default function DownloadsPage() {
                 </Button>
               )}
 
+              {detectedOS === "mac" && (
+                <p className="text-sm text-muted-foreground">
+                  That&apos;s the Apple silicon build. On an Intel Mac?{" "}
+                  <button
+                    type="button"
+                    onClick={() => handleMacDownload("x64")}
+                    className="underline underline-offset-2 hover:text-foreground"
+                  >
+                    Download for Intel
+                  </button>
+                </p>
+              )}
               <p className="text-xs text-muted-foreground">
-                Free · 14-day trial · macOS, Windows, Linux
+                Free · 14-day trial · macOS (Apple silicon &amp; Intel), Windows, Linux
               </p>
             </div>
 
@@ -463,12 +508,21 @@ export default function DownloadsPage() {
               <div className="flex flex-wrap items-center justify-center gap-3 text-sm">
                 <button
                   type="button"
-                  onClick={handleMacDownload}
+                  onClick={() => handleMacDownload("arm64")}
                   className={PLATFORM_CHIP_CLASS}
                 >
                   <FaApple className="h-4 w-4" />
                   macOS
-                  <span className="text-xs text-muted-foreground">(.zip, ARM64)</span>
+                  <span className="text-xs text-muted-foreground">(Apple silicon, .zip)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleMacDownload("x64")}
+                  className={PLATFORM_CHIP_CLASS}
+                >
+                  <FaApple className="h-4 w-4" />
+                  macOS
+                  <span className="text-xs text-muted-foreground">(Intel, .zip)</span>
                 </button>
                 <a
                   href={windowsStoreUrl}
@@ -509,6 +563,24 @@ export default function DownloadsPage() {
               {" "}For details on credential storage, data handling, and current security assurance, see our{" "}
               <Link href="/trust" className="underline underline-offset-2 hover:text-foreground">Trust Center</Link>.
             </p>
+
+            {/* Package managers */}
+            <div className="mx-auto mt-10 max-w-2xl text-left">
+              <p className="mb-3 text-center text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                Or install with a package manager
+              </p>
+              <div className="space-y-2">
+                {PACKAGE_MANAGER_INSTALLS.map(({ label, command }) => (
+                  <div key={label} className={FIELD_ROW_CLASS}>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs text-muted-foreground">{label}</p>
+                      <code className="block overflow-x-auto whitespace-nowrap font-mono text-xs text-foreground">{command}</code>
+                    </div>
+                    <CopyCommand command={command} />
+                  </div>
+                ))}
+              </div>
+            </div>
 
             {/* What happens next — three quick reassurances */}
             <div className="mx-auto mt-12 grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3">

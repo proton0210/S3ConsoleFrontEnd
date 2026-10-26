@@ -28,7 +28,7 @@ import {
 const FAQS = [
   {
     q: "What is an AWS S3 GUI for Mac?",
-    a: "Buckets by ServerlessCreed is a macOS S3 desktop client built for Apple Silicon Macs. It supports drag-and-drop uploads, side-by-side bucket browsing, AWS SSO login, multi-profile switching, and a visual bucket policy editor. It is purpose-built for S3, so every screen is designed around buckets, objects, and AWS accounts.",
+    a: "Buckets by ServerlessCreed is a macOS S3 desktop client for Apple silicon and Intel Macs. It supports drag-and-drop uploads, side-by-side bucket browsing, AWS SSO login, multi-profile switching, and a visual bucket policy editor. It is purpose-built for S3, so every screen is designed around buckets, objects, and AWS accounts.",
   },
   {
     q: "Does AWS provide an official S3 GUI?",

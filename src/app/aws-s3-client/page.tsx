@@ -131,7 +131,7 @@ export default function AwsS3ClientPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
-            <span className="inline-flex items-center gap-1.5"><FaApple className="h-4 w-4" /> macOS (Apple Silicon)</span>
+            <span className="inline-flex items-center gap-1.5"><FaApple className="h-4 w-4" /> macOS (Apple silicon &amp; Intel)</span>
             <span className="inline-flex items-center gap-1.5"><FaWindows className="h-4 w-4" /> Windows 10 &amp; 11</span>
             <span className="inline-flex items-center gap-1.5"><FaLinux className="h-4 w-4" /> Linux (.deb)</span>
             <span className="text-muted-foreground/70">·</span>

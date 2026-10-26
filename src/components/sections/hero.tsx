@@ -161,7 +161,7 @@ function HeroCTA() {
           <FaApple className="h-4 w-4" />
           <FaWindows className="h-3.5 w-3.5" />
           <FaLinux className="h-4 w-4" />
-          <span>macOS (Apple Silicon), Windows &amp; Linux</span>
+          <span>macOS (Apple silicon &amp; Intel), Windows &amp; Linux</span>
         </span>
         <span className="hidden h-1 w-1 rounded-full bg-muted-foreground/40 sm:block" />
         <span>14-day full trial</span>
