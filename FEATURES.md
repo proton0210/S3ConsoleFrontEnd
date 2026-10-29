@@ -2,7 +2,7 @@
 
 # Buckets — Feature Reference (website)
 
-App version 2.8.9. This list is generated from the app's command registry, so it always matches what ships. Every feature links to its page under [/docs](https://buckets.serverlesscreed.com/docs).
+App version 2.9.2. This list is generated from the app's command registry, so it always matches what ships. Every feature links to its page under [/docs](https://buckets.serverlesscreed.com/docs).
 
 ## Workspaces
 
@@ -150,6 +150,8 @@ App version 2.8.9. This list is generated from the app's command registry, so it
 - **Drop Zones** — Browse › More › Bucket › Drop Zones · [docs](/docs/secure-sharing-upload-requests)
 - **New Drop Zone upload request** — Browse › More › Bucket › Drop Zones · [docs](/docs/secure-sharing-upload-requests)
 - **Virtual drive** — Browse › More › Bucket · [docs](/docs/optional-virtual-drive)
+- **Add to Finder or Explorer** — Browse › More › Bucket · [docs](/docs/finder-explorer-drives)
+- **Finder and Explorer drives** — Home › Quick actions · [docs](/docs/finder-explorer-drives)
 - **Connect S3-compatible storage** — Home › Quick actions · [docs](/docs/s3-compatible-connections)
 - **Transfers panel** — Top bar › More › Transfers · [docs](/docs/transfers-panel)
 - **Rename or move this folder** — Browse › Folder actions · [docs](/docs/renaming-objects)
