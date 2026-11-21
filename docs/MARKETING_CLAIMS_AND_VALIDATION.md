@@ -32,6 +32,7 @@ Homepage hero (November 21, 2026): the first screen no longer has one fixed head
 - A headline states the outcome and must stay true with the fix line under it: "Roll the bucket back past the bad deploy" needs versioning (the fix line says so), "Grep every bucket from one box" searches object keys within one account and is not regular-expression search, "Debug a 403 without the guesswork" is what Auth Doctor reports, not a guarantee of a cause.
 - Do not say "one click" for a restore; Time Travel has a review step.
 - No other S3 client is named, so the September 26 rule still holds.
+- Fixed line under the product name (owner decision, November 21, 2026): "More productive than the CLI". This is a positioning claim, not a measured result; the "Instead of" command on each slide is the support for it. Do not attach a number (hours, percent, "10x") without a measured study, per the rule on assumed savings below.
 - `NEXT_PUBLIC_HERO_VARIANT` is retired. `hero_download_clicked` now carries `wow`, the id of the slide showing when the button was clicked.
 
 Homepage hero pains (November 21, 2026, replaces the pain reel section): the pains now rotate inside the hero (`hero-pains.tsx`). Per slide a headline, one pain and its fix show together, and beside them the real screenshot for that fix is framed on the control, the cursor clicks it and an outcome chip appears. A slide lasts 3.5 seconds. Rules for it:

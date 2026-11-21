@@ -39,20 +39,30 @@ const priceOf = (tier: string) => siteConfig.pricing.find((p) => p.tier === tier
 
 function HeroEyebrow() {
   return (
-    <p
-      className="hero-rise inline-flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-sm font-medium text-muted-foreground lg:justify-start"
-      style={{ animationDelay: "0ms" }}
-    >
-      <span className="font-semibold text-foreground">Buckets</span>
-      <span aria-hidden className="h-1 w-1 rounded-full bg-muted-foreground/40" />
-      <span>The S3 desktop client for developers</span>
-      <span aria-hidden className="inline-flex items-center gap-1.5 pl-0.5">
-        <FaApple className="h-4 w-4" />
-        <FaWindows className="h-3.5 w-3.5" />
-        <FaLinux className="h-4 w-4" />
-      </span>
-      <span className="sr-only">for macOS, Windows and Linux</span>
-    </p>
+    <>
+      <p
+        className="hero-rise inline-flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-sm font-medium text-muted-foreground lg:justify-start"
+        style={{ animationDelay: "0ms" }}
+      >
+        <span className="font-semibold text-foreground">Buckets</span>
+        <span aria-hidden className="h-1 w-1 rounded-full bg-muted-foreground/40" />
+        <span>The S3 desktop client for developers</span>
+        <span aria-hidden className="inline-flex items-center gap-1.5 pl-0.5">
+          <FaApple className="h-4 w-4" />
+          <FaWindows className="h-3.5 w-3.5" />
+          <FaLinux className="h-4 w-4" />
+        </span>
+        <span className="sr-only">for macOS, Windows and Linux</span>
+      </p>
+      {/* The one claim that never changes. Wording is the owner's
+          (see docs/MARKETING_CLAIMS_AND_VALIDATION.md). */}
+      <p
+        className="hero-rise mt-2 text-[15px] font-semibold leading-6 text-foreground sm:text-base"
+        style={{ animationDelay: "30ms" }}
+      >
+        More productive than the CLI
+      </p>
+    </>
   );
 }
 
