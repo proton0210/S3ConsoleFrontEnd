@@ -76,7 +76,9 @@ export const PAINS: Pain[] = [
     accent: "your keys.",
     pain: "Your coding agent wants AWS credentials.",
     fix: "A local MCP server for Claude Code and Cursor. Writes wait for you.",
-    instead: "export AWS_SECRET_ACCESS_KEY=…",
+    // Not the secret-key variable name: scripts/check-bundle-for-secrets.js blocks any
+    // client chunk that contains it, and that check must stay strict.
+    instead: "aws configure export-credentials --profile prod",
     shot: "mcp-approval",
     view: { cx: 50, cy: 80, w: 100 },
     box: { x: 82.44, y: 93.02, w: 11.61, h: 3.37 },
