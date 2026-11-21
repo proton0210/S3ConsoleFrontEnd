@@ -2,7 +2,7 @@
 
 # Buckets — Feature Reference (website)
 
-App version 2.9.2. This list is generated from the app's command registry, so it always matches what ships. Every feature links to its page under [/docs](https://buckets.serverlesscreed.com/docs).
+App version 2.9.9. This list is generated from the app's command registry, so it always matches what ships. Every feature links to its page under [/docs](https://buckets.serverlesscreed.com/docs).
 
 ## Workspaces
 
@@ -47,6 +47,7 @@ App version 2.9.2. This list is generated from the app's command registry, so it
 - **Copy s3:// URI** — Object › Inspector · [docs](/docs/split-pane-inspector)
 - **Copy ARN** — Object › Inspector · [docs](/docs/split-pane-inspector)
 - **Generate presigned URL** — Object › Preview · [docs](/docs/presigned-urls)
+- **Serve this object through a local proxy** — Object › Preview · [docs](/docs/previewing)
 - **Edit object tags** — Object › More actions · [docs](/docs/object-tagging)
 - **Edit object metadata** — Object › More actions · [docs](/docs/object-metadata)
 - **View object versions** — Object › More actions · [docs](/docs/bucket-versioning)
