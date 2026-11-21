@@ -55,13 +55,13 @@ if (POSTHOG_ENABLED && typeof window !== "undefined") {
       // Localhost and Amplify preview builds count as internal traffic.
       internal_or_test_user_hostname: /^(localhost|127\.0\.0\.1|.+\.amplifyapp\.com)$/,
       session_recording: { maskAllInputs: true },
-      loaded: (ph) => {
-        ph.register({ app: APP_ID });
-      },
       before_send: (event) => {
         if (!event) return null;
         const path = event.properties?.$pathname;
         if (typeof path === "string" && path.startsWith("/admin")) return null;
+        // Stamped here, not with register(): super properties need browser
+        // storage, which cookieless (declined) visits don't have.
+        event.properties = { ...event.properties, app: APP_ID };
         stripUrls(event.properties);
         stripUrls(event.$set);
         stripUrls(event.$set_once);
