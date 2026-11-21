@@ -11,7 +11,6 @@ import Security from "@/components/sections/security";
 import Tour from "@/components/sections/tour";
 import WhatsNew from "@/components/sections/whats-new";
 import Workflow from "@/components/sections/workflow";
-import WowReel from "@/components/sections/wow-reel";
 import { MotionProvider } from "@/components/motion-provider";
 import { StructuredData } from "@/components/structured-data";
 import { siteConfig } from "@/lib/config";
@@ -50,7 +49,6 @@ export default function Home() {
         <StructuredData type="video" data={filmSchema} />
         <Header />
         <Hero />
-        <WowReel />
         <HeroShowcase />
         <FilmSection />
         <Tour />

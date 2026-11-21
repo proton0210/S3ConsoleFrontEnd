@@ -27,21 +27,21 @@ If the owner keeps the September rule, delete those five files and the "Comparin
 
 Desktop telemetry (October 13, 2026): the unused `posthog-js` dependency was removed from the desktop app. The Trust Center's "No telemetry in the desktop app" section lists every desktop network connection and is enforced by `check:trust-center`. Keep the claim scoped to the desktop app; this website uses Google Analytics and Reddit and X conversion pixels.
 
-Homepage hero (November 21, 2026): the first screen makes one claim, "Do in a few clicks what S3 makes you script", next to a by-hand restore script and the Time Travel dialog. Rules for it:
+Homepage hero (November 21, 2026): the first screen makes one claim, "Do in a few clicks what S3 makes you script", with the rotating pains described below. Rules for it:
 - Do not say "one click" for a restore; Time Travel has a review step.
-- The script shown must stay a workable start and must keep listing what it leaves out. Do not present it as the AWS-recommended method.
-- The comparison is with doing the job by hand. It names no other S3 client, so the September 26 rule still holds.
-- The picture shows three cropped regions of the Time Travel screenshot as "3 steps" (pick a time, see what changed, restore). Say "steps", not "clicks", unless the click count is measured in the app.
-- "412 deleted objects, back" comes from the change window in that screenshot (sample data) and the picture is captioned "Shown with the app's sample data". Change the chip if the screenshot changes.
-- The script's line count in the "By hand" label is computed from the script shown.
+- The claim compares with doing the job by hand. It names no other S3 client, so the September 26 rule still holds.
 - `NEXT_PUBLIC_HERO_VARIANT` (`script` default, `console`, `outcomes`) switches the headline at build time; the value is sent with `hero_download_clicked`.
 
-Homepage pain reel (November 21, 2026): `wow-reel.tsx` replaces the capability chips under the hero. Seven slides, each a pain, the fix and what the job takes by hand, advancing every 2.6 seconds. Rules for it:
-- Each line must be readable in 2.6 seconds: about ten words.
+Homepage hero pains (November 21, 2026, replaces the pain reel section): the pains now rotate inside the hero (`hero-pains.tsx`). The headline stays fixed; under it one pain and its fix show at a time, and beside it the real screenshot for that fix is framed on the control, the cursor clicks it and an outcome chip appears. A slide lasts 3.5 seconds. Rules for it:
+- Each line must be readable in that time: about ten words.
+- One motion per side: the text fades as one block, and the picture has only the cursor click and the outcome.
+- The moves are animated screenshots, not recordings of the app. Do not call them videos or recordings.
+- Every outcome chip repeats a figure visible in its screenshot (sample data) and the picture is captioned "Shown with the app's sample data". Change the chip if the screenshot changes.
 - Savings are "estimated"; search is "every bucket in the account" (cross-account search is a separate reviewed scan); Time Travel says it needs versioning.
-- "By hand" lines describe AWS's own tools in general terms and name no other S3 client.
-- It pauses on hover and focus, has a Pause button, and does not auto-advance for visitors who ask for reduced motion.
-- `/?wow=<id>#wow` opens on one slide and stays there, for outreach links. Ids: money-leaks, search, agents, drop-zones, auth-doctor, folder-move, time-travel.
+- It names no other S3 client.
+- It pauses on hover and focus, has a Pause button, and shows each slide's end state without motion for visitors who ask for reduced motion.
+- `/?wow=<id>` opens on one slide and stays there, for outreach links. Ids: time-travel, money-leaks, agents, search, drop-zones, auth-doctor, folder-move.
+- `wow-reel.tsx` is no longer used on the homepage.
 
 ## Positioning and pricing
 

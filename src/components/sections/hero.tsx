@@ -15,12 +15,13 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { sendGAEvent } from "@next/third-parties/google";
 import Link from "next/link";
-import { ArrowRight, Check, Link2, Lock, MonitorSmartphone, Sparkles, X, Zap } from "lucide-react";
+import { ArrowRight, Check, Link2, Lock, MonitorSmartphone, Sparkles, Zap } from "lucide-react";
 import { FaApple, FaLinux, FaWindows } from "react-icons/fa";
 
 import { WatchFilmButton } from "@/components/film";
 import { BorderBeam } from "@/components/magicui/border-beam";
-import { PRODUCT_SHOTS, ProductShot } from "@/components/product-shot";
+import { ProductShot } from "@/components/product-shot";
+import { PainStage, PainText, usePainRotation } from "@/components/sections/hero-pains";
 import { buttonVariants } from "@/components/ui/button";
 import { EASE_OUT, SPRING, useCalm } from "@/lib/motion";
 import { cn } from "@/lib/utils";
@@ -29,8 +30,8 @@ import { siteConfig } from "@/lib/config";
 
 /* ------------------------------------------------------------------ */
 /* First screen. A visitor decides in about five seconds, so this      */
-/* holds one claim, one line of support, one picture and one button.   */
-/* Nothing here waits on a timed animation.                            */
+/* holds one fixed claim, one button, and one pain at a time with its  */
+/* fix and a short move on the real screenshot (see hero-pains.tsx).   */
 /*                                                                     */
 /* Copy rules (docs/MARKETING_CLAIMS_AND_VALIDATION.md): no "one       */
 /* click" for restores (Time Travel has a review step), no hours-saved */
@@ -94,12 +95,6 @@ function HeroTitles() {
           );
         })}
       </h1>
-      <p
-        className="hero-rise mt-5 max-w-xl text-pretty text-lg leading-8 text-muted-foreground"
-        style={{ animationDelay: "300ms" }}
-      >
-        Restore, search and cost checks for S3, without the scripts.
-      </p>
     </>
   );
 }
@@ -113,7 +108,7 @@ function HeroCTA() {
     { icon: Check, text: "14-day full trial, no card" },
   ];
   return (
-    <div className="hero-rise mt-8 flex flex-col items-center gap-6 lg:items-start" style={{ animationDelay: "400ms" }}>
+    <div className="hero-rise mt-6 flex flex-col items-center gap-6 lg:items-start" style={{ animationDelay: "400ms" }}>
       <div className="flex w-full flex-col items-center gap-x-5 gap-y-3 sm:w-auto sm:flex-row">
         <Link
           href="/downloads"
@@ -142,120 +137,6 @@ function HeroCTA() {
           </li>
         ))}
       </ul>
-    </div>
-  );
-}
-
-/* The by-hand version of a point-in-time restore. Kept honest: this is a
-   workable start, and the comment lists what it still leaves out. */
-const SCRIPT: { text: string; tone?: "comment" }[] = [
-  { text: "# roll media/ back to 30 Sep, 2 pm", tone: "comment" },
-  { text: 'T="2026-09-30T14:00:00Z"' },
-  { text: 'aws s3api list-object-versions --bucket "$B" \\' },
-  { text: '  --prefix media/ --output text --query \\' },
-  { text: '  "Versions[?LastModified<=\'$T\'].[Key,VersionId,LastModified]" \\' },
-  { text: "  | sort -k1,1 -k3,3r | awk '!seen[$1]++' \\" },
-  { text: "  | while read -r key vid _; do" },
-  { text: '      aws s3api copy-object --bucket "$B" --key "$key" \\' },
-  { text: '        --copy-source "$B/$key?versionId=$vid"' },
-  { text: "    done" },
-  { text: "# todo: delete markers, keys created after $T,", tone: "comment" },
-  { text: "# pagination, keys with spaces, a dry run…", tone: "comment" },
-];
-
-/* Regions of the Time Travel shot, in source pixels (2048 x 1664). The whole
-   dialog is unreadable at hero size, so each step shows only the part that
-   matters, about half size. */
-const STEPS = [
-  { label: "Pick a time", x: 41, y: 261, w: 1085, h: 123 },
-  { label: "See what changed", x: 41, y: 450, w: 1085, h: 154 },
-  { label: "Restore", x: 940, y: 1562, w: 1085, h: 102 },
-] as const;
-
-function Crop({ x, y, w, h, priority }: { x: number; y: number; w: number; h: number; priority?: boolean }) {
-  const shot = PRODUCT_SHOTS.timetravel;
-  return (
-    <div
-      className="relative overflow-hidden rounded-lg border border-border bg-background"
-      style={{ aspectRatio: `${w} / ${h}` }}
-    >
-      <div
-        className="absolute"
-        style={{ width: `${(shot.w / w) * 100}%`, left: `${(-x / w) * 100}%`, top: `${(-y / h) * 100}%` }}
-      >
-        <ProductShot name="timetravel" priority={priority} sizes="(max-width: 1024px) 180vw, 1100px" />
-      </div>
-    </div>
-  );
-}
-
-/** The script you would write, pushed back and dimmed, with the same job in Buckets in front. */
-function HeroContrast() {
-  return (
-    <div className="hero-rise relative mx-auto w-full max-w-xl lg:max-w-none" style={{ animationDelay: "200ms" }}>
-      <p className="sr-only">
-        Restoring a prefix to an earlier point by hand takes a shell script that lists object versions and copies
-        each one back. In Buckets, Time Travel takes three steps: pick a time, see what changed, restore.
-      </p>
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -inset-10 -z-10 rounded-[4rem] bg-[conic-gradient(from_180deg_at_50%_50%,hsl(var(--brand-from)/0.3),hsl(var(--brand-to)/0.22),hsl(var(--primary)/0.05),hsl(var(--brand-from)/0.3))] opacity-60 blur-[80px] dark:opacity-80"
-      />
-
-      {/* Behind: the script. It is texture; the label carries the point. */}
-      <div aria-hidden className="relative w-[90%] -rotate-[1.5deg]">
-        <div className="overflow-hidden rounded-xl border border-white/10 bg-[#16161a] shadow-[0_20px_50px_-20px_rgb(0_0_0/0.5)]">
-          <div className="flex items-center gap-2.5 border-b border-white/10 px-4 py-3">
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-red-500/20 text-red-400">
-              <X className="h-3.5 w-3.5" strokeWidth={3} />
-            </span>
-            <span className="whitespace-nowrap text-base font-semibold text-white sm:text-lg">By hand</span>
-            <span className="text-[13px] text-white/60 sm:text-base">{SCRIPT.length} lines, then the edge cases</span>
-          </div>
-          <pre className="overflow-hidden px-4 pb-28 pt-3 font-mono text-[9.5px] leading-[1.7] text-white/45 sm:text-[11px] lg:pb-32">
-            {SCRIPT.map(({ text, tone }) => (
-              <span key={text} className={cn("block", tone === "comment" && "text-white/30")}>
-                {text}
-              </span>
-            ))}
-          </pre>
-        </div>
-      </div>
-
-      {/* In front: the same job in Buckets, as three cropped steps */}
-      <div className="relative z-10 -mt-52 ml-auto w-[88%] lg:-mt-60">
-        {/* Solid backing: .surface is translucent in dark mode and the script would show through. */}
-        <div className="rounded-2xl bg-background">
-          <div className="surface shadow-frame rounded-2xl p-4 sm:p-5">
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">
-                <Check className="h-3.5 w-3.5" strokeWidth={3} />
-              </span>
-              <span className="text-base font-semibold text-foreground sm:text-lg">In Buckets</span>
-              <span className="text-sm text-muted-foreground sm:text-base">{STEPS.length} steps</span>
-            </div>
-            <ol className="mt-3 flex flex-col gap-3">
-              {STEPS.map(({ label, ...region }, n) => (
-                <li key={label}>
-                  <p className="mb-1.5 flex items-center gap-2 text-sm font-medium text-foreground">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-foreground text-[11px] font-semibold text-background">
-                      {n + 1}
-                    </span>
-                    {label}
-                  </p>
-                  <Crop {...region} priority={n === 0} />
-                </li>
-              ))}
-            </ol>
-          </div>
-        </div>
-        {/* The outcome, from the change window in the shot above (412 deleted). */}
-        <p className="absolute -bottom-5 -left-6 inline-flex items-center gap-2 rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background shadow-xl sm:-left-10 sm:text-base">
-          <Check className="h-4 w-4 text-emerald-400 dark:text-emerald-600" strokeWidth={3} />
-          412 deleted objects, back
-        </p>
-      </div>
-      <p className="mt-8 text-right text-xs text-muted-foreground/70">Shown with the app&apos;s sample data.</p>
     </div>
   );
 }
@@ -535,19 +416,24 @@ function ProofStrip() {
 }
 
 export default function Hero() {
+  const ref = useRef<HTMLElement>(null);
+  const rotation = usePainRotation(ref);
   return (
-    <section id="hero" className="relative isolate overflow-hidden">
+    <section ref={ref} id="hero" className="relative isolate overflow-hidden">
       <div aria-hidden className="bg-glow pointer-events-none absolute inset-0 -z-10" />
       <div aria-hidden className="bg-grid pointer-events-none absolute inset-0 -z-10" />
-      {/* Bottom padding is kept small so the top of the pain reel shows on the first screen. */}
-      <div className="relative flex w-full flex-col items-center px-4 pb-6 pt-10 sm:px-6 md:pt-12 lg:px-8">
-        <div className="grid w-full max-w-7xl grid-cols-[minmax(0,1fr)] items-center gap-x-12 gap-y-14 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+      <div className="relative flex w-full flex-col items-center px-4 pb-14 pt-10 sm:px-6 md:pt-12 lg:px-8">
+        <div
+          {...rotation.hoverProps}
+          className="grid w-full max-w-7xl grid-cols-[minmax(0,1fr)] items-center gap-x-12 gap-y-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]"
+        >
           <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
             <HeroEyebrow />
             <HeroTitles />
+            <PainText rotation={rotation} />
             <HeroCTA />
           </div>
-          <HeroContrast />
+          <PainStage rotation={rotation} />
         </div>
       </div>
     </section>
