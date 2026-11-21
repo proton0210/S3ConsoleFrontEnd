@@ -3,8 +3,10 @@
 /**
  * Links a signed-in visitor's PostHog person to their Clerk user id, so the
  * Dodo webhook (which knows the same id as `accountSubject`) can attribute
- * purchases. Sends no email or name. Person properties are prefixed with the
- * app because Buckets and Tables share one PostHog project.
+ * purchases. Sets the account email as the person's `email` property so the
+ * team can see who a person is (disclosed in privacy.md); never the name.
+ * App-specific person properties are prefixed with the app because Buckets
+ * and Tables share one PostHog project.
  */
 import { useEffect, useRef } from "react";
 import { useUser } from "@clerk/nextjs";
@@ -27,13 +29,13 @@ export function PostHogIdentify() {
         identifiedAs.current = user.id;
 
         const createdAt = user.createdAt ? new Date(user.createdAt) : null;
+        const email = user.primaryEmailAddress?.emailAddress?.toLowerCase() ?? "";
         posthog.identify(
           user.id,
-          { [`${APP_ID}_user`]: true },
+          { [`${APP_ID}_user`]: true, ...(email ? { email } : {}) },
           createdAt ? { [`${APP_ID}_signed_up_at`]: createdAt.toISOString() } : undefined,
         );
 
-        const email = user.primaryEmailAddress?.emailAddress?.toLowerCase() ?? "";
         if (INTERNAL_EMAIL_DOMAINS.some((domain) => email.endsWith(`@${domain}`))) {
           posthog.setInternalOrTestUser();
         }

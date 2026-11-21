@@ -7,7 +7,9 @@
  * differs between the two sites is NEXT_PUBLIC_APP_ID, which PostHog adds to
  * every event as `app` (see src/instrumentation-client.ts).
  *
- * Never put emails, names, AWS identifiers or payment ids in properties.
+ * Never put emails, names, AWS identifiers or payment ids in event
+ * properties. (The account email is set once as a person property in
+ * src/components/posthog-identify.tsx, and nowhere else.)
  */
 import posthog from "posthog-js";
 import { sendGAEvent } from "@next/third-parties/google";
