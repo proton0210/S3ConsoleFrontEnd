@@ -13,7 +13,7 @@ import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useClerk, useUser } from "@clerk/nextjs";
 import { compositeLegalVersion } from "@/lib/legalVersions";
-import { sendGAEvent } from "@next/third-parties/google";
+import { productForTier, track } from "@/lib/analytics";
 import { trackReddit, tierValue, TEAM_SEAT_PRICE_USD } from "@/lib/reddit";
 import { AlertTriangle, ArrowLeft, ArrowRight, Check, ExternalLink, Loader2, Lock, Minus, Plus, RotateCcw, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -176,7 +176,12 @@ function BuyPageContent() {
           metadata: { acceptedTermsVersion, acceptedTermsAt },
         });
         if (canceled) return;
-        sendGAEvent({ event: "checkout_started", tier: tier });
+        track("begin_checkout", {
+          product: productForTier(tier),
+          tier: tier!,
+          ...(tier === "team" ? { seats } : {}),
+          location: "buy_page",
+        });
         // Reddit mid-funnel signal — lets the campaign optimize toward
         // cart-adders, with the tier's price as the cart value.
         trackReddit("AddToCart", {

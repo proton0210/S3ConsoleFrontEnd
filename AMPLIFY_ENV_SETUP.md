@@ -15,8 +15,17 @@ keys (e.g., Clerk publishable key, PostHog public key), public URLs, etc.
 ```
 NEXT_PUBLIC_APP_URL=https://your-amplify-app-url.amplifyapp.com
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
-NEXT_PUBLIC_POSTHOG_KEY=your_posthog_public_key
+# PostHog website analytics (project "ServerlessCreed websites", EU Cloud).
+# The project token is public by design: it can only send events.
+NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN=phc_your_project_token
+NEXT_PUBLIC_POSTHOG_UI_HOST=https://eu.posthog.com
+# "true" turns PostHog on for this branch's build; anything else keeps it off.
+NEXT_PUBLIC_POSTHOG_ENABLED=true
+# Which website this is: "buckets" here, "tables" on the Tables site.
+NEXT_PUBLIC_APP_ID=buckets
 ```
+
+`NEXT_PUBLIC_*` values are fixed at build time: redeploy after changing one.
 
 > **⚠️  Phase 11 — DynamoDB credentials must NEVER be set as `NEXT_PUBLIC_*`.**
 > Earlier docs included `NEXT_PUBLIC_DYNAMO_ACCESS_KEY_ID` and

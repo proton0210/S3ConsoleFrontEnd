@@ -5,7 +5,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useAuth, useUser } from "@clerk/nextjs";
-import { sendGAEvent } from "@next/third-parties/google";
+import { track } from "@/lib/analytics";
 import { FaCheck, FaSpinner } from "react-icons/fa";
 import Header from "@/components/sections/header";
 import Footer from "@/components/sections/footer";
@@ -127,10 +127,10 @@ export default function PricingPage() {
     try {
       setLoadingTier(tier);
 
-      sendGAEvent("event", "pricing_tier_clicked", {
+      track("pricing_tier_clicked", {
         tier,
         location: "pricing_page",
-        signedIn: !!isSignedIn,
+        signed_in: !!isSignedIn,
       });
 
       // From the desktop app every tier goes through /buy so the account

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@clerk/nextjs";
 import { useState } from "react";
 import { FaCrown, FaSpinner } from "react-icons/fa";
-import { sendGAEvent } from "@next/third-parties/google";
+import { productForTier, track } from "@/lib/analytics";
 
 type Tier = "monthly" | "yearly" | "lifetime";
 
@@ -52,10 +52,11 @@ export default function CheckoutButton({
       }
       setLoading(true);
 
-      sendGAEvent("event", "checkout_initiated", {
-        tier: tier || "none",
-        productId: productId || "none",
-        quantity,
+      track("begin_checkout", {
+        product: productForTier(tier),
+        tier: tier || productId || "none",
+        ...(quantity > 1 ? { seats: quantity } : {}),
+        location: "checkout_button",
       });
 
       // Build request body — prefer tier when available, fall back to productId

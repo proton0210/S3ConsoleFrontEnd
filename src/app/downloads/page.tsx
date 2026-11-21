@@ -6,7 +6,7 @@ import Header from "@/components/sections/header";
 import Footer from "@/components/sections/footer";
 import Link from "next/link";
 import { useAuth } from "@clerk/nextjs";
-import { sendGAEvent } from "@next/third-parties/google";
+import { APP_ID, track } from "@/lib/analytics";
 import { trackReddit } from "@/lib/reddit";
 import {
   FaWindows,
@@ -198,9 +198,7 @@ export default function DownloadsPage() {
   useEffect(() => {
     // Track page view with user metadata
     if (userId && userData) {
-      sendGAEvent("event", "downloads_page_viewed", {
-        has_license: userData.paid
-      });
+      track("downloads_page_viewed", { has_license: Boolean(userData.paid) });
     }
   }, [userId, userData]);
 
@@ -228,10 +226,13 @@ export default function DownloadsPage() {
     // desktop product.
     trackReddit("Lead", { conversionId: "mac_download" });
 
-    sendGAEvent("event", "download_clicked", {
-      os: 'macOS',
+    track("download_clicked", {
+      product: APP_ID,
+      os: "macOS",
       arch,
+      format: "zip",
       release_channel: "latest",
+      location: "downloads_page",
     });
 
     showNotification(downloadLink);
@@ -259,9 +260,13 @@ export default function DownloadsPage() {
     // desktop product.
     trackReddit("Lead", { conversionId: "linux_download" });
 
-    sendGAEvent("event", "download_clicked", {
+    track("download_clicked", {
+      product: APP_ID,
       os: "Linux",
+      arch: "x64",
+      format: "deb",
       release_channel: "latest",
+      location: "downloads_page",
     });
 
     showNotification(downloadLink);
@@ -276,9 +281,12 @@ export default function DownloadsPage() {
     }
     trackReddit("Lead", { conversionId: "windows_store" });
 
-    sendGAEvent("event", "download_clicked", {
-      os: 'Windows',
+    track("download_clicked", {
+      product: APP_ID,
+      os: "Windows",
+      format: "store",
       release_channel: "microsoft-store",
+      location: "downloads_page",
     });
   };
 

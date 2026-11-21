@@ -28,7 +28,7 @@ import { useUser } from "@clerk/nextjs";
 import { motion } from "framer-motion";
 import { ArrowRight, ArrowUpRight, Check, Download, Infinity as InfinityIcon, Layers, Plus } from "lucide-react";
 import Link from "next/link";
-import { sendGAEvent } from "@next/third-parties/google";
+import { track } from "@/lib/analytics";
 
 const BUY_HREF = "/buy?tier=suite";
 const UPGRADE_SAVINGS_USD = LIFETIME_PRICE_USD - SUITE_UPGRADE_PRICE_USD;
@@ -89,7 +89,7 @@ function BuyButton({ state, where, className }: { state: SuiteState; where: stri
       href={cta.href}
       {...(cta.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
       className={cn(buttonVariants({ size: "lg" }), PRIMARY_BUTTON, className)}
-      onClick={() => sendGAEvent({ event: "suite_cta_click", label: `${where}:${state}` })}
+      onClick={() => track("cta_clicked", { cta: "suite_buy", location: where, state })}
     >
       {cta.label}
       {cta.external ? (
@@ -116,7 +116,7 @@ function DownloadButtons({ where, className }: { where: string; className?: stri
           href={app.downloadHref}
           {...(app.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
           className={cn(buttonVariants({ size: "lg", variant: index === 0 ? "default" : "outline" }), index === 0 ? PRIMARY_BUTTON : OUTLINE_BUTTON, "gap-2")}
-          onClick={() => sendGAEvent({ event: "suite_cta_click", label: `${where}:download-${app.name.toLowerCase()}` })}
+          onClick={() => track("cta_clicked", { cta: `download_${app.name.toLowerCase()}`, location: where })}
         >
           <Download className="h-4 w-4" />
           Download {app.name}

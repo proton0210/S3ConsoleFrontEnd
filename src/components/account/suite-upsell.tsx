@@ -15,7 +15,7 @@ import {
   SUITE_UPGRADE_PATH,
   SUITE_UPGRADE_PRICE_USD,
 } from "@/lib/suite-offer";
-import { sendGAEvent } from "@next/third-parties/google";
+import { track } from "@/lib/analytics";
 
 /**
  * Billing-page card for the Tables + Buckets Suite, matched to what the
@@ -55,7 +55,7 @@ export function SuiteUpsell({ kind, className }: { kind: "subscription" | "lifet
             target="_blank"
             rel="noopener noreferrer"
             className={cn(buttonVariants({ variant: "outline" }), "shrink-0 gap-1.5 rounded-full")}
-            onClick={() => sendGAEvent({ event: "suite_cta_click", label: "billing-owned-tables" })}
+            onClick={() => track("cta_clicked", { cta: "tables_billing", location: "account_billing" })}
           >
             Tables billing
             <ArrowUpRight className="h-4 w-4" />
@@ -103,7 +103,7 @@ export function SuiteUpsell({ kind, className }: { kind: "subscription" | "lifet
           href={href}
           {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
           className={cn(buttonVariants({ variant: "outline" }), "shrink-0 gap-1.5 rounded-full")}
-          onClick={() => sendGAEvent({ event: "suite_cta_click", label: ownerThere ? "billing-upgrade-there" : ownerHere ? "billing-upgrade" : covered ? "billing-tables" : "billing-suite" })}
+          onClick={() => track("cta_clicked", { cta: ownerThere ? "upgrade_there" : ownerHere ? "suite_upgrade" : covered ? "tables_pricing" : "suite", location: "account_billing" })}
         >
           {ownerThere ? "Add Buckets Lifetime" : ownerHere ? "Add Tables Lifetime" : covered ? "See Tables pricing" : "See the Suite"}
           {external ? <ArrowUpRight className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}

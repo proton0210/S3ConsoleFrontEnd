@@ -38,6 +38,17 @@ export default clerkMiddleware(async (auth, req) => {
     return NextResponse.redirect(destination, 308);
   }
 
+  // next.config.mjs sets skipTrailingSlashRedirect (PostHog's /relay paths
+  // end in "/"), so restore the default /pricing/ -> /pricing redirect here.
+  const { pathname } = req.nextUrl;
+  if (pathname.length > 1 && pathname.endsWith("/")) {
+    // A plain URL: NextURL remembers the original trailing slash and would
+    // put it back, redirecting /pricing/ to itself.
+    const destination = new URL(req.url);
+    destination.pathname = pathname.replace(/\/+$/, "") || "/";
+    return NextResponse.redirect(destination, 308);
+  }
+
   if (!isPublic(req)) {
     const { userId } = await auth();
     if (!userId) {
@@ -52,5 +63,7 @@ export default clerkMiddleware(async (auth, req) => {
 });
 
 export const config = {
-  matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
+  // /relay is the PostHog proxy (next.config.mjs rewrites). Clerk must never
+  // see it, or every analytics request is redirected to /sign-in.
+  matcher: ["/((?!relay(?:/|$)|.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
 };

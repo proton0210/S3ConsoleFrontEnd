@@ -12,7 +12,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { ArrowRight } from "lucide-react";
-import { sendGAEvent } from "@next/third-parties/google";
+import { track } from "@/lib/analytics";
 import { SUITE_PATH, SUITE_PRICE_USD, SUITE_SAVINGS_USD } from "@/lib/suite-offer";
 
 export default function Header() {
@@ -59,7 +59,7 @@ export default function Header() {
               href={SUITE_PATH}
               className="inline-flex items-center gap-1 font-medium text-primary underline-offset-4 hover:underline"
               tabIndex={showPromoBar ? 0 : -1}
-              onClick={() => sendGAEvent({ event: "promo_click", label: "See the Suite" })}
+              onClick={() => track("cta_clicked", { cta: "suite_promo", location: "header" })}
             >
               See the Suite →
             </Link>

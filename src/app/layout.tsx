@@ -15,6 +15,8 @@ import { Inter } from "next/font/google";
 import { RedditPixel } from "@/components/reddit-pixel";
 import { MaintenanceNotice } from "@/components/maintenance-notice";
 import { ThemeProvider } from "@/components/theme-provider";
+import { PostHogIdentify } from "@/components/posthog-identify";
+import { ConsentBanner } from "@/components/consent-banner";
 import "./globals.css";
 
 const inter = Inter({
@@ -82,6 +84,8 @@ export default function RootLayout({
           </ThemeProvider>
             <GoogleAnalytics gaId="G-W5G449QF3Y" />
             <RedditPixel />
+            <PostHogIdentify />
+            <ConsentBanner />
         </body>
       </html>
     </ClerkProvider>

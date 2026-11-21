@@ -1,7 +1,7 @@
 "use client";
 
 import { useInView } from "framer-motion";
-import { sendGAEvent } from "@next/third-parties/google";
+import { track } from "@/lib/analytics";
 import { ArrowRight, Check, Pause, Play, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -112,7 +112,7 @@ export default function WowReel() {
 
   const select = (n: number) => {
     setI(n);
-    sendGAEvent("event", "wow_selected", { wow: SLIDES[n].id });
+    track("wow_selected", { wow: SLIDES[n].id });
   };
 
   return (
@@ -267,7 +267,7 @@ export default function WowReel() {
               </div>
               <Link
                 href="/downloads"
-                onClick={() => sendGAEvent("event", "wow_download_clicked", { wow: slide.id })}
+                onClick={() => track("cta_clicked", { cta: "wow_download", location: "wow_reel", wow: slide.id })}
                 className={cn(buttonVariants({ size: "sm" }), "group rounded-full px-5 font-semibold")}
               >
                 Try it on your own buckets

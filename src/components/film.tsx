@@ -1,7 +1,7 @@
 "use client";
 
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { sendGAEvent } from "@next/third-parties/google";
+import { track } from "@/lib/analytics";
 import { motion, useInView } from "framer-motion";
 import { Captions, Play, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -53,7 +53,7 @@ export function FilmPlayer({
   // YouTube, so hold the latest one until the iframe's load event.
   useEffect(() => {
     if (!seekRequest || seekRequest.n === 0) return;
-    sendGAEvent("event", "film_chapter", { location, t: seekRequest.t });
+    track("film_chapter_clicked", { location, t: seekRequest.t });
     if (ready.current) seekTo(seekRequest.t);
     else pending.current = seekRequest.t;
   }, [seekRequest, location]);
@@ -185,7 +185,7 @@ export function WatchFilmButton({ className }: { className?: string }) {
         type="button"
         onClick={() => {
           setOpen(true);
-          sendGAEvent("event", "film_open", { location: "hero" });
+          track("film_opened", { location: "hero" });
         }}
         className={cn(
           "group inline-flex h-12 w-full items-center justify-center gap-3 rounded-full border border-border bg-foreground/[0.03] pl-2 pr-6 text-base font-medium text-foreground transition-colors hover:bg-foreground/[0.07] sm:w-auto",
@@ -233,7 +233,7 @@ export function FilmSection() {
     }
     setStartAt(t);
     setPlaying(true);
-    sendGAEvent("event", "film_open", { location: "section" });
+    track("film_opened", { location: "section" });
   };
 
   return (

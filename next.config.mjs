@@ -39,6 +39,10 @@ const securityHeaders = [
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   poweredByHeader: false,
+  // PostHog's API paths end in "/" (e.g. /relay/e/). Without this, Next.js
+  // answers each one with a 308 before the rewrite below runs. The site's own
+  // trailing-slash redirect is re-implemented in src/middleware.ts.
+  skipTrailingSlashRedirect: true,
   turbopack: {
     root: process.cwd(),
   },
@@ -62,6 +66,17 @@ const nextConfig = {
   // build time, which destroys the server/runtime boundary and can copy them
   // into generated JavaScript. Server code reads its runtime environment or
   // Secrets Manager directly; DynamoDB is accessed only by backend Lambdas.
+
+  // PostHog reverse proxy. Analytics requests stay on our domain so ad
+  // blockers don't drop them. Asset rules must come before the catch-all.
+  // EU Cloud; src/middleware.ts must keep /relay out of Clerk's matcher.
+  async rewrites() {
+    return [
+      { source: "/relay/static/:path*", destination: "https://eu-assets.i.posthog.com/static/:path*" },
+      { source: "/relay/array/:path*", destination: "https://eu-assets.i.posthog.com/array/:path*" },
+      { source: "/relay/:path*", destination: "https://eu.i.posthog.com/:path*" },
+    ];
+  },
 
   // Convenience aliases for the download CTA. /download (singular) and
   // /get are common shortcuts; map them to the canonical /downloads page.
