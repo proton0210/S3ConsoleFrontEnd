@@ -37,7 +37,7 @@ The ServerlessCreed control plane handles sign-in, subscription and entitlement 
 
 The Buckets desktop app contains **no analytics, crash-reporting, or usage-tracking SDK**, and it has no setting that turns one on. (Release 2.7.55 and earlier also shipped an unused copy of the `posthog-js` library inside the app package. The app never loaded or called it, and it is removed from the next release.) It does not collect or send information about which features you use, what you click, or which buckets and objects you open to ServerlessCreed or to anyone else. Some features keep records only on your computer: a list of recently inspected objects, a local audit log of changes the app made (with bucket and key names), and, when AI agent access is turned on, a local activity feed of agent requests. These records never leave your device. AWS access keys, secret keys, and session tokens are never sent to ServerlessCreed.
 
-This statement covers the **desktop app only**. This website uses Google Analytics and Reddit and X/Twitter conversion pixels, as listed under subprocessors below and in the [Privacy Policy](/privacy).
+This statement covers the **desktop app only**. This website uses PostHog and Google Analytics, and Reddit and X/Twitter conversion pixels, as listed under subprocessors below and in the [Privacy Policy](/privacy). PostHog runs only on the website: it is not in the desktop app.
 
 The desktop app does make the network connections below. This list was checked against the desktop source code for release 2.7.55 on 13 October 2026.
 
@@ -101,7 +101,7 @@ Support is provided at [buckets@serverlesscreed.com](mailto:buckets@serverlesscr
 
 ## Current subprocessors and service providers
 
-Current providers include AWS (control-plane infrastructure), Clerk (authentication), Dodo Payments (direct billing), Resend (transactional email), Google Workspace (support and security email), GitHub (source control and release automation), Google Analytics (website analytics), and Reddit and X/Twitter (website conversion attribution). Details and retention disclosures are in the [Privacy Policy](/privacy).
+Current providers include AWS (control-plane infrastructure), Clerk (authentication), Dodo Payments (direct billing), Resend (transactional email), Google Workspace (support and security email), GitHub (source control and release automation), PostHog (website analytics, EU region), Google Analytics (website analytics), and Reddit and X/Twitter (website conversion attribution). Details and retention disclosures are in the [Privacy Policy](/privacy).
 
 ## Data requests and deletion
 

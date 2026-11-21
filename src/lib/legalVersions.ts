@@ -11,8 +11,8 @@
  */
 
 export const LEGAL_VERSIONS = {
-  terms: "2026-09-10",
-  privacy: "2026-09-10",
+  terms: "2026-11-21",
+  privacy: "2026-11-21",
   eula: "2026-08-22",
   refund: "2026-05-22",
 } as const;

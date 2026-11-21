@@ -1,8 +1,8 @@
 # Buckets by ServerlessCreed — Privacy Policy
 
 **Effective Date:** 22 May 2026
-**Last Updated:** 10 September 2026
-**Version:** 1.3
+**Last Updated:** 21 November 2026
+**Version:** 1.4
 
 This Privacy Policy describes how **Serverless Creed** ("**ServerlessCreed**", "**we**", "**us**", or "**our**") — a sole proprietorship organized under the laws of India, operating under GSTIN 27FZZPS3310E1ZX, with principal place of business at Khetwadi-11, Mumbai, India — collects, uses, shares, and protects personal information in connection with the Buckets by ServerlessCreed desktop application, the website at https://buckets.serverlesscreed.com, and related services (collectively, the "**Services**").
 
@@ -19,8 +19,8 @@ By using the Services, you acknowledge that you have read and understood this Po
 Before the legal detail, here is what matters most:
 
 - **Buckets by ServerlessCreed runs locally on your computer.** S3 file transfers and AWS API requests go **directly from your machine to AWS** using credentials you provide. ServerlessCreed does not proxy those transfers or collect AWS secret keys or S3 file contents. **Account-connected folder-sync profile metadata is sent to our account service**, as described in Section 4.1(e).
-- We collect only the personal information needed to operate the Services: your **email and authentication identity** (through Clerk), a **device fingerprint** (to prevent license abuse), **payment information** (handled by Dodo Payments — we do not store card numbers), and **optional diagnostics**.
-- Our website uses **Google Analytics** for traffic measurement and **Reddit and Twitter (X) conversion pixels** for marketing attribution. These providers may set or read cookies and similar identifiers as described below.
+- We collect only the personal information needed to operate the Services: your **email and authentication identity** (through Clerk), a **device fingerprint** (to prevent license abuse), **payment information** (handled by Dodo Payments — we do not store card numbers), and any **diagnostics you choose to send** to support. The desktop app contains no analytics or crash-reporting service.
+- Our website uses **PostHog** to understand how visitors use it, **Google Analytics** for traffic measurement, and **Reddit and Twitter (X) conversion pixels** for marketing attribution. A cookie banner lets you accept or decline analytics cookies. If you sign in to the website, PostHog links your website activity to your account, including your account email. These providers may set or read cookies and similar identifiers as described below.
 - We do not sell your personal information.
 - You have rights — including access, correction, and erasure — that you can exercise by emailing vidit@serverlesscreed.com.
 
@@ -99,11 +99,18 @@ We collect Personal Information in three ways: (a) you provide it directly, (b) 
 
 (b) **Update checks.** The Software periodically checks for updates. These checks send the current Software version, OS, and locale to our update servers.
 
-(c) **Crash and error diagnostics (optional).** If enabled, the Software may transmit crash reports and diagnostic data (stack traces, system metadata, anonymous session identifier) to help us identify and fix bugs. You can disable this in the Software's settings.
+(c) **No crash reporting in the desktop app.** The Software does not contain a crash-reporting or error-diagnostics service and does not send crash reports automatically. If you choose to send us logs, screenshots, or other diagnostic information when asking for support, we process it as a support communication.
 
-(d) **Usage analytics (optional).** If enabled, the Software may transmit anonymized usage analytics (e.g., which features are used, button clicks, screen views) to help us improve the product. Analytics events do not include Customer Content. You can disable this in the Software's settings.
+(d) **No usage analytics in the desktop app.** The Software does not contain an analytics or usage-tracking service and does not send information about which features you use or what you click.
 
-(e) **Website analytics and advertising.** When you visit https://buckets.serverlesscreed.com, **Google Analytics** measures page views, referrers, browser/device information, interactions, and coarse location. **Reddit and Twitter (X) conversion pixels** measure download, checkout, and related campaign events. These services may process cookie or campaign identifiers, visit metadata, and conversion events under their own privacy terms. They do not receive Customer Content from the desktop data path.
+(e) **Website analytics and advertising.** When you visit https://buckets.serverlesscreed.com, **PostHog** records the pages you view, the links and buttons you click, the referring page and campaign (UTM) parameters, browser and device information, coarse location derived from your IP address, and page-performance measurements. Payment, checkout, and sign-in parameters are removed from page addresses before they are recorded. A cookie banner asks whether we may use analytics cookies:
+
+- **If you accept,** PostHog stores an identifier in a cookie and local storage so it can recognize your later visits, and it may record your session (a replay of the page as you used it). Text you type into form fields is masked in recordings, and sessions on account, checkout, payment, sign-in, sign-up, and administration pages are not recorded.
+- **If you decline,** PostHog counts your visit without cookies or local storage, using an identifier calculated on PostHog's servers that changes every day, and does not record your session.
+- **Until you answer,** PostHog does not record your visit.
+- **If you sign in,** PostHog links your website activity to your account using your account identifier (Clerk user ID) and stores your **account email** on your PostHog profile, so that we can understand and support how customers find and buy the Services. If you accepted analytics cookies, activity from before you signed in on that browser is linked as well.
+
+**Google Analytics** measures page views, referrers, browser/device information, interactions, and coarse location. **Reddit and Twitter (X) conversion pixels** measure download, checkout, and related campaign events. These services may process cookie or campaign identifiers, visit metadata, and conversion events under their own privacy terms. They do not receive Customer Content from the desktop data path.
 
 (f) **Control-plane security events.** Our control plane records the request time, route, method, response status, response size, latency, authenticated account subject, source IP address, and user-agent string for security monitoring, incident investigation, and abuse prevention. Before the long-term security archive is written, the account subject, source IP address, and user-agent string are replaced with one-way digests. Request or response bodies, AWS credentials, and Customer Content are not included in these access records.
 
@@ -113,7 +120,7 @@ We collect Personal Information in three ways: (a) you provide it directly, (b) 
 
 (b) **Identity provider data (Clerk).** Clerk provides the verified authentication subject and the profile subset (typically email, name, profile picture, verified provider identifiers, and session metadata) shared under your provider authorization.
 
-(c) **Analytics and advertising platforms.** Google Analytics provides website-traffic reports. Reddit and Twitter (X) may provide campaign and conversion reports attributable to our advertising. Their reports may be aggregated, while the providers may process cookie, device, visit, and campaign identifiers under their own terms.
+(c) **Analytics and advertising platforms.** PostHog and Google Analytics provide website-traffic and usage reports. Reddit and Twitter (X) may provide campaign and conversion reports attributable to our advertising. Their reports may be aggregated, while the providers may process cookie, device, visit, and campaign identifiers under their own terms.
 
 (d) **AWS Marketplace.** If you buy through AWS Marketplace, AWS provides the AWS account ID of the buyer, product code, License ARN, agreement identifier, entitlement quantities and dimensions, and agreement or license status required to fulfill and reconcile the purchase. The short-lived AWS registration token is consumed server-side and is not retained in a browser cookie; the browser receives only a separate, opaque onboarding token that expires after thirty (30) minutes. You enter a contact email during registration, and it must match the verified email on your signed-in ServerlessCreed account.
 
@@ -145,7 +152,8 @@ For each purpose below, the **DPDP basis** column identifies whether we rely on 
 | Validate license activations and enforce per-user licensing | Email, License Key, device fingerprint, IP | Consent (§6) given at the time of License acceptance; and §7(a) — for the specified purpose of license enforcement |
 | Provide customer support and respond to enquiries you initiate | Email, support message content | §7(a) — data voluntarily provided for the specified purpose of receiving support; consent (§6) for any sensitive information you choose to share |
 | Notify you about Software updates, security advisories, and material changes to the Services or to legal documents | Email | §7(a) — voluntarily provided for the purpose of receiving the Services; transactional communications inherent to the License relationship |
-| Improve product quality through diagnostics and usage analytics (only if you have **not opted out**) | Crash data, anonymous usage events, OS, Software version | Consent (§6) — opt-out architecture; consent is deemed withdrawn upon disabling in Settings |
+| Understand and improve the website and how customers find and buy the Services | Website usage events (pages, clicks, referrer, campaign parameters, browser/device, coarse location, page performance); session recordings if you accept analytics cookies; for signed-in visitors, Clerk user ID and account email | Consent (§6) — given or refused through the website cookie banner, and for signed-in visitors when you sign in; visitors who decline are counted without cookies using a daily-changing identifier |
+| Diagnose problems you report | Logs, screenshots, and diagnostic information you choose to send | §7(a) — data voluntarily provided for the specified purpose of receiving support |
 | Comply with legal obligations (e.g., tax, accounting, anti-money-laundering, court orders, regulatory requests) | Email, billing details, transaction history | §7(g) — compliance with any law in force in India |
 | Defend, investigate, and resolve disputes; enforce our [Terms and Conditions](/terms) and [EULA](/eula) | All categories as relevant | §7(i) — purposes connected with employment, or the exercise or defence of legal claims (read with the residual statutory power to process for lawful purposes) |
 
@@ -170,12 +178,13 @@ We engage third-party service providers to operate the Services. These providers
 - **Clerk** — account authentication, OAuth/provider linkage, session management, and profile data.
 - **Dodo Payments** — checkout, payment, subscription, tax, fraud, and refund processing. We do not receive full card numbers or CVVs.
 - **Resend** — transactional account, license, receipt, support, and security email delivery.
+- **PostHog** (PostHog Cloud, European Union region) — website product analytics and, if you accept analytics cookies, session recordings; for signed-in visitors, Clerk user ID and account email.
 - **Google Analytics** — website traffic and interaction measurement, including page, referrer, browser/device, and coarse-location information.
 - **Reddit and Twitter (X) Ads** — website visit, campaign, cookie, and conversion-event processing for advertising attribution.
 - **Google Workspace** — receives the messages, sender information, delivery metadata, and attachments that you choose to send to our security, privacy, legal, or support mailbox.
 - **GitHub** — source control, CI security checks, build/release metadata, and public release notes; it does not receive Customer Content through the desktop data path.
 
-We do not currently use a continuously connected third-party desktop crash-reporting service. Optional diagnostic information is processed only when an in-product diagnostic control is enabled or when you deliberately submit it to support. We will update this list before connecting an additional provider to production diagnostic data.
+The desktop app does not use any third-party analytics or crash-reporting service. Diagnostic information is processed only when you deliberately send it to support. We will update this list before connecting any additional provider.
 
 We periodically review service providers for compliance with applicable data-protection law.
 
@@ -212,7 +221,9 @@ We do not sell, rent, or otherwise commercially trade Personal Information.
 
 7.2 Where required by Section 16 of the DPDP Act, we will only transfer Personal Information to countries not restricted by the Central Government, and we will rely on appropriate safeguards (such as contractual commitments with our service providers).
 
-7.3 If you are in the European Economic Area (EEA) or the United Kingdom, transfers outside the EEA/UK are made on the basis of (a) European Commission / UK adequacy decisions, where available; (b) Standard Contractual Clauses; or (c) other legally recognized transfer mechanisms.
+7.3 Website analytics collected by PostHog are stored in PostHog's European Union region.
+
+7.4 If you are in the European Economic Area (EEA) or the United Kingdom, transfers outside the EEA/UK are made on the basis of (a) European Commission / UK adequacy decisions, where available; (b) Standard Contractual Clauses; or (c) other legally recognized transfer mechanisms.
 
 ---
 
@@ -225,8 +236,8 @@ We retain Personal Information only for as long as necessary for the purposes se
 | Active Subscription and licensing data | For the life of the License plus seven (7) years for tax/accounting compliance |
 | Payment transaction records | Seven (7) years (Indian tax and accounting requirements) |
 | Support communications | Up to three (3) years after the last contact, unless we are required to retain longer |
-| Crash and diagnostic data | Up to thirteen (13) months in identifiable form, then anonymized or deleted |
-| Usage analytics | Anonymized at collection; aggregate analytics retained without identifiability |
+| Diagnostic information you send to support | As for support communications |
+| Website product analytics (PostHog) | Usage events up to one (1) year; session recordings thirty (30) days |
 | Website analytics / advertising / conversion data | As retained by Google, Reddit, and Twitter/X under their own policies; we retain aggregate reporting and configured event history |
 | Control-plane security and access events | Four hundred (400) days; long-term records are protected in an immutable archive and direct account, IP, and user-agent identifiers are replaced with one-way digests |
 | Account-connected folder-sync profiles and status | Retained until the profile is deleted through the connected app or an account-data deletion request is fulfilled; retained backup copies follow the backup schedule below |
@@ -270,7 +281,7 @@ Subject to applicable law, you have the following rights with respect to your Pe
 
 ### 10.2 Additional Choices
 
-(a) **Opt out of diagnostics and analytics** — disable crash reporting and usage analytics in the Software's settings.
+(a) **Website analytics** — choose "Decline" on the website cookie banner to stop analytics cookies and session recordings. To change your answer later, clear this website's cookies and site data in your browser and choose again. You can ask us to delete the website analytics linked to your account under Section 10.3. The desktop app collects no analytics, so there is nothing to switch off there.
 
 (b) **Marketing emails** — we do not send promotional emails by default. Transactional emails (License Key delivery, billing receipts, security advisories, legal-document updates, expiry reminders) are part of the Services and cannot be opted out of while you have an active relationship with us.
 
@@ -295,10 +306,11 @@ We will not discriminate against you for exercising any of your privacy rights. 
 - **Strictly necessary cookies** — required for the website to function (e.g., session, security).
 - **Authentication cookies (Clerk)** — maintain your sign-in and protect authenticated account routes.
 - **Preference cookies** — remember your settings (e.g., theme).
+- **Analytics cookies and identifiers (PostHog)** — set only if you accept them on the cookie banner; recognize your later visits and allow session recordings. If you decline, PostHog uses no cookies or local storage except to remember your answer.
 - **Analytics cookies and identifiers (Google Analytics)** — measure page views, referrers, browser/device information, interactions, and coarse location.
 - **Advertising / conversion cookies and identifiers (Reddit and Twitter/X Ads)** — attribute events such as downloads and checkout steps to advertising campaigns.
 
-You can manage cookies through your browser settings, through any cookie banner provided on the website, and through Google, Reddit, and Twitter/X privacy controls. Disabling certain cookies may affect website functionality, attribution, or your ability to stay signed in.
+You can manage cookies through your browser settings, through the website cookie banner (which applies to PostHog and, through Google's consent settings, to Google Analytics), and through Google, Reddit, and Twitter/X privacy controls. The Reddit and Twitter/X conversion pixels are not currently controlled by the cookie banner. Disabling certain cookies may affect website functionality, attribution, or your ability to stay signed in.
 
 ---
 

@@ -1,8 +1,8 @@
 # Buckets by ServerlessCreed — Terms and Conditions
 
 **Effective Date:** 22 May 2026
-**Last Updated:** 10 September 2026
-**Version:** 1.2
+**Last Updated:** 21 November 2026
+**Version:** 1.3
 
 These Terms and Conditions ("**Terms**") form a binding legal agreement between **Serverless Creed** ("**ServerlessCreed**", "**we**", "**us**", or "**our**") — a sole proprietorship organized under the laws of India, operating under GSTIN 27FZZPS3310E1ZX, with principal place of business at Khetwadi-11, Mumbai, India — and you, either an individual or the legal entity you represent ("**you**", "**your**", or "**Customer**"), governing your access to and use of the Buckets by ServerlessCreed desktop application, its associated services, documentation, and any related materials (collectively, the "**Software**").
 
@@ -212,10 +212,10 @@ In these Terms, the following capitalized terms have the meanings set forth belo
 
 14.3 **Limited Data Sent to ServerlessCreed.** The Software may transmit the following limited categories of data to ServerlessCreed for legitimate operational purposes:
 
-(a) License Key validation requests (License Key, Account identifier, IP address, device fingerprint);
-(b) Update checks (current Software version, operating system, locale);
-(c) Optional crash and error diagnostics (stack traces, system metadata), which you may disable; and
-(d) Optional anonymized usage analytics, which you may disable.
+(a) License Key validation requests (License Key, Account identifier, IP address, device fingerprint); and
+(b) Update checks (current Software version, operating system, locale).
+
+The Software contains no analytics, usage-tracking, or crash-reporting service. Diagnostic information reaches ServerlessCreed only if you choose to send it to support.
 
 Account-connected folder-sync profiles also transmit device/profile identifiers, device name, local path, bucket name and prefix, region/account identifier, sync settings, and status/error text to the account service. This supports your signed-in sync profile and status views. Connected profile deletion requests deletion of that record; disabling a profile alone does not delete it. See Privacy Policy Section 4.1(e) for details.
 
