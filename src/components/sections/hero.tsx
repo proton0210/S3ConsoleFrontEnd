@@ -45,7 +45,7 @@ function HeroEyebrow() {
     >
       <span className="font-semibold text-foreground">Buckets</span>
       <span aria-hidden className="h-1 w-1 rounded-full bg-muted-foreground/40" />
-      <span>The desktop app for Amazon S3</span>
+      <span>The S3 desktop client for developers</span>
       <span aria-hidden className="inline-flex items-center gap-1.5 pl-0.5">
         <FaApple className="h-4 w-4" />
         <FaWindows className="h-3.5 w-3.5" />
@@ -60,7 +60,7 @@ function HeroCTA({ slide }: { slide: string }) {
   const yearly = priceOf("yearly");
   const lifetime = priceOf("lifetime");
   const facts = [
-    { icon: Lock, text: "Credentials stay on your machine" },
+    { icon: Lock, text: "Uses your AWS CLI profiles and SSO" },
     ...(yearly && lifetime ? [{ icon: Zap, text: `${yearly} a year or ${lifetime} once` }] : []),
     { icon: Check, text: "14-day full trial, no card" },
   ];

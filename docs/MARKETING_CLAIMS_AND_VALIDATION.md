@@ -29,7 +29,7 @@ Desktop telemetry (October 13, 2026): the unused `posthog-js` dependency was rem
 
 Homepage hero (November 21, 2026): the first screen no longer has one fixed headline. The headline rotates with the pains described below, one per slide. Rules for the headlines:
 - Two lines, each at most about 23 characters, so neither wraps at any screen width; the last words of line two carry the accent colour.
-- A headline states the outcome and must stay true with the fix line under it: "Roll a bucket back to before the mistake" needs versioning (the fix line says so), "Find that file across every bucket" is within one account, "See exactly why access was denied" is what Auth Doctor reports, not a guarantee of a cause.
+- A headline states the outcome and must stay true with the fix line under it: "Roll the bucket back past the bad deploy" needs versioning (the fix line says so), "Grep every bucket from one box" searches object keys within one account and is not regular-expression search, "Debug a 403 without the guesswork" is what Auth Doctor reports, not a guarantee of a cause.
 - Do not say "one click" for a restore; Time Travel has a review step.
 - No other S3 client is named, so the September 26 rule still holds.
 - `NEXT_PUBLIC_HERO_VARIANT` is retired. `hero_download_clicked` now carries `wow`, the id of the slide showing when the button was clicked.
@@ -41,9 +41,14 @@ Homepage hero pains (November 21, 2026, replaces the pain reel section): the pai
 - Every outcome chip repeats a figure visible in its screenshot (sample data) and the picture is captioned "Shown with the app's sample data". Change the chip if the screenshot changes.
 - Savings are "estimated"; search is "every bucket in the account" (cross-account search is a separate reviewed scan); Time Travel says it needs versioning.
 - It names no other S3 client.
+- Audience (November 21, 2026): the hero is written for developers. The eyebrow reads "The S3 desktop client for developers", the pains are ones met at a terminal, and each slide shows "Instead of" with the command it replaces.
+- Every "Instead of" command must be a real, runnable form of an AWS CLI or shell command, shortened only with placeholders (`b`, `key`, `prod`, `…`). It shows what a developer would reach for; it is not claimed to be a complete equivalent of the feature.
+- "One click" is allowed on the presign slide only: copying the URI, the ARN and creating a presigned URL are each one button in the inspector.
+- The AI-agents slide names Claude Code and Cursor as MCP clients, as the Tour already does. Do not imply a partnership or endorsement.
+- The Drop Zones slide was dropped from the hero as a consultant use case; Drop Zones is still covered in the Tour.
 - The click box on each screenshot is measured from the screenshot's pixels (`box` in `hero-pains.tsx`). Re-measure it whenever a screenshot is replaced; do not place it by eye.
 - It pauses on hover and focus, has a Pause button, and shows each slide's end state without motion for visitors who ask for reduced motion.
-- `/?wow=<id>` opens on one slide and stays there, for outreach links. Ids: time-travel, money-leaks, agents, search, drop-zones, auth-doctor, folder-move.
+- `/?wow=<id>` opens on one slide and stays there, for outreach links. Ids: agents, auth-doctor, time-travel, search, presign, folder-move, money-leaks.
 - `wow-reel.tsx` is no longer used on the homepage.
 
 ## Positioning and pricing

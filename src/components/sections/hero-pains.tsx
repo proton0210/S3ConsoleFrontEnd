@@ -52,6 +52,8 @@ type Pain = {
   accent: string;
   pain: string;
   fix: string;
+  /** The command a developer would reach for otherwise. Must be a real, runnable form. */
+  instead: string;
   shot: ProductShotName;
   /** The part of the screenshot to show. Dialog shots use the full width so no line is cut. */
   view: View;
@@ -64,83 +66,93 @@ type Pain = {
   outcome: string;
 };
 
+// Written for developers: the pains are ones you hit at a terminal, the words
+// are the ones the AWS CLI and SDKs use, and each slide names the command it
+// replaces. Order matters, because many visitors see only the first one or two.
 export const PAINS: Pain[] = [
   {
-    id: "time-travel",
-    headline: ["Roll a bucket back", "to before the mistake."],
-    accent: "the mistake.",
-    pain: "Someone overwrote half the bucket on Tuesday.",
-    fix: "Pick Tuesday morning, review, restore. Needs versioning.",
-    shot: "timetravel",
-    view: { cx: 69, cy: 80, w: 62 },
-    box: { x: 70.8, y: 91.71, w: 24.8, h: 3.85 },
-    outcome: "412 deleted objects, back",
-  },
-  {
-    id: "money-leaks",
-    headline: ["Find what S3 is", "quietly costing you."],
-    accent: "costing you.",
-    pain: "The S3 bill keeps growing and nobody knows why.",
-    fix: "A read-only scan lists the leaks and a fix for each.",
-    shot: "moneyleaks",
-    view: { cx: 39, cy: 46, w: 43 },
-    box: { x: 34.03, y: 56.95, w: 17.12, h: 2.7 },
-    outcome: "$9.48 a month, estimated, from one fix",
-  },
-  {
     id: "agents",
-    headline: ["Let AI agents use S3", "without your keys."],
+    headline: ["Give your agent S3,", "not your keys."],
     accent: "your keys.",
-    pain: "Your AI agent wants your AWS keys.",
-    fix: "Agents work through Buckets. Every write waits for you.",
+    pain: "Your coding agent wants AWS credentials.",
+    fix: "A local MCP server for Claude Code and Cursor. Writes wait for you.",
+    instead: "export AWS_SECRET_ACCESS_KEY=…",
     shot: "mcp-approval",
     view: { cx: 50, cy: 80, w: 100 },
     box: { x: 82.44, y: 93.02, w: 11.61, h: 3.37 },
     outcome: "Nothing is written until you approve",
   },
   {
-    id: "search",
-    headline: ["Find that file", "across every bucket."],
-    accent: "every bucket.",
-    pain: "Which bucket was that file in?",
-    fix: "Search every bucket in the account from one box.",
-    shot: "searchall",
-    view: { cx: 45.5, cy: 24, w: 44 },
-    box: { x: 31.72, y: 12.8, w: 29.2, h: 3.7 },
-    outcome: "6 results across 4 buckets",
-  },
-  {
-    id: "drop-zones",
-    headline: ["Collect client files", "with no AWS account."],
-    accent: "no AWS account.",
-    pain: "A client has files for you and no AWS account.",
-    fix: "Send an upload link that expires, limited to one prefix.",
-    shot: "dropzones",
-    view: { cx: 35, cy: 56, w: 62 },
-    box: { x: 9.06, y: 62.38, w: 4.44, h: 3.37 },
-    outcome: "Upload link, gone in 1 day",
-  },
-  {
     id: "auth-doctor",
-    headline: ["See exactly why", "access was denied."],
-    accent: "denied.",
-    pain: "Access denied, and no hint which credential failed.",
-    fix: "Auth Doctor checks the chain and says what to fix.",
+    headline: ["Debug a 403", "without the guesswork."],
+    accent: "the guesswork.",
+    pain: "AccessDenied, and no hint which credential failed.",
+    fix: "Auth Doctor walks the credential chain and names the fix.",
+    instead: "aws sts get-caller-identity --profile prod",
     shot: "authdoctor",
     view: { cx: 50, cy: 72, w: 100 },
     box: { x: 5.92, y: 67.85, w: 88.15, h: 11.42 },
     outcome: "The fix: sign in with SSO again",
   },
   {
+    id: "time-travel",
+    headline: ["Roll the bucket back", "past the bad deploy."],
+    accent: "bad deploy.",
+    pain: "A deploy script overwrote half the bucket.",
+    fix: "Pick a timestamp, review the changes, restore. Needs versioning.",
+    instead: "aws s3api list-object-versions | jq | xargs",
+    shot: "timetravel",
+    view: { cx: 69, cy: 80, w: 62 },
+    box: { x: 70.8, y: 91.71, w: 24.8, h: 3.85 },
+    outcome: "412 deleted objects, back",
+  },
+  {
+    id: "search",
+    headline: ["Grep every bucket", "from one box."],
+    accent: "one box.",
+    pain: "Which bucket was that key in?",
+    fix: "Search object keys across every bucket in the account.",
+    instead: "aws s3 ls s3://$b --recursive | grep q3",
+    shot: "searchall",
+    view: { cx: 45.5, cy: 24, w: 44 },
+    box: { x: 31.72, y: 12.8, w: 29.2, h: 3.7 },
+    outcome: "6 results across 4 buckets",
+  },
+  {
+    id: "presign",
+    headline: ["Copy the URI, the ARN", "or a presigned URL."],
+    accent: "presigned URL.",
+    pain: "The s3:// URI, the ARN or a presigned link. Again.",
+    fix: "Each is one click in the object inspector.",
+    instead: "aws s3 presign s3://b/key --expires-in 900",
+    shot: "inspector",
+    view: { cx: 50, cy: 21, w: 100 },
+    box: { x: 48.58, y: 32.0, w: 25.83, h: 3.14 },
+    outcome: "Presigned URL, valid 15 minutes",
+  },
+  {
     id: "folder-move",
-    headline: ["Rename a folder and", "see the cost first."],
+    headline: ["Rename a prefix and", "see the cost first."],
     accent: "cost first.",
-    pain: "Renaming a folder means copying every object in it.",
-    fix: "See the count and cost first. Resume if it stops.",
+    pain: "S3 has no rename: it is a copy and a delete per object.",
+    fix: "Get request counts and cost up front. Resumes if it stops.",
+    instead: "aws s3 mv s3://b/old/ s3://b/new/ --recursive",
     shot: "foldermove",
     view: { cx: 50, cy: 80, w: 100 },
     box: { x: 83.18, y: 93.71, w: 13.84, h: 3.96 },
     outcome: "3,412 objects for an estimated $0.02",
+  },
+  {
+    id: "money-leaks",
+    headline: ["Find what S3 is", "quietly costing you."],
+    accent: "costing you.",
+    pain: "Old versions and dead multipart uploads still cost you.",
+    fix: "A read-only scan finds them and drafts the lifecycle rule.",
+    instead: "aws s3api list-multipart-uploads --bucket b",
+    shot: "moneyleaks",
+    view: { cx: 39, cy: 46, w: 43 },
+    box: { x: 34.03, y: 56.95, w: 17.12, h: 2.7 },
+    outcome: "$9.48 a month, estimated, from one fix",
   },
 ];
 
@@ -212,7 +224,8 @@ export function usePainRotation(ref: RefObject<HTMLElement | null>) {
 /**
  * The headline, the pain and its fix. They change as one block, and every part
  * has a fixed height at every width, so nothing below it ever moves:
- * headline lines never wrap, and the pain and the fix each get room for two lines.
+ * headline lines never wrap, the pain and the fix each get room for two lines,
+ * and the command is one line that truncates.
  */
 export function PainCopy({ rotation }: { rotation: PainRotation }) {
   const { i, moving } = rotation;
@@ -227,7 +240,7 @@ export function PainCopy({ rotation }: { rotation: PainRotation }) {
       <ul className="sr-only">
         {PAINS.map((x) => (
           <li key={x.id}>
-            {x.headline.join(" ")} {x.pain} {x.fix}
+            {x.headline.join(" ")} {x.pain} {x.fix} Instead of: {x.instead}
           </li>
         ))}
       </ul>
@@ -247,7 +260,7 @@ export function PainCopy({ rotation }: { rotation: PainRotation }) {
             </span>
           </h1>
           <div className="mx-auto mt-5 w-fit max-w-xl lg:mx-0 lg:w-auto">
-            <p className={cn(row, "min-h-[3.5rem] text-[17px] font-semibold leading-7 text-foreground sm:min-h-[1.75rem] sm:text-xl lg:min-h-[3.5rem] xl:min-h-[1.75rem]")}>
+            <p className={cn(row, "min-h-[3.5rem] text-[17px] font-semibold leading-7 text-foreground sm:text-xl")}>
               <span className={cn(dot, "bg-destructive/15 text-destructive")}>
                 <X className="h-3 w-3" strokeWidth={3} />
               </span>
@@ -258,6 +271,13 @@ export function PainCopy({ rotation }: { rotation: PainRotation }) {
                 <Check className="h-3 w-3" strokeWidth={3} />
               </span>
               <span>{p.fix}</span>
+            </p>
+            {/* The command this replaces. One line, cut with an ellipsis if the screen is narrow. */}
+            <p className="mt-3 flex items-center justify-center gap-2 text-xs text-muted-foreground lg:justify-start">
+              <span className="shrink-0">Instead of</span>
+              <code className="min-w-0 truncate rounded-md border border-border bg-foreground/[0.04] px-2 py-1 font-mono text-[12px] text-foreground/80 sm:text-[13px]">
+                {p.instead}
+              </code>
             </p>
           </div>
         </motion.div>
