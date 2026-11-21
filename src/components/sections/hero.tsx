@@ -15,131 +15,109 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { sendGAEvent } from "@next/third-parties/google";
 import Link from "next/link";
-import { ArrowRight, Check, Link2, Lock, MonitorSmartphone, Sparkles, Zap } from "lucide-react";
+import { ArrowRight, Check, Link2, Lock, MonitorSmartphone, Sparkles, X, Zap } from "lucide-react";
 import { FaApple, FaLinux, FaWindows } from "react-icons/fa";
 
 import { WatchFilmButton } from "@/components/film";
 import { BorderBeam } from "@/components/magicui/border-beam";
-import { ProductShot } from "@/components/product-shot";
+import { PRODUCT_SHOTS, ProductShot } from "@/components/product-shot";
 import { buttonVariants } from "@/components/ui/button";
 import { EASE_OUT, SPRING, useCalm } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
-// Sample account names that appear in the product screenshots.
-const ACCOUNTS = ["Production", "Staging", "Data Platform", "Client · Halcyon"];
+import { siteConfig } from "@/lib/config";
 
-function HeroPill() {
+/* ------------------------------------------------------------------ */
+/* First screen. A visitor decides in about five seconds, so this      */
+/* holds one claim, one line of support, one picture and one button.   */
+/* Nothing here waits on a timed animation.                            */
+/*                                                                     */
+/* Copy rules (docs/MARKETING_CLAIMS_AND_VALIDATION.md): no "one       */
+/* click" for restores (Time Travel has a review step), no hours-saved */
+/* or ROI numbers, and no other S3 client is named.                    */
+/* ------------------------------------------------------------------ */
+type HeroVariant = "script" | "console" | "outcomes";
+
+// The accent is the only coloured text in the hero, so the download button
+// stays the strongest thing on the screen. It must end the last line.
+const HEADLINES: Record<HeroVariant, { lines: string[]; accent: string }> = {
+  // Default.
+  script: { lines: ["Do in a few clicks", "what S3 makes you script."], accent: "script." },
+  console: { lines: ["The S3 console", "you wish you had."], accent: "you wish you had." },
+  outcomes: { lines: ["Roll back S3 mistakes. Find any object.", "Across every account."], accent: "every account." },
+};
+
+// Set NEXT_PUBLIC_HERO_VARIANT to try another headline. It is read at build
+// time, so each variant is a separate deploy; the value is sent with the
+// download event so results can be compared.
+const HERO_VARIANT: HeroVariant = (() => {
+  const v = process.env.NEXT_PUBLIC_HERO_VARIANT;
+  return v === "console" || v === "outcomes" ? v : "script";
+})();
+
+const priceOf = (tier: string) => siteConfig.pricing.find((p) => p.tier === tier)?.price;
+
+function HeroEyebrow() {
   return (
-    <div className="hero-rise" style={{ animationDelay: "0ms" }}>
-      <Link
-        href="/blog/dropzones-public-upload-links-for-s3"
-        onClick={() => sendGAEvent("event", "hero_pill_clicked")}
-        className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full border border-border bg-foreground/[0.03] py-1 pl-1 pr-3 text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
-      >
-        <span className="relative inline-flex items-center gap-1 rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground">
-          <Sparkles className="h-3 w-3" />
-          New
-        </span>
-        Drop Zones: expiring upload links for clients
-        <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 bg-gradient-to-r from-transparent via-foreground/10 to-transparent opacity-0 group-hover:animate-shine group-hover:opacity-100"
-        />
-      </Link>
-    </div>
-  );
-}
-
-/** Cycles through account names, flipping each one in like a split-flap. */
-function AccountTicker() {
-  const calm = useCalm();
-  const [i, setI] = useState(0);
-  useEffect(() => {
-    if (calm) return;
-    // Skip ticks while the tab is hidden: animations pause there, and queued
-    // flips would otherwise pile up and overlap when the tab returns.
-    const id = setInterval(() => {
-      if (!document.hidden) setI((n) => (n + 1) % ACCOUNTS.length);
-    }, 2800);
-    return () => clearInterval(id);
-  }, [calm]);
-
-  return (
-    <span
-      aria-label="any of your AWS accounts"
-      className="relative inline-flex h-[1.55em] w-[8.8em] items-center overflow-hidden rounded-lg border border-primary/25 bg-primary/[0.07] align-middle font-semibold text-foreground [perspective:600px]"
+    <p
+      className="hero-rise inline-flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-sm font-medium text-muted-foreground lg:justify-start"
+      style={{ animationDelay: "0ms" }}
     >
-      <AnimatePresence initial={false} mode="wait">
-        <motion.span
-          key={ACCOUNTS[i]}
-          aria-hidden
-          initial={{ rotateX: -90, opacity: 0, y: "60%" }}
-          animate={{ rotateX: 0, opacity: 1, y: "0%", transition: { duration: 0.45, ease: EASE_OUT } }}
-          exit={{ rotateX: 90, opacity: 0, y: "-60%", transition: { duration: 0.25, ease: [0.7, 0, 0.84, 0] } }}
-          className="absolute inset-0 inline-flex items-center gap-1.5 whitespace-nowrap pl-2.5"
-        >
-          <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500 shadow-[0_0_8px_rgb(16_185_129/0.9)]" />
-          {ACCOUNTS[i]}
-        </motion.span>
-      </AnimatePresence>
-    </span>
+      <span className="font-semibold text-foreground">Buckets</span>
+      <span aria-hidden className="h-1 w-1 rounded-full bg-muted-foreground/40" />
+      <span>The desktop app for Amazon S3</span>
+      <span aria-hidden className="inline-flex items-center gap-1.5 pl-0.5">
+        <FaApple className="h-4 w-4" />
+        <FaWindows className="h-3.5 w-3.5" />
+        <FaLinux className="h-4 w-4" />
+      </span>
+      <span className="sr-only">for macOS, Windows and Linux</span>
+    </p>
   );
 }
 
 function HeroTitles() {
+  const { lines, accent } = HEADLINES[HERO_VARIANT];
   return (
-    <div className="flex w-full max-w-5xl flex-col items-center pt-6">
-      {/* Entrance uses CSS (see .hero-rise) so the headline paints before hydration. */}
-      <h1 className="text-balance text-center text-[2.5rem] font-semibold leading-[1.04] tracking-[-0.045em] sm:text-6xl md:text-7xl lg:text-[4.75rem]">
-        <span className="hero-rise text-gradient block" style={{ animationDelay: "60ms" }}>
-          Every S3 bucket.
-        </span>
-        <span className="hero-rise text-gradient block" style={{ animationDelay: "140ms" }}>
-          Every AWS account.
-        </span>
-        <span className="hero-rise relative inline-block whitespace-nowrap" style={{ animationDelay: "220ms" }}>
-          <span className="text-gradient-brand">One desktop app.</span>
-          {/* Hand-drawn underline that sketches itself in. */}
-          <svg
-            aria-hidden
-            viewBox="0 0 600 24"
-            preserveAspectRatio="none"
-            className="absolute -bottom-3 left-0 h-3 w-full overflow-visible sm:-bottom-4 sm:h-4"
-          >
-            <motion.path
-              d="M4 16 C 120 4, 260 4, 360 12 S 540 22, 596 8"
-              fill="none"
-              stroke="hsl(var(--primary))"
-              strokeWidth="5"
-              strokeLinecap="round"
-              initial={{ pathLength: 0, opacity: 0 }}
-              animate={{ pathLength: 1, opacity: 0.85 }}
-              transition={{ delay: 0.75, duration: 0.8, ease: [0.65, 0, 0.35, 1] }}
-            />
-          </svg>
-        </span>
+    <>
+      {/* Entrance uses CSS (see .hero-rise) so the headline paints before hydration.
+          Sizes are set so the default headline stays on two lines from 640px up. */}
+      <h1 className="mt-5 text-balance text-[2.25rem] font-semibold leading-[1.06] tracking-[-0.045em] sm:text-5xl lg:text-[2.5rem] xl:text-[3.25rem]">
+        {lines.map((line, i) => {
+          const last = i === lines.length - 1;
+          const plain = last && line.endsWith(accent) ? line.slice(0, -accent.length) : line;
+          return (
+            <span key={line} className="hero-rise block" style={{ animationDelay: `${60 + i * 80}ms` }}>
+              <span className="text-gradient">{plain}</span>
+              {plain !== line && <span className="text-gradient-brand">{accent}</span>}
+            </span>
+          );
+        })}
       </h1>
       <p
-        className="hero-rise mx-auto mt-9 max-w-2xl text-balance text-center text-lg leading-8 text-muted-foreground sm:text-xl sm:leading-9"
-        style={{ animationDelay: "320ms" }}
+        className="hero-rise mt-5 max-w-xl text-pretty text-lg leading-8 text-muted-foreground"
+        style={{ animationDelay: "300ms" }}
       >
-        For consultants and platform teams who work across many AWS accounts.
-        Sign in with IAM Identity Center or your CLI profiles, jump to{" "}
-        <AccountTicker /> in one click, and browse, search, share and restore S3
-        objects from one focused app.
+        Restore, search and cost checks for S3, without the scripts.
       </p>
-    </div>
+    </>
   );
 }
 
 function HeroCTA() {
+  const yearly = priceOf("yearly");
+  const lifetime = priceOf("lifetime");
+  const facts = [
+    { icon: Lock, text: "Credentials stay on your machine" },
+    ...(yearly && lifetime ? [{ icon: Zap, text: `${yearly} a year or ${lifetime} once` }] : []),
+    { icon: Check, text: "14-day full trial, no card" },
+  ];
   return (
-    <div className="hero-rise mt-9 flex flex-col items-center gap-5" style={{ animationDelay: "420ms" }}>
-      <div className="flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row">
+    <div className="hero-rise mt-8 flex flex-col items-center gap-6 lg:items-start" style={{ animationDelay: "400ms" }}>
+      <div className="flex w-full flex-col items-center gap-x-5 gap-y-3 sm:w-auto sm:flex-row">
         <Link
           href="/downloads"
-          onClick={() => sendGAEvent("event", "hero_download_clicked")}
+          onClick={() => sendGAEvent("event", "hero_download_clicked", { hero_variant: HERO_VARIANT })}
           className={cn(
             buttonVariants({ size: "lg" }),
             "group relative h-12 w-full overflow-hidden rounded-full px-7 text-base font-semibold transition-transform hover:scale-[1.03] active:scale-[0.97] sm:w-auto",
@@ -150,24 +128,134 @@ function HeroCTA() {
             aria-hidden
             className="pointer-events-none absolute inset-y-0 -left-1/2 w-1/2 animate-shine-once bg-gradient-to-r from-transparent via-white/30 to-transparent group-hover:animate-shine"
           />
-          <span className="sm:hidden">Get the desktop app</span>
-          <span className="hidden sm:inline">Download free trial</span>
+          Download free trial
           <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
         </Link>
-        <WatchFilmButton />
+        {/* The film is the second choice, so it reads as a link, not a button. */}
+        <WatchFilmButton className="h-10 w-auto gap-2.5 border-0 bg-transparent pl-0 pr-0 text-sm text-muted-foreground hover:bg-transparent hover:text-foreground" />
       </div>
-      <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
-        <span className="inline-flex items-center gap-2">
-          <FaApple className="h-4 w-4" />
-          <FaWindows className="h-3.5 w-3.5" />
-          <FaLinux className="h-4 w-4" />
-          <span>macOS (Apple silicon &amp; Intel), Windows &amp; Linux</span>
-        </span>
-        <span className="hidden h-1 w-1 rounded-full bg-muted-foreground/40 sm:block" />
-        <span>14-day full trial</span>
-        <span className="hidden h-1 w-1 rounded-full bg-muted-foreground/40 sm:block" />
-        <span>No credit card</span>
+      <ul className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-muted-foreground lg:justify-start">
+        {facts.map(({ icon: Icon, text }) => (
+          <li key={text} className="inline-flex items-center gap-1.5">
+            <Icon className="h-3.5 w-3.5 shrink-0" />
+            {text}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/* The by-hand version of a point-in-time restore. Kept honest: this is a
+   workable start, and the comment lists what it still leaves out. */
+const SCRIPT: { text: string; tone?: "comment" }[] = [
+  { text: "# roll media/ back to 30 Sep, 2 pm", tone: "comment" },
+  { text: 'T="2026-09-30T14:00:00Z"' },
+  { text: 'aws s3api list-object-versions --bucket "$B" \\' },
+  { text: '  --prefix media/ --output text --query \\' },
+  { text: '  "Versions[?LastModified<=\'$T\'].[Key,VersionId,LastModified]" \\' },
+  { text: "  | sort -k1,1 -k3,3r | awk '!seen[$1]++' \\" },
+  { text: "  | while read -r key vid _; do" },
+  { text: '      aws s3api copy-object --bucket "$B" --key "$key" \\' },
+  { text: '        --copy-source "$B/$key?versionId=$vid"' },
+  { text: "    done" },
+  { text: "# todo: delete markers, keys created after $T,", tone: "comment" },
+  { text: "# pagination, keys with spaces, a dry run…", tone: "comment" },
+];
+
+/* Regions of the Time Travel shot, in source pixels (2048 x 1664). The whole
+   dialog is unreadable at hero size, so each step shows only the part that
+   matters, about half size. */
+const STEPS = [
+  { label: "Pick a time", x: 41, y: 261, w: 1085, h: 123 },
+  { label: "See what changed", x: 41, y: 450, w: 1085, h: 154 },
+  { label: "Restore", x: 940, y: 1562, w: 1085, h: 102 },
+] as const;
+
+function Crop({ x, y, w, h, priority }: { x: number; y: number; w: number; h: number; priority?: boolean }) {
+  const shot = PRODUCT_SHOTS.timetravel;
+  return (
+    <div
+      className="relative overflow-hidden rounded-lg border border-border bg-background"
+      style={{ aspectRatio: `${w} / ${h}` }}
+    >
+      <div
+        className="absolute"
+        style={{ width: `${(shot.w / w) * 100}%`, left: `${(-x / w) * 100}%`, top: `${(-y / h) * 100}%` }}
+      >
+        <ProductShot name="timetravel" priority={priority} sizes="(max-width: 1024px) 180vw, 1100px" />
       </div>
+    </div>
+  );
+}
+
+/** The script you would write, pushed back and dimmed, with the same job in Buckets in front. */
+function HeroContrast() {
+  return (
+    <div className="hero-rise relative mx-auto w-full max-w-xl lg:max-w-none" style={{ animationDelay: "200ms" }}>
+      <p className="sr-only">
+        Restoring a prefix to an earlier point by hand takes a shell script that lists object versions and copies
+        each one back. In Buckets, Time Travel takes three steps: pick a time, see what changed, restore.
+      </p>
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -inset-10 -z-10 rounded-[4rem] bg-[conic-gradient(from_180deg_at_50%_50%,hsl(var(--brand-from)/0.3),hsl(var(--brand-to)/0.22),hsl(var(--primary)/0.05),hsl(var(--brand-from)/0.3))] opacity-60 blur-[80px] dark:opacity-80"
+      />
+
+      {/* Behind: the script. It is texture; the label carries the point. */}
+      <div aria-hidden className="relative w-[90%] -rotate-[1.5deg]">
+        <div className="overflow-hidden rounded-xl border border-white/10 bg-[#16161a] shadow-[0_20px_50px_-20px_rgb(0_0_0/0.5)]">
+          <div className="flex items-center gap-2.5 border-b border-white/10 px-4 py-3">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-red-500/20 text-red-400">
+              <X className="h-3.5 w-3.5" strokeWidth={3} />
+            </span>
+            <span className="whitespace-nowrap text-base font-semibold text-white sm:text-lg">By hand</span>
+            <span className="text-[13px] text-white/60 sm:text-base">{SCRIPT.length} lines, then the edge cases</span>
+          </div>
+          <pre className="overflow-hidden px-4 pb-28 pt-3 font-mono text-[9.5px] leading-[1.7] text-white/45 sm:text-[11px] lg:pb-32">
+            {SCRIPT.map(({ text, tone }) => (
+              <span key={text} className={cn("block", tone === "comment" && "text-white/30")}>
+                {text}
+              </span>
+            ))}
+          </pre>
+        </div>
+      </div>
+
+      {/* In front: the same job in Buckets, as three cropped steps */}
+      <div className="relative z-10 -mt-52 ml-auto w-[88%] lg:-mt-60">
+        {/* Solid backing: .surface is translucent in dark mode and the script would show through. */}
+        <div className="rounded-2xl bg-background">
+          <div className="surface shadow-frame rounded-2xl p-4 sm:p-5">
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">
+                <Check className="h-3.5 w-3.5" strokeWidth={3} />
+              </span>
+              <span className="text-base font-semibold text-foreground sm:text-lg">In Buckets</span>
+              <span className="text-sm text-muted-foreground sm:text-base">{STEPS.length} steps</span>
+            </div>
+            <ol className="mt-3 flex flex-col gap-3">
+              {STEPS.map(({ label, ...region }, n) => (
+                <li key={label}>
+                  <p className="mb-1.5 flex items-center gap-2 text-sm font-medium text-foreground">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-foreground text-[11px] font-semibold text-background">
+                      {n + 1}
+                    </span>
+                    {label}
+                  </p>
+                  <Crop {...region} priority={n === 0} />
+                </li>
+              ))}
+            </ol>
+          </div>
+        </div>
+        {/* The outcome, from the change window in the shot above (412 deleted). */}
+        <p className="absolute -bottom-5 -left-6 inline-flex items-center gap-2 rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background shadow-xl sm:-left-10 sm:text-base">
+          <Check className="h-4 w-4 text-emerald-400 dark:text-emerald-600" strokeWidth={3} />
+          412 deleted objects, back
+        </p>
+      </div>
+      <p className="mt-8 text-right text-xs text-muted-foreground/70">Shown with the app&apos;s sample data.</p>
     </div>
   );
 }
@@ -361,8 +449,7 @@ function HeroStage() {
       ref={ref}
       onPointerMove={onMove}
       onPointerLeave={onLeave}
-      className="hero-rise-soft relative mx-auto mt-14 w-full max-w-6xl [perspective:2200px] md:mt-16"
-      style={{ animationDelay: "520ms" }}
+      className="relative mx-auto mt-10 w-full max-w-6xl [perspective:2200px] md:mt-12"
     >
       {/* Glow behind the product frame */}
       <div
@@ -385,7 +472,6 @@ function HeroStage() {
           <div className="relative aspect-[4/3] overflow-hidden md:aspect-auto">
             <ProductShot
               name="workspace"
-              priority
               sizes="(max-width: 768px) 180vw, (max-width: 1200px) 100vw, 1150px"
               className="origin-top-left scale-[1.8] md:scale-100"
             />
@@ -453,10 +539,26 @@ export default function Hero() {
     <section id="hero" className="relative isolate overflow-hidden">
       <div aria-hidden className="bg-glow pointer-events-none absolute inset-0 -z-10" />
       <div aria-hidden className="bg-grid pointer-events-none absolute inset-0 -z-10" />
-      <div className="relative flex w-full flex-col items-center px-4 pb-16 pt-12 sm:px-6 md:pt-16 lg:px-8">
-        <HeroPill />
-        <HeroTitles />
-        <HeroCTA />
+      {/* Bottom padding is kept small so the top of the pain reel shows on the first screen. */}
+      <div className="relative flex w-full flex-col items-center px-4 pb-6 pt-10 sm:px-6 md:pt-12 lg:px-8">
+        <div className="grid w-full max-w-7xl grid-cols-[minmax(0,1fr)] items-center gap-x-12 gap-y-14 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+          <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+            <HeroEyebrow />
+            <HeroTitles />
+            <HeroCTA />
+          </div>
+          <HeroContrast />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** The animated workspace demo and the four trust facts. Sits below the pain reel. */
+export function HeroShowcase() {
+  return (
+    <section aria-label="Buckets in use" className="relative overflow-hidden px-4 pb-16 sm:px-6 lg:px-8">
+      <div className="flex w-full flex-col items-center">
         <HeroStage />
         <ProofStrip />
       </div>

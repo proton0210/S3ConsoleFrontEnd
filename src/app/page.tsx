@@ -5,13 +5,13 @@ import Features from "@/components/sections/features";
 import { FilmSection } from "@/components/film";
 import Footer from "@/components/sections/footer";
 import Header from "@/components/sections/header";
-import Hero from "@/components/sections/hero";
+import Hero, { HeroShowcase } from "@/components/sections/hero";
 import Pricing from "@/components/sections/pricing";
-import Ribbon from "@/components/sections/ribbon";
 import Security from "@/components/sections/security";
 import Tour from "@/components/sections/tour";
 import WhatsNew from "@/components/sections/whats-new";
 import Workflow from "@/components/sections/workflow";
+import WowReel from "@/components/sections/wow-reel";
 import { MotionProvider } from "@/components/motion-provider";
 import { StructuredData } from "@/components/structured-data";
 import { siteConfig } from "@/lib/config";
@@ -50,7 +50,8 @@ export default function Home() {
         <StructuredData type="video" data={filmSchema} />
         <Header />
         <Hero />
-        <Ribbon />
+        <WowReel />
+        <HeroShowcase />
         <FilmSection />
         <Tour />
         <WhatsNew />
