@@ -21,7 +21,7 @@ import { FaApple, FaLinux, FaWindows } from "react-icons/fa";
 import { WatchFilmButton } from "@/components/film";
 import { BorderBeam } from "@/components/magicui/border-beam";
 import { ProductShot } from "@/components/product-shot";
-import { PainStage, PainText, usePainRotation } from "@/components/sections/hero-pains";
+import { PAINS, PainCopy, PainStage, usePainRotation } from "@/components/sections/hero-pains";
 import { buttonVariants } from "@/components/ui/button";
 import { EASE_OUT, SPRING, useCalm } from "@/lib/motion";
 import { cn } from "@/lib/utils";
@@ -30,32 +30,11 @@ import { siteConfig } from "@/lib/config";
 
 /* ------------------------------------------------------------------ */
 /* First screen. A visitor decides in about five seconds, so this      */
-/* holds one fixed claim, one button, and one pain at a time with its  */
-/* fix and a short move on the real screenshot (see hero-pains.tsx).   */
+/* holds one button and one pain at a time: its headline, the pain,    */
+/* the fix and a short move on the real screenshot (hero-pains.tsx).   */
 /*                                                                     */
-/* Copy rules (docs/MARKETING_CLAIMS_AND_VALIDATION.md): no "one       */
-/* click" for restores (Time Travel has a review step), no hours-saved */
-/* or ROI numbers, and no other S3 client is named.                    */
+/* Copy rules are in docs/MARKETING_CLAIMS_AND_VALIDATION.md.          */
 /* ------------------------------------------------------------------ */
-type HeroVariant = "script" | "console" | "outcomes";
-
-// The accent is the only coloured text in the hero, so the download button
-// stays the strongest thing on the screen. It must end the last line.
-const HEADLINES: Record<HeroVariant, { lines: string[]; accent: string }> = {
-  // Default.
-  script: { lines: ["Do in a few clicks", "what S3 makes you script."], accent: "script." },
-  console: { lines: ["The S3 console", "you wish you had."], accent: "you wish you had." },
-  outcomes: { lines: ["Roll back S3 mistakes. Find any object.", "Across every account."], accent: "every account." },
-};
-
-// Set NEXT_PUBLIC_HERO_VARIANT to try another headline. It is read at build
-// time, so each variant is a separate deploy; the value is sent with the
-// download event so results can be compared.
-const HERO_VARIANT: HeroVariant = (() => {
-  const v = process.env.NEXT_PUBLIC_HERO_VARIANT;
-  return v === "console" || v === "outcomes" ? v : "script";
-})();
-
 const priceOf = (tier: string) => siteConfig.pricing.find((p) => p.tier === tier)?.price;
 
 function HeroEyebrow() {
@@ -77,29 +56,7 @@ function HeroEyebrow() {
   );
 }
 
-function HeroTitles() {
-  const { lines, accent } = HEADLINES[HERO_VARIANT];
-  return (
-    <>
-      {/* Entrance uses CSS (see .hero-rise) so the headline paints before hydration.
-          Sizes are set so the default headline stays on two lines from 640px up. */}
-      <h1 className="mt-5 text-balance text-[2.25rem] font-semibold leading-[1.06] tracking-[-0.045em] sm:text-5xl lg:text-[2.5rem] xl:text-[3.25rem]">
-        {lines.map((line, i) => {
-          const last = i === lines.length - 1;
-          const plain = last && line.endsWith(accent) ? line.slice(0, -accent.length) : line;
-          return (
-            <span key={line} className="hero-rise block" style={{ animationDelay: `${60 + i * 80}ms` }}>
-              <span className="text-gradient">{plain}</span>
-              {plain !== line && <span className="text-gradient-brand">{accent}</span>}
-            </span>
-          );
-        })}
-      </h1>
-    </>
-  );
-}
-
-function HeroCTA() {
+function HeroCTA({ slide }: { slide: string }) {
   const yearly = priceOf("yearly");
   const lifetime = priceOf("lifetime");
   const facts = [
@@ -112,7 +69,7 @@ function HeroCTA() {
       <div className="flex w-full flex-col items-center gap-x-5 gap-y-3 sm:w-auto sm:flex-row">
         <Link
           href="/downloads"
-          onClick={() => sendGAEvent("event", "hero_download_clicked", { hero_variant: HERO_VARIANT })}
+          onClick={() => sendGAEvent("event", "hero_download_clicked", { wow: slide })}
           className={cn(
             buttonVariants({ size: "lg" }),
             "group relative h-12 w-full overflow-hidden rounded-full px-7 text-base font-semibold transition-transform hover:scale-[1.03] active:scale-[0.97] sm:w-auto",
@@ -429,9 +386,8 @@ export default function Hero() {
         >
           <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
             <HeroEyebrow />
-            <HeroTitles />
-            <PainText rotation={rotation} />
-            <HeroCTA />
+            <PainCopy rotation={rotation} />
+            <HeroCTA slide={PAINS[rotation.i].id} />
           </div>
           <PainStage rotation={rotation} />
         </div>
